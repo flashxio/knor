@@ -21,6 +21,7 @@
 #define __KPM_UTILS_TYPES_HPP__
 
 namespace kpmeans { namespace utils {
-    enum conv_layout{ RAWROW, RAWCOL };
+enum conv_layout{ RAWROW, RAWCOL };
+
 } } // end namespace kmeans, utils
 #endif

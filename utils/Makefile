@@ -17,10 +17,10 @@
 
 include ../Makefile.common
 
-all: create_matrix convert_matrix test
-
 LDFLAGS += -L../libcommon -lcommon
 CXXFLAGS += -I../libcommon
+
+all: create_matrix convert_matrix test
 
 convert_matrix: convert.o convert_matrix.o
 	$(CXX) -o convert_matrix convert.o convert_matrix.o $(LDFLAGS)
