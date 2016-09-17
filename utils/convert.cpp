@@ -17,9 +17,12 @@
  * limitations under the License.
  */
 
+#include <boost/assert.hpp>
+
 #include "convert.hpp"
 #include "io.hpp"
 
+namespace kpmbase = kpmeans::base;
 namespace kpmeans { namespace utils {
 
 void to_spark(const std::string fn, std::ofstream& of,
@@ -31,7 +34,7 @@ void to_spark(const std::string fn, std::ofstream& of,
     double* outmat = new double [size];
     BOOST_LOG_TRIVIAL(info) << "Reading " << fn << ", with r:" << nrow
         << ", c: " << ncol;
-    bin_reader<double> b(fn, nrow, ncol);
+    kpmbase::bin_reader<double> b(fn, nrow, ncol);
     b.read(outmat);
 
     BOOST_LOG_TRIVIAL(info) << "Writing matrix ...";
@@ -58,7 +61,7 @@ void to_spark(const std::string fn, std::ofstream& of,
             }
             of << "\n";
         }
-    } else { assert(0); }
+    } else { BOOST_VERIFY(false); }
     delete [] outmat;
 }
 
@@ -71,7 +74,7 @@ void to_kmeans_par(const std::string fn, std::ofstream& of,
     double* outmat = new double [size];
     BOOST_LOG_TRIVIAL(info) << "Reading " << fn << ", with r:" << nrow
         << ", c: " << ncol;
-    bin_reader<double> b(fn, nrow, ncol);
+    kpmbase::bin_reader<double> b(fn, nrow, ncol);
     b.read(outmat);
 
     BOOST_LOG_TRIVIAL(info) << "Writing matrix ...";
@@ -100,7 +103,7 @@ void to_kmeans_par(const std::string fn, std::ofstream& of,
             }
             of << "\n";
         }
-    } else { assert(0); }
+    } else { BOOST_VERIFY(false); }
     delete [] outmat;
 }
 
@@ -112,7 +115,7 @@ void to_fg(const std::string fn, std::ofstream& of,
     double* outmat = new double [size];
     BOOST_LOG_TRIVIAL(info) << "Reading " << fn << ", with r:" << nrow
         << ", c: " << ncol;
-    bin_reader<double> b(fn, nrow, ncol);
+    kpmbase::bin_reader<double> b(fn, nrow, ncol);
     b.read(outmat);
 
     BOOST_LOG_TRIVIAL(info) << "Writing matrix ...";
@@ -136,7 +139,7 @@ void to_h2o(const std::string fn, std::ofstream& of,
     double* outmat = new double [size];
     BOOST_LOG_TRIVIAL(info) << "Reading " << fn << ", with r:" << nrow
         << ", c: " << ncol;
-    bin_reader<double> b(fn, nrow, ncol);
+    kpmbase::bin_reader<double> b(fn, nrow, ncol);
     b.read(outmat);
 
     BOOST_LOG_TRIVIAL(info) << "Writing matrix ...";
@@ -157,7 +160,7 @@ void to_h2o(const std::string fn, std::ofstream& of,
             }
             of << "\n";
         }
-    } else { assert(0); }
+    } else { BOOST_VERIFY(false); }
     delete [] outmat;
 }
 
