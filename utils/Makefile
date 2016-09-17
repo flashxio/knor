@@ -17,7 +17,7 @@
 
 include ../Makefile.common
 
-all: create_matrix convert_matrix
+all: create_matrix convert_matrix test
 
 LDFLAGS += -L../libcommon -lcommon
 CXXFLAGS += -I../libcommon
@@ -28,7 +28,7 @@ convert_matrix: convert.o convert_matrix.o
 create_matrix: create_matrix.o
 	$(CXX) -o create_matrix create_matrix.o $(LDFLAGS)
 
-test:
+test: convert_matrix
 	$(MAKE) -C test
 
 clean:
