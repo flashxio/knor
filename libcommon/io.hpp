@@ -60,80 +60,6 @@ void print_arr(const T* arr, const unsigned len) {
     printf("]\n");
 }
 
-double get_bic(const std::vector<double>& dist_v, const unsigned nrow,
-        const unsigned ncol, const unsigned k) {
-        double bic = 0;
-#pragma omp parallel for reduction(+:bic) shared (dist_v)
-    for (unsigned i = 0; i < dist_v.size(); i++) {
-        bic += (dist_v[i] );
-    }
-    printf("Distance sum: %f\n", bic);
-
-    return 2*bic + log(nrow)*ncol*k;
-}
-
-void spherical_projection(double* data, const unsigned nrow,
-    const unsigned ncol) {
-#pragma omp parallel for shared (data)
-    for (unsigned row = 0; row < nrow; row++) {
-        double norm2 = 0;
-        for (unsigned col = 0; col < ncol; col++)
-            norm2 += (data[row]*data[row]);
-        sqrt(norm2);
-        for (unsigned col = 0; col < ncol; col++)
-            data[col] = data[col]/norm2;
-    }
-}
-
-// Vector equal function
-template <typename T>
-static bool v_eq(const T& lhs, const T& rhs) {
-    return std::equal(lhs.begin(), lhs.end(), rhs.begin());
-}
-
-template <typename T>
-const bool v_eq_const(const std::vector<T>& v, const T var) {
-    for (unsigned i=0; i < v.size(); i++) {
-        if (v[i] != var) return false;
-    }
-    return true;
-}
-
-template <typename T>
-bool eq_all(const T* v1, const T* v2, const unsigned len) {
-    return (std::equal(&v1[0], &(v1[len-1]), &v2[0]));
-}
-
-template <typename T>
-const double eucl_dist(const T* lhs, const T* rhs,
-        const unsigned size) {
-    double dist = 0;
-    double diff;
-
-    for (unsigned col = 0; col < size; col++) {
-        diff = lhs[col] - rhs[col];
-        dist += diff * diff;
-    }
-    return sqrt(dist);
-}
-
-template<typename T>
-const double cos_dist(const T* lhs, const T* rhs,
-        const unsigned size) {
-    T numr, ldenom, rdenom;
-    numr = ldenom = rdenom = 0;
-
-    for (unsigned col = 0; col < size; col++) {
-        T a = lhs[col];
-        T b = rhs[col];
-
-        numr += a*b;
-        ldenom += a*a;
-        rdenom += b*b;
-    }
-    return  1 - (numr / ((sqrt(ldenom)*sqrt(rdenom))));
-}
-
 template <typename T>
 void print_vector(typename std::vector<T> v, unsigned max_print=100) {
     unsigned print_len = v.size() > max_print ? max_print : v.size();
@@ -227,16 +153,16 @@ getObjectRequest.SetBucket("sample_bucket");
 getObjectRequest.SetKey("sample_key");
 getObjectRequest.SetResponseStreamFactory(
     [](){
-        return Aws::New(ALLOCATION_TAG, DOWNLOADED_FILENAME, std::ios_base::out | std::ios_base::in | std::ios_base::trunc);
+        return Aws::New(ALLOCATION_TAG, DOWNLOADED_FILENAME,
+            std::ios_base::out | std::ios_base::in | std::ios_base::trunc);
     });
 auto getObjectOutcome = s3Client.GetObject(getObjectRequest);
-if(getObjectOutcome.IsSuccess())
-{
+if(getObjectOutcome.IsSuccess()) {
     std::cout << "File downloaded from S3 to location " << DOWNLOADED_FILENAME;
 }
-else
-{
-    std::cout << "File download failed from s3 with error " << getObjectOutcome.GetError().GetMessage();
+else {
+    std::cout << "File download failed from s3 with error "
+        << getObjectOutcome.GetError().GetMessage();
 }
 #endif
 

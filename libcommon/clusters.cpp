@@ -19,6 +19,7 @@
 
 #include <boost/assert.hpp>
 
+#include "io.hpp"
 #include "util.hpp"
 #include "clusters.hpp"
 
