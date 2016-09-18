@@ -17,6 +17,9 @@
 
 include ../../Makefile.common
 
+LDFLAGS := -L../../libcommon -lcommon $(LDFLAGS)
+CXXFLAGS := -I../../libcommon $(CXXFLAGS)
+
 all: read_rrow_data
 
 read_rrow_data: read_rrow_data.o

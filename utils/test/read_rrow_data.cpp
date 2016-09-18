@@ -23,17 +23,8 @@
 #include <stdio.h>
 
 #include <iostream>
-#include <cassert>
-
-namespace {
-    void print_arr(const double* arr, const size_t num_cols) {
-        printf("[ ");
-        for (size_t i = 0; i < num_cols; i++) {
-            std::cout << arr[i] << " ";
-        }
-        printf("]\n");
-    }
-}
+#include <boost/assert.hpp>
+#include "io.hpp"
 
 int main(int argc, char* argv []) {
 
@@ -56,10 +47,12 @@ int main(int argc, char* argv []) {
     double in [num_cols];
 
     for (size_t i = 0; i < num_rows; i++) {
-        assert(fread(&(in[0]), sizeof(double), num_cols, f));
+        BOOST_VERIFY(fread(&(in[0]), sizeof(double), num_cols, f));
 
         printf("Row: %lu ==> ", i);
-        print_arr(in, num_cols);
+#if 1
+        kpmeans::base::print_arr<double>(in, num_cols);
+#endif
     }
     fclose(f);
 
