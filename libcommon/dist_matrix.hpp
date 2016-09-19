@@ -22,6 +22,7 @@
 
 #include <memory>
 #include <limits>
+#include <vector>
 
 namespace kpmeans { namespace prune {
     class prune_clusters;
@@ -60,7 +61,8 @@ public:
     void set(unsigned row, unsigned col, double val);
 
     void print();
-    void compute_dist(std::shared_ptr<km::prune_clusters> cls, const unsigned ncol);
+    void compute_dist(kpmeans::base::prune_clusters::ptr cl,
+            const unsigned ncol);
 };
 } } // End namespace kpmeans, prune
 #endif
