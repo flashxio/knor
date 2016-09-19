@@ -23,6 +23,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include <sys/time.h>
 
 #include <vector>
 #include <iostream>
@@ -34,29 +35,9 @@
 namespace kpmeans { namespace base {
 
 double get_bic(const std::vector<double>& dist_v, const unsigned nrow,
-        const unsigned ncol, const unsigned k) {
-        double bic = 0;
-#pragma omp parallel for reduction(+:bic) shared (dist_v)
-    for (unsigned i = 0; i < dist_v.size(); i++) {
-        bic += (dist_v[i] );
-    }
-    printf("Distance sum: %f\n", bic);
-
-    return 2*bic + log(nrow)*ncol*k;
-}
-
+        const unsigned ncol, const unsigned k);
 void spherical_projection(double* data, const unsigned nrow,
-        const unsigned ncol) {
-#pragma omp parallel for shared (data)
-    for (unsigned row = 0; row < nrow; row++) {
-        double norm2 = 0;
-        for (unsigned col = 0; col < ncol; col++)
-            norm2 += (data[row]*data[row]);
-        sqrt(norm2);
-        for (unsigned col = 0; col < ncol; col++)
-            data[col] = data[col]/norm2;
-    }
-}
+        const unsigned ncol);
 
 // Vector equal function
 template <typename T>
@@ -106,6 +87,9 @@ const double cos_dist(const T* lhs, const T* rhs,
     }
     return  1 - (numr / ((sqrt(ldenom)*sqrt(rdenom))));
 }
+
+float time_diff(struct timeval time1, struct timeval time2);
+int get_num_omp_threads();
 
 } } // End namespace kpmeans, base
 #endif
