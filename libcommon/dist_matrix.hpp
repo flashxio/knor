@@ -23,6 +23,7 @@
 #include <memory>
 #include <limits>
 #include <vector>
+#include "clusters.hpp"
 
 namespace kpmeans { namespace prune {
     class prune_clusters;
