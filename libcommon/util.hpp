@@ -88,6 +88,24 @@ const double cos_dist(const T* lhs, const T* rhs,
     return  1 - (numr / ((sqrt(ldenom)*sqrt(rdenom))));
 }
 
+/** /brief Choose the correct distance function and return it
+ * /param arg0 A pointer to data
+ * /param arg1 Another pointer to data
+ * /param len The number of elements used in the comparison
+ * /return the distance based on the chosen distance metric
+ */
+template <typename T>
+T dist_comp_raw(const T* arg0, const T* arg1,
+        const unsigned len, dist_type_t dt) {
+    if (dt == dist_type_t::EUCL)
+        return eucl_dist<T>(arg0, arg1, len);
+    else if (dt == dist_type_t::COS)
+        return cos_dist(arg0, arg1, len);
+    else
+        BOOST_ASSERT_MSG(false, "Unknown distance metric!");
+    exit(EXIT_FAILURE);
+}
+
 float time_diff(struct timeval time1, struct timeval time2);
 int get_num_omp_threads();
 
