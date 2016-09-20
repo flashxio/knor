@@ -21,9 +21,9 @@ all: build_lib utils
 
 build_lib:
 	$(MAKE) -C libcommon
-	$(MAKE) -C libauto
-	$(MAKE) -C libman
-	#$(MAKE) -C process
+	$(MAKE) -C libauto # OMP
+	$(MAKE) -C libman # pthreads
+	#$(MAKE) -C libdist # MPI
 
 utils: build_lib
 	$(MAKE) -C utils
@@ -36,6 +36,6 @@ clean:
 	make --ignore-errors -C utils clean
 	make --ignore-errors -C libauto clean
 	make --ignore-errors -C libman clean
-	#make --ignore-errors -C process clean
+	#make --ignore-errors -C libdist clean
 
 -include $(DEPS)
