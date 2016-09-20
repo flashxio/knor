@@ -19,10 +19,6 @@
 
 #include <string.h>
 #include <limits>
-//#include <iostream>
-//#include <boost/assert.hpp>
-//#include <boost/log/trivial.hpp>
-//#include "util.hpp"
 #include "io.hpp"
 #include "thd_safe_bool_vector.hpp"
 
