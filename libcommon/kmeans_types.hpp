@@ -19,7 +19,12 @@
 
 #ifndef __KPM_TYPES_HPP__
 #define __KPM_TYPES_HPP__
+
+#include <limits>
+
 namespace kpmeans { namespace base {
+    static const unsigned INVALID_CLUSTER_ID =
+        std::numeric_limits<unsigned>::max();
     enum kms_stage_t { INIT, ESTEP }; // What phase of the algo we're in
     enum dist_type_t { EUCL, COS }; // Euclidean, Cosine distance
     enum init_type_t { RANDOM, FORGY, PLUSPLUS, NONE }; // May have to use
