@@ -21,7 +21,8 @@ all: build_lib utils
 
 build_lib:
 	$(MAKE) -C libcommon
-	#$(MAKE) -C thread
+	$(MAKE) -C libauto
+	$(MAKE) -C libman
 	#$(MAKE) -C process
 
 utils: build_lib
@@ -32,8 +33,9 @@ clean:
 	rm -f *.o
 	rm -f *~
 	make --ignore-errors -C libcommon clean
-	#make --ignore-errors -C thread clean
-	#make --ignore-errors -C process clean
 	make --ignore-errors -C utils clean
+	make --ignore-errors -C libauto clean
+	make --ignore-errors -C libman clean
+	#make --ignore-errors -C process clean
 
 -include $(DEPS)

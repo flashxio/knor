@@ -21,11 +21,11 @@ OMP_FLAG = -fopenmp
 LDFLAGS += -L../libcommon -lcommon
 CXXFLAGS += -I../libcommon -I..
 
-all: libkpmomp
+all: libauto
 
-libkpmomp: $(OBJS)
-	rm -f libkpmomp.a
-	ar -cvq libkpmomp.a $(OBJS)
+libauto: $(OBJS)
+	rm -f libauto.a
+	ar -cvq libauto.a $(OBJS)
 
 unit-test:
 	$(MAKE) -C unit-test
@@ -37,6 +37,6 @@ clean:
 	rm -f *.d
 	rm -f *.o
 	rm -f *~
-	rm -f libkpmomp.a
+	rm -f libauto.a
 
 -include $(DEPS)
