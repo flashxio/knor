@@ -21,6 +21,9 @@
 #include <boost/assert.hpp>
 
 #include "kmeans_thread.hpp"
+#include "kmeans_types.hpp"
+#include "util.hpp"
+#include "io.hpp"
 #include "clusters.hpp"
 
 namespace kpmeans {

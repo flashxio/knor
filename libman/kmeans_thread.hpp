@@ -23,20 +23,17 @@
 #include "base_kmeans_thread.hpp"
 #include "thread_state.hpp"
 
-namespace kpmbase = kpmeans::base;
-
-/*
 namespace kpmeans { namespace base {
     class clusters;
 } }
-*/
+namespace kpmbase = kpmeans::base;
+
 
 namespace kpmeans {
 class kmeans_thread : public base_kmeans_thread {
     private:
          // Pointer to global cluster data
-        /*std::shared_ptr<kpmbase::clusters> g_clusters;*/
-        kpmbase::clusters::ptr g_clusters;
+        std::shared_ptr<kpmbase::clusters> g_clusters;
         unsigned nprocrows; // How many rows to process
 
         kmeans_thread(const int node_id, const unsigned thd_id, const unsigned start_rid,
@@ -48,8 +45,8 @@ class kmeans_thread : public base_kmeans_thread {
 
         static ptr create(const int node_id, const unsigned thd_id,
                 const unsigned start_rid, const unsigned nprocrows,
-                /*std::shared_ptr<kpmbase::clusters> g_clusters,*/
-                const unsigned ncol, kpmbase::clusters::ptr g_clusters,
+                const unsigned ncol,
+                std::shared_ptr<kpmbase::clusters> g_clusters,
                 unsigned* cluster_assignments, const std::string fn) {
             return ptr(new kmeans_thread(node_id, thd_id, start_rid,
                         nprocrows, ncol, g_clusters,
