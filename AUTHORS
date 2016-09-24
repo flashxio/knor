@@ -1,0 +1,35 @@
+Authors of Elemental
+====================
+(Roughly in order of chronological contributions)
+
+Jack Poulson:
+  Project founder and lead developer.
+
+Matthias Petschow, Paolo Bientinesi, and RWTH Aachen University:
+  The PMRRR library for hybrid symmetric tridiagonal eigensolutions and a bug
+  fix for the Grid class.
+
+Univ. of Tennessee, Univ. of California Berkeley, and NAG Ltd.:
+  Several of the serial routines used within PMRRR.
+
+Jeff Hammond and Argonne National Laboratory:
+  Several bug fixes and toolchain files for BlueGene/P and BlueGene/Q, and an 
+  improvement for Elemental's threading support.
+
+Bryan Marker and The University of Texas at Austin (via DxTer):
+  Several significant performance improvements for Trmm, Trsm, and Hegst.
+
+Jed Brown and Argonne National Laboratory:
+  Fixed several problems with Elemental installation,
+  as well as fixing an MPI_Group leakage in the Grid class.
+
+Martin Schatz and The University of Texas at Austin:
+  The experimental 3D Gemm and the AxpyInterface class for easily filling 
+  distributed matrices.
+
+Michael Grant:
+  The SWIG Python interface and a large number of bugfixes.
+
+Jiahao Chen and Jake Bolewski:
+  Travis configuration and several extensions to the CMake build system
+  (e.g., better Python detection, CTest support, and bug fixes)
