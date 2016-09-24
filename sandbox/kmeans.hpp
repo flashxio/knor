@@ -487,6 +487,8 @@ kmeans_t<T> run_kmeans(El::DistMatrix<T, El::VC, El::STAR>& data,
     El::mpi::Comm comm = El::mpi::COMM_WORLD;
 
     while (perc_changed > tol && iters < max_iters) {
+        El::Zero(assignment_count); // Reset
+
         if (rank == root)
             El::Output("Running  iteration ", iters, " ...\n");
 
@@ -510,7 +512,6 @@ kmeans_t<T> run_kmeans(El::DistMatrix<T, El::VC, El::STAR>& data,
             if (rank == root) {
                 El::Output("Algorithm converged in ", iters,
                         " iterations!");
-                El::Print(assignment_count, "\nFinal assingment count");
             }
             break;
         }
@@ -532,7 +533,6 @@ kmeans_t<T> run_kmeans(El::DistMatrix<T, El::VC, El::STAR>& data,
         // Reset
         nchanged = 0;
         El::Zero(local_centroids);
-        El::Zero(assignment_count);
     }
 
     // Get the centroid assignments to the root
@@ -542,6 +542,7 @@ kmeans_t<T> run_kmeans(El::DistMatrix<T, El::VC, El::STAR>& data,
 
 #if 1
     if (rank == root) {
+        El::Print(assignment_count, "\nFinal assingment count");
         El::Output("Centroid assignment:");
         skyutil::pretty_printer<El::Unsigned>::
             print_vector(gl_centroid_assignments);
