@@ -6,7 +6,7 @@
 #include "pretty_printer.hpp"
 
 #define root 0
-#define KM_DEBUG 0
+#define KM_DEBUG 1
 #define INVALID_ID UINT_MAX
 
 /*******************************************/
@@ -45,10 +45,44 @@ void row_mean(const El::Matrix<T>& from_mat,
 }
 
 /**
+  * \param counts: Assume its a 1 X K
+  * TODO: Test perf vs buffer access
+  *
+  */
+template <typename T>
+void col_mean(El::Matrix<T>& mat, const El::Matrix<El::Int>& counts) {
+    assert(counts.Width() == mat.Width());
+    // Division by row
+    for (El::Unsigned col = 0; col < mat.Width(); col++) {
+        for (El::Unsigned row = 0; row < mat.Height(); row++) {
+            // Update global clusters
+            if (counts.Get(0, col) > 0)
+                mat.Set(row, col, mat.Get(row, col)
+                        / counts.Get(0, col));
+        }
+    }
+}
+
+template <typename T>
+void col_mean_raw(El::Matrix<T>& mat, const El::Matrix<El::Int>& counts) {
+    assert(counts.Width() == mat.Width());
+    T* buff = mat.Buffer();
+    El::Unsigned Height = mat.Height();
+    // Division by row
+    for (El::Unsigned col = 0; col < mat.Width(); col++) {
+        for (El::Unsigned row = 0; row < mat.Height(); row++) {
+            // Update global clusters
+            if (counts.Get(0, col) > 0)
+                buff[col*Height + row] /= counts.Get(0, col);
+        }
+    }
+}
+
+/**
   Used to generate the a stream of random numbers on every processor but
   allow for a parallel and serial impl to generate identical results.
     NOTE: This only works if the data is distributed to processors in the
-  same fashion as El::VC, El::STAR
+  same fashion as <El::VC, El::STAR> or <El::STAR, El::VC>
 **/
 template <typename T>
 class mpi_random_generator {
@@ -186,50 +220,74 @@ void kmeanspp_init(const El::DistMatrix<T, El::VC, El::STAR>& data,
 }
 
 template <typename T>
-void init_centroids(El::Matrix<T>& centroids, const El::DistMatrix<T, El::VC,
-        El::STAR>& data, init_t init, const El::Unsigned k,
-        const size_t nrow, const size_t ncol, const El::Unsigned seed,
+void init_centroids(El::Matrix<T>& centroids, const El::DistMatrix<T,
+        El::STAR, El::VC>& data, init_t init, const El::Unsigned seed,
         std::vector<El::Unsigned>& centroid_assignment,
-        El::Matrix<El::Int>& assignment_count, const El::Unsigned rank) {
-    El::Unsigned nprocs = El::mpi::Size(El::mpi::COMM_WORLD);
+        El::Matrix<El::Int>& assignment_count) {
 
+    El::Unsigned nprocs = El::mpi::Size(El::mpi::COMM_WORLD);
+    El::Unsigned nsamples = data.Width();
+    El::Unsigned dim = data.Height();
+    El::Unsigned k = centroids.Width();
+    El::Unsigned rank = data.DistRank();
+
+#if KM_DEBUG
+    if (rank == root)
+        El::Output("nprocs: ", nprocs, ", nsamples: ", nsamples, ", dim: ", dim,
+                ", k:", k, ", rank:", rank);
+#endif
     switch(init) {
         case init_t::RANDOM: {
             // Get the local data first
             El::Matrix<double> local_data = data.LockedMatrix();
             mpi_random_generator<El::Unsigned> gen(0, k-1, rank, nprocs, seed);
-            for (El::Unsigned row = 0; row < local_data.Height(); row++) {
+            for (El::Unsigned col = 0; col < local_data.Width(); col++) {
                 El::Unsigned chosen_centroid_id = gen.next();
 
 #if KM_DEBUG
-                El::Output("Row: ", data.GlobalRow(row),
+                El::Output("Point: ", data.GlobalCol(col),
                         " chose c: ", chosen_centroid_id);
 #endif
 
                 // Add row to local clusters
-                centroids(El::IR(chosen_centroid_id,
-                            chosen_centroid_id+1), El::IR(0, ncol)) +=
-                    local_data(El::IR(row, (row+1)), El::IR(0, ncol));
+                centroids(El::IR(0, dim),
+                        El::IR(chosen_centroid_id, chosen_centroid_id+1)) +=
+                    local_data(El::IR(0, dim), El::IR(col, col+1));
 
                 // Increase cluster count
                 assignment_count.Set(0, chosen_centroid_id,
                         assignment_count.Get(0, chosen_centroid_id) + 1);
 
                 // Note the rows membership
-                centroid_assignment[row] = chosen_centroid_id;
+                centroid_assignment[col] = chosen_centroid_id;
+            }
+
+            if (rank == root) {
+                El::Print(centroids, "\nLocal centroids pre-reduce");
+                skyutil::pretty_printer<El::Unsigned>(centroid_assignment);
             }
 
             // Now we must merge per proc centroids
             El::AllReduce(centroids, El::mpi::COMM_WORLD, El::mpi::SUM);
             El::AllReduce(assignment_count, El::mpi::COMM_WORLD, El::mpi::SUM);
 
+            if (rank == root) {
+                El::Output("Post-reduce Dim centroids = (", centroids.Height(),
+                        ", ", centroids.Width(), ")");
+                El::Output("Post-reduce Dim assignment_count = (",
+                        assignment_count.Height(), ", ",
+                        assignment_count.Width(), ")");
+                El::Print(centroids, "Local centroids post-reduce");
+            }
+
             // Get the means of the global centroids
-            row_mean(centroids, centroids, assignment_count);
+            col_mean_raw(centroids, assignment_count);
             // Reset the assignment count
             El::Zero(assignment_count);
         }
         break;
         case init_t::FORGY: {
+#if 0
             El::Zeros(centroids, k, ncol);
             El::Matrix<T> local_data = data.LockedMatrix();
 
@@ -253,13 +311,18 @@ void init_centroids(El::Matrix<T>& centroids, const El::DistMatrix<T, El::VC,
 
             // Make sure all procs have the same centroids
             El::AllReduce(centroids, El::mpi::COMM_WORLD, El::mpi::SUM);
+#endif
+            throw std::runtime_error("Not yet implemented");
         }
         break;
         case init_t::NONE:
             // Do Nothing
             break;
         case init_t::PLUSPLUS:
+#if 0
             kmeanspp_init(data, centroids, seed, k);
+#endif
+            throw std::runtime_error("Not yet implemented");
             break;
         case init_t::BARBAR:
             throw std::runtime_error("Not yet implemented");
@@ -444,7 +507,8 @@ public:
 /**
   * Driver for the kmeans algorithm.
   *
-  * @param data: A distributed matrix
+  * @param data: A distributed matrix with each column representing a single
+  *     vertex/data point
   * @param centroids: The cluster centroids or centers.
   * @param k: The number of clusters.
   * @param tol: The tolerance is the minimum percent change of membership
@@ -455,29 +519,29 @@ public:
   * @param rank: The number of parallel processes running.
   */
 template<typename T>
-kmeans_t<T> run_kmeans(El::DistMatrix<T, El::VC, El::STAR>& data,
+kmeans_t<T> run_kmeans(El::DistMatrix<T, El::STAR, El::VC>& data,
         El::Matrix<T>& centroids, const El::Unsigned k,
         const double tol, const std::string init,
-        const El::Int seed, const El::Unsigned max_iters,
-        const El::Unsigned rank) {
+        const El::Int seed, const El::Unsigned max_iters) {
     El::Unsigned nchanged = 0;
-    El::Unsigned ncol = data.Width();
+
+    El::Unsigned nsamples = data.Width();
+    El::Unsigned rank = data.DistRank();
 
     clock_t t = clock();
 
-    // Count # points in a each centroid per proc
+    // Count # points in each centroid per proc
     El::Matrix<El::Int> assignment_count(1, k);
     El::Zero(assignment_count);
 
-    El::Matrix<T> local_centroids(k, ncol);
+    El::Matrix<T> local_centroids(nsamples, k);
     El::Zero(local_centroids);
 
     std::vector<El::Unsigned> centroid_assignment;
-    centroid_assignment.assign(data.LocalHeight(), INVALID_ID);
+    centroid_assignment.assign(nsamples, INVALID_ID);
 
     init_centroids<T>(centroids, data, get_init_type(init),
-            k, data.Height(), ncol, seed, centroid_assignment,
-            assignment_count, rank);
+            seed, centroid_assignment, assignment_count);
 
     // Run iterations
     double perc_changed = std::numeric_limits<double>::max();
