@@ -10,7 +10,7 @@ int main(int argc, char* argv[]) {
 
     try {
         const std::string data_fn =
-            El::Input<std::string>("--f","datafile (TSV)","");
+            El::Input<std::string>("-f","datafile (TSV)","");
         const El::Unsigned k = El::Input("-k","number of clusters",2);
         const size_t nsamples =
             El::Input("-n","number of samples in data",10);
@@ -30,9 +30,8 @@ int main(int argc, char* argv[]) {
         El::Grid grid(comm);
         El::Unsigned rank = El::mpi::Rank(comm);
 
-        El::Matrix<double> centroids(dim, k);
-        El::Zero(centroids);
         El::DistMatrix<double, El::STAR, El::VC> data;
+        El::Matrix<double> centroids;
 
         if (!data_fn.empty()) {
             El::Read(data, data_fn, El::ASCII);
@@ -40,8 +39,7 @@ int main(int argc, char* argv[]) {
             if (rank == root) El::Output("Read complete for proc: ", rank);
             El::Print(data, "Data:");
 #endif
-        }
-        else {
+        } else {
             El::Output("Creating random data:");
             El::Uniform(data, dim, nsamples);
         }
@@ -49,7 +47,13 @@ int main(int argc, char* argv[]) {
         if (!centroid_fn.empty()) {
             init = "none";
             El::Read(centroids, centroid_fn, El::ASCII);
+        } else {
+            El::Zeros(centroids, data.Height(), k);
         }
+
+        // Do some checking
+        assert(data.Height() == centroids.Height());
+        assert(k == centroids.Width());
 
         if (rank == root) El::Output("Starting k-means ...");
         skyml::run_kmeans<double>(data, centroids, k,
