@@ -6,7 +6,7 @@
 #include "pretty_printer.hpp"
 
 #define root 0
-#define KM_DEBUG 1
+#define KM_DEBUG 0
 #define INVALID_ID UINT_MAX
 
 /*******************************************/
@@ -24,56 +24,23 @@ enum init_t {
     NONE
 };
 
-/**
- * Given a matrix of n X m
- */
 template <typename T>
-void row_mean(const El::Matrix<T>& from_mat,
-        El::Matrix<T>& to_mat, const El::Matrix<El::Int>& counts) {
-    assert(counts.Width() == to_mat.Height());
-    // Division by row
-    for (El::Unsigned cl = 0; cl < to_mat.Height(); cl++) {
-        for (El::Unsigned col = 0; col < to_mat.Width(); col++) {
-            // Update global clusters
-            if (counts.Get(0, cl) > 0)
-                to_mat.Set(cl, col, from_mat.Get(cl, col)
-                        / counts.Get(0, cl));
-            else
-                to_mat.Set(cl, col, from_mat.Get(cl, col));
-        }
-    }
-}
-
-/**
-  * \param counts: Assume its a 1 X K
-  * TODO: Test perf vs buffer access
-  *
-  */
-template <typename T>
-void col_mean(El::Matrix<T>& mat, const El::Matrix<El::Int>& counts) {
+void col_mean_raw(El::Matrix<T>& mat, El::Matrix<T>& outmat,
+        const El::Matrix<El::Int>& counts) {
     assert(counts.Width() == mat.Width());
-    // Division by row
-    for (El::Unsigned col = 0; col < mat.Width(); col++) {
-        for (El::Unsigned row = 0; row < mat.Height(); row++) {
-            // Update global clusters
-            if (counts.Get(0, col) > 0)
-                mat.Set(row, col, mat.Get(row, col)
-                        / counts.Get(0, col));
-        }
-    }
-}
 
-template <typename T>
-void col_mean_raw(El::Matrix<T>& mat, const El::Matrix<El::Int>& counts) {
-    assert(counts.Width() == mat.Width());
     T* buff = mat.Buffer();
+    T* outbuff = outmat.Buffer();
     El::Unsigned Height = mat.Height();
     // Division by row
     for (El::Unsigned col = 0; col < mat.Width(); col++) {
         for (El::Unsigned row = 0; row < mat.Height(); row++) {
             // Update global clusters
             if (counts.Get(0, col) > 0)
-                buff[col*Height + row] /= counts.Get(0, col);
+                outbuff[col*Height + row] =
+                    buff[col*Height + row] / counts.Get(0, col);
+            else
+                outbuff[col*Height + row] = buff[col*Height + row];
         }
     }
 }
@@ -118,18 +85,12 @@ private:
     El::Unsigned _rank;
 };
 
-/* arg0 and arg1 are data buffers stored in column major format
-    NOTE: Note the access pattern of arg0 and arg1 are cache inefficient
-*/
 template <typename T>
-T euclidean_distance(const T* arg0, const El::Int arg0_height,
-        const T* arg1, const El::Int arg1_height, const El::Int width) {
+T euclidean_distance(const T* arg0, const T* arg1, const El::Unsigned len) {
     T dist = 0;
-    size_t numprocd = 0;
-    while (numprocd < width) {
-        T _dist = arg0[numprocd*arg0_height] - arg1[numprocd*arg1_height];
+    for (El::Unsigned i = 0; i < len; i++) {
+        T _dist = arg0[i] - arg1[i];
         dist += (_dist*_dist);
-        numprocd++;
     }
     return std::sqrt(dist);
 }
@@ -138,6 +99,7 @@ template <typename T>
 void kmeanspp_init(const El::DistMatrix<T, El::VC, El::STAR>& data,
         El::Matrix<T>& centroids, const El::Unsigned seed,
         const El::Unsigned k) {
+#if 0
     El::Matrix<T> local_data = data.LockedMatrix();
     // NOTE: Will fail if every proc doesn't have enough mem for this!
     El::Matrix<T> dist_v(1, data.Height());
@@ -217,6 +179,7 @@ void kmeanspp_init(const El::DistMatrix<T, El::VC, El::STAR>& data,
         }
         assert(cuml_dist <= 0);
     }
+#endif
 }
 
 template <typename T>
@@ -226,17 +189,17 @@ void init_centroids(El::Matrix<T>& centroids, const El::DistMatrix<T,
         El::Matrix<El::Int>& assignment_count) {
 
     El::Unsigned nprocs = El::mpi::Size(El::mpi::COMM_WORLD);
-    El::Unsigned nsamples = data.Width();
     El::Unsigned dim = data.Height();
     El::Unsigned k = centroids.Width();
     El::Unsigned rank = data.DistRank();
 
 #if KM_DEBUG
     if (rank == root)
-        El::Output("nprocs: ", nprocs, ", nsamples: ", nsamples, ", dim: ", dim,
-                ", k:", k, ", rank:", rank);
+        El::Output("nprocs: ", nprocs, ", dim: ", dim, ", k:", k,
+                ", rank:", rank);
 #endif
-    switch(init) {
+
+    switch (init) {
         case init_t::RANDOM: {
             // Get the local data first
             El::Matrix<double> local_data = data.LockedMatrix();
@@ -249,7 +212,7 @@ void init_centroids(El::Matrix<T>& centroids, const El::DistMatrix<T,
                         " chose c: ", chosen_centroid_id);
 #endif
 
-                // Add row to local clusters
+                // Add sample to local clusters
                 centroids(El::IR(0, dim),
                         El::IR(chosen_centroid_id, chosen_centroid_id+1)) +=
                     local_data(El::IR(0, dim), El::IR(col, col+1));
@@ -262,26 +225,12 @@ void init_centroids(El::Matrix<T>& centroids, const El::DistMatrix<T,
                 centroid_assignment[col] = chosen_centroid_id;
             }
 
-            if (rank == root) {
-                El::Print(centroids, "\nLocal centroids pre-reduce");
-                skyutil::pretty_printer<El::Unsigned>(centroid_assignment);
-            }
-
             // Now we must merge per proc centroids
             El::AllReduce(centroids, El::mpi::COMM_WORLD, El::mpi::SUM);
             El::AllReduce(assignment_count, El::mpi::COMM_WORLD, El::mpi::SUM);
 
-            if (rank == root) {
-                El::Output("Post-reduce Dim centroids = (", centroids.Height(),
-                        ", ", centroids.Width(), ")");
-                El::Output("Post-reduce Dim assignment_count = (",
-                        assignment_count.Height(), ", ",
-                        assignment_count.Width(), ")");
-                El::Print(centroids, "Local centroids post-reduce");
-            }
-
             // Get the means of the global centroids
-            col_mean_raw(centroids, assignment_count);
+            col_mean_raw(centroids, centroids, assignment_count);
             // Reset the assignment count
             El::Zero(assignment_count);
         }
@@ -367,31 +316,29 @@ T sum(const El::Matrix<T>& mat) {
 }
 
 template <typename T>
-void naive_kmeans(const El::Matrix<T>& data, El::Matrix<T>& centroids,
-        El::Matrix<T>& local_centroids,
-        El::Matrix<El::Int>& assignment_count,
+void kmeans_iteration(const El::Matrix<T>& data, El::Matrix<T>& centroids,
+        El::Matrix<T>& local_centroids, El::Matrix<El::Int>& assignment_count,
         std::vector<El::Unsigned>& centroid_assignment,
         El::Unsigned& nchanged) {
     // Populate per process centroids and keep track of how many
-    const El::Unsigned k = centroids.Height();
-    const size_t ncol =  centroids.Width();
-    const size_t nrow = data.Height();
+    const El::Unsigned k = centroids.Width();
+    const size_t nsamples =  data.Width();
+    const size_t dim = data.Height();
 
 #if KM_DEBUG
     if (El::mpi::Rank(El::mpi::COMM_WORLD) == 0) {
-        El::Output("Process 0 has ", nrow, " rows");
+        El::Output("Process 0 has ", nsamples, " samples");
     }
 #endif
 
-    for (size_t row = 0; row < nrow; row++) {
+    for (size_t sample = 0; sample < nsamples; sample++) {
         El::Unsigned assigned_centroid_id = INVALID_ID;
         double dist = std::numeric_limits<double>::max();
         double best = std::numeric_limits<double>::max();
 
         for (El::Unsigned cl = 0; cl < k; cl++) {
-            dist = euclidean_distance<T>(data.LockedBuffer(row, 0),
-                    data.Height(), centroids.LockedBuffer(cl, 0),
-                    centroids.Height(), ncol);
+            dist = euclidean_distance<T>(data.LockedBuffer(0, sample),
+                    centroids.LockedBuffer(0, cl), dim);
             if (dist < best) {
                 best = dist;
                 assigned_centroid_id = cl;
@@ -401,40 +348,46 @@ void naive_kmeans(const El::Matrix<T>& data, El::Matrix<T>& centroids,
         assert(assigned_centroid_id != INVALID_ID);
 
         // Have I changed clusters ?
-        if (centroid_assignment[row] != assigned_centroid_id) {
+        if (centroid_assignment[sample] != assigned_centroid_id) {
 #if KM_DEBUG
-            El::Output("Row: ", row, " => OC: ", centroid_assignment[row],
+            El::Output("Sample: ", sample, " => OC: ",
+                    centroid_assignment[sample],
                     " NC: ", assigned_centroid_id, "\n");
 #endif
-            centroid_assignment[row] = assigned_centroid_id;
+            centroid_assignment[sample] = assigned_centroid_id;
             nchanged++;
         }
 
         // Add row to local clusters
-        local_centroids(El::IR(assigned_centroid_id,
-                    assigned_centroid_id+1), El::IR(0, ncol)) +=
-            data(El::IR(row, (row+1)), El::IR(0, ncol));
+        local_centroids(El::IR(0, dim),
+                El::IR(assigned_centroid_id, assigned_centroid_id+1)) +=
+            data(El::IR(0, dim), El::IR(sample, sample+1));
 
         // Increase cluster count
         assignment_count.Set(0, assigned_centroid_id,
                 assignment_count.Get(0, assigned_centroid_id) + 1);
     }
 
-    assert(sum(assignment_count) == data.Height());
+    assert(sum(assignment_count) == nsamples);
 }
 
 void get_global_assignments(const std::vector<El::Unsigned>&
         centroid_assignment, std::vector<El::Unsigned>&
-        gl_centroid_assignments, const size_t local_height) {
+        gl_centroid_assignments) {
     El::mpi::Comm comm = El::mpi::COMM_WORLD;
     El::Unsigned nprocs = El::mpi::Size(comm);
     El::Unsigned rank = El::mpi::Rank(comm);
 
-    // We could compute how many rows each proc has, but this is simpler
-    El::Matrix<El::Int> rpp;
-    El::Zeros(rpp, 1, nprocs);
-    rpp.Set(0, rank, local_height);
-    El::AllReduce(rpp, comm, El::mpi::SUM);
+    El::Matrix<El::Int> samples_per_proc; // samples per process
+    El::Zeros(samples_per_proc, 1, nprocs);
+    // Each proc assigns only its nsamples
+    samples_per_proc.Set(0, rank, centroid_assignment.size());
+    El::AllReduce(samples_per_proc, comm, El::mpi::SUM);
+
+#if KM_DEBUG
+    if (rank == root)
+        El::Print(samples_per_proc, "\nSamples per process: ");
+#endif
 
     std::vector<std::vector<El::Unsigned> > all_centroid_assignment(nprocs);
     if (rank != root) {
@@ -443,13 +396,13 @@ void get_global_assignments(const std::vector<El::Unsigned>&
     }
     else {
         for (El::Unsigned p = 0; p < nprocs; p++)
-            all_centroid_assignment[p].resize(rpp.Get(0, p));
+            all_centroid_assignment[p].resize(samples_per_proc.Get(0, p));
 
         // Copy the root for ease of accumulation
         all_centroid_assignment[root] = centroid_assignment;
         for (El::Unsigned srank = 1; srank < nprocs; srank++)
             El::mpi::Recv(&((all_centroid_assignment[srank])[0]),
-                    rpp.Get(0, srank), srank, comm);
+                    samples_per_proc.Get(0, srank), srank, comm);
 
         // Cache UNfriendly access pattern here
         for (size_t memb = 0; memb <
@@ -481,6 +434,7 @@ public:
     kmeans_t(std::vector<El::Unsigned>& gl_centroid_assignments,
             El::Int* assignment_count_buf, const size_t k,
             const El::Unsigned iters, El::Matrix<T>& centroids) {
+
         this->gl_centroid_assignments = gl_centroid_assignments;
         this->iters = iters;
         this->assignment_count.resize(k);
@@ -526,19 +480,21 @@ kmeans_t<T> run_kmeans(El::DistMatrix<T, El::STAR, El::VC>& data,
     El::Unsigned nchanged = 0;
 
     El::Unsigned nsamples = data.Width();
+    El::Unsigned nlocal_samples = data.LocalWidth();
     El::Unsigned rank = data.DistRank();
+    El::Unsigned dim = data.Height();
 
     clock_t t = clock();
 
-    // Count # points in each centroid per proc
+    // Count #samples in each centroid per proc
     El::Matrix<El::Int> assignment_count(1, k);
     El::Zero(assignment_count);
 
-    El::Matrix<T> local_centroids(nsamples, k);
+    El::Matrix<T> local_centroids(dim, k);
     El::Zero(local_centroids);
 
     std::vector<El::Unsigned> centroid_assignment;
-    centroid_assignment.assign(nsamples, INVALID_ID);
+    centroid_assignment.assign(nlocal_samples, INVALID_ID);
 
     init_centroids<T>(centroids, data, get_init_type(init),
             seed, centroid_assignment, assignment_count);
@@ -554,9 +510,9 @@ kmeans_t<T> run_kmeans(El::DistMatrix<T, El::STAR, El::VC>& data,
         El::Zero(assignment_count); // Reset
 
         if (rank == root)
-            El::Output("Running  iteration ", iters, " ...\n");
+            El::Output("Running iteration ", iters, " ...\n");
 
-        naive_kmeans<T>(data.LockedMatrix(), centroids, local_centroids,
+        kmeans_iteration<T>(data.LockedMatrix(), centroids, local_centroids,
                 assignment_count, centroid_assignment, nchanged);
         iters++;
 
@@ -570,7 +526,7 @@ kmeans_t<T> run_kmeans(El::DistMatrix<T, El::STAR, El::VC>& data,
         if (rank == root)
             El::Output("Global nchanged: ", nchanged);
 
-        perc_changed = (double)nchanged/data.Height(); //Global perc change
+        perc_changed = (double)nchanged/nsamples; //Global perc change
         if (perc_changed <= tol) {
             converged = true;
             if (rank == root) {
@@ -587,7 +543,7 @@ kmeans_t<T> run_kmeans(El::DistMatrix<T, El::STAR, El::VC>& data,
         // Aggregate all local centroids
         El::AllReduce(local_centroids, comm, El::mpi::SUM);
         // Get the means of the local centroids
-        row_mean(local_centroids, centroids, assignment_count);
+        col_mean_raw(local_centroids, centroids, assignment_count);
 
 #if KM_DEBUG
         if (rank == root)
@@ -601,8 +557,7 @@ kmeans_t<T> run_kmeans(El::DistMatrix<T, El::STAR, El::VC>& data,
 
     // Get the centroid assignments to the root
     std::vector<El::Unsigned> gl_centroid_assignments;
-    get_global_assignments(centroid_assignment,
-            gl_centroid_assignments, data.LocalHeight());
+    get_global_assignments(centroid_assignment, gl_centroid_assignments);
 
 #if 1
     if (rank == root) {
@@ -616,8 +571,8 @@ kmeans_t<T> run_kmeans(El::DistMatrix<T, El::STAR, El::VC>& data,
         El::Output("Algorithm failed to converge in ",
                 iters, " iterations\n");
 #endif
-    t = clock() - t;
 
+    t = clock() - t;
     if (rank == root)
         El::Output("\nK-means took ",((float)t)/CLOCKS_PER_SEC, "sec ...");
 
