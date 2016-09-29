@@ -22,8 +22,10 @@ CXX = g++
 CFLAGS = -g -O3 -fno-inline-functions -DSTATISTICS -DPROFILER
 CLANG_FLAGS = -Wno-attributes
 OMP_FLAG = -fopenmp
-LDFLAGS = -lpthread $(OMP_FLAG) -lboost_log
-CXXFLAGS = -g -O3 -I. -Wall -fPIC -std=c++0x $(CLANG_FLAGS) -DSTATISTICS -DBOOST_LOG_DYN_LINK $(OMP_FLAG)
+LDFLAGS =  -lnuma -lpthread $(OMP_FLAG) -lboost_log \
+		   -rdynamic -lrt -rdynamic -lhwloc
+CXXFLAGS = -g -O3 -I. -Wall -fPIC -std=c++0x $(CLANG_FLAGS) \
+		   -DSTATISTICS -DBOOST_LOG_DYN_LINK $(OMP_FLAG)
 ifdef PROF
 	LDFLAGS +=-lprofiler
 	CXXFLAGS += -DPROFILER
@@ -40,4 +42,5 @@ SOURCE := $(wildcard *.c) $(wildcard *.cpp)
 OBJS := $(patsubst %.c,%.o,$(patsubst %.cpp,%.o,$(SOURCE)))
 DEPS := $(patsubst %.o,%.d,$(OBJS))
 MISSING_DEPS := $(filter-out $(wildcard $(DEPS)),$(DEPS))
-MISSING_DEPS_SOURCES := $(wildcard $(patsubst %.d,%.c,$(MISSING_DEPS)) $(patsubst %.d,%.cc,$(MISSING_DEPS)))
+MISSING_DEPS_SOURCES := $(wildcard $(patsubst %.d,%.c,$(MISSING_DEPS)) \
+	$(patsubst %.d,%.cc,$(MISSING_DEPS)))
