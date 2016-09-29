@@ -25,6 +25,8 @@
 #include "io.hpp"
 
 //#define MIN_TASK_ROWS 8192 // TODO: Change
+namespace kpmbase = kpmeans::base;
+
 #define MIN_TASK_ROWS 2 // TODO: Change
 namespace kpmeans {
 template <typename T>

@@ -18,16 +18,16 @@
 include ../Makefile.common
 
 OMP_FLAG = -fopenmp
-LDFLAGS += -L../libcommon -lcommon -rdynamic -lnuma -lrt
+LDFLAGS = -L.. -L../libcommon -lcommon $(LDFLAGS)
 CXXFLAGS += -I../libcommon -I.. -I.
 
-all: libman
+all: libman unit_test
 
 libman: $(OBJS)
 	rm -f libman.a
 	ar -cvq libman.a $(OBJS)
 
-unit-test:
+unit_test:
 	$(MAKE) -C unit-test
 
 clean:
