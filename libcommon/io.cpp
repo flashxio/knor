@@ -17,6 +17,9 @@
  * limitations under the License.
  */
 
+#ifndef __KPM_IO_HPP__
+#define __KPM_IO_HPP__
+
 #include "io.hpp"
 
 namespace kpmeans { namespace base {
@@ -47,3 +50,4 @@ void store_cluster(const unsigned id, const double* data,
     fclose(f);
 }
 } } // End namespace kpmeans, base
+#endif
