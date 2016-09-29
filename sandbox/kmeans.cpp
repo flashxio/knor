@@ -30,13 +30,17 @@ int main(int argc, char* argv[]) {
         El::Grid grid(comm);
         El::Unsigned rank = El::mpi::Rank(comm);
 
-        El::DistMatrix<double, El::STAR, El::VC> data;
+        El::DistMatrix<double, El::STAR, El::VC> data(dim, nsamples);
         El::Matrix<double> centroids;
 
         if (!data_fn.empty()) {
-            El::Read(data, data_fn, El::ASCII);
+            //El::Read(data, data_fn, El::ASCII);
+            El::Read(data, data_fn, El::BINARY_FLAT);
+            if (rank == root) {
+                El::Output("Read complete for proc: ", rank);
+                El::Output("Dim: (", data.Height(), ", ", data.Width() ,")");
+            }
 #if KM_DEBUG
-            if (rank == root) El::Output("Read complete for proc: ", rank);
             El::Print(data, "Data:");
 #endif
         } else {

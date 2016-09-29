@@ -371,6 +371,10 @@ void kmeans_iteration(const El::Matrix<T>& data, El::Matrix<T>& centroids,
     assert(sum(assignment_count) == nsamples);
 }
 
+/**
+  * An inefficient way to gather the assignment of every point and
+  *     interleave them into a single vector.
+  */
 void get_global_assignments(const std::vector<El::Unsigned>&
         centroid_assignment, std::vector<El::Unsigned>&
         gl_centroid_assignments) {
@@ -574,7 +578,7 @@ kmeans_t<T> run_kmeans(El::DistMatrix<T, El::STAR, El::VC>& data,
 
     t = clock() - t;
     if (rank == root)
-        El::Output("\nK-means took ",((float)t)/CLOCKS_PER_SEC, "sec ...");
+        El::Output("\nK-means took ",((float)t)/CLOCKS_PER_SEC, " sec ...");
 
     return kmeans_t<T>(gl_centroid_assignments,
             assignment_count.Buffer(), k, iters, centroids);
