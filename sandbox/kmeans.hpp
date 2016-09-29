@@ -5,12 +5,18 @@
 #include <time.h>
 #include "pretty_printer.hpp"
 
+#include "util.hpp"
+#include "dist_matrix.hpp"
+#include "thd_safe_bool_vector.hpp"
+
 #define root 0
 #define KM_DEBUG 0
 #define INVALID_ID UINT_MAX
 
 /*******************************************/
 namespace skyutil = skylark::utility;
+namespace kpmbase = kpmeans::base;
+namespace kpmprune = kpmeans::prune;
 /*******************************************/
 
 // Annymous namespace for use only here
@@ -509,6 +515,124 @@ kmeans_t<T> run_kmeans(El::DistMatrix<T, El::STAR, El::VC>& data,
     bool converged = false;
 
     El::mpi::Comm comm = El::mpi::COMM_WORLD;
+
+    while (perc_changed > tol && iters < max_iters) {
+        El::Zero(assignment_count); // Reset
+
+        if (rank == root)
+            El::Output("Running iteration ", iters, " ...\n");
+
+        kmeans_iteration<T>(data.LockedMatrix(), centroids, local_centroids,
+                assignment_count, centroid_assignment, nchanged);
+        iters++;
+
+        El::Unsigned recv_nchanged = INVALID_ID;
+        El::mpi::AllReduce(&nchanged, &recv_nchanged, 1, El::mpi::SUM, comm);
+        assert(recv_nchanged != INVALID_ID);
+        nchanged = recv_nchanged;
+
+        El::AllReduce(assignment_count, comm, El::mpi::SUM);
+
+        if (rank == root)
+            El::Output("Global nchanged: ", nchanged);
+
+        perc_changed = (double)nchanged/nsamples; //Global perc change
+        if (perc_changed <= tol) {
+            converged = true;
+            if (rank == root) {
+                El::Output("Algorithm converged in ", iters,
+                        " iterations!");
+            }
+            break;
+        }
+
+#if KM_DEBUG
+        if (rank == root) El::Output("Reducing local centroids ...\n");
+#endif
+
+        // Aggregate all local centroids
+        El::AllReduce(local_centroids, comm, El::mpi::SUM);
+        // Get the means of the local centroids
+        col_mean_raw(local_centroids, centroids, assignment_count);
+
+#if KM_DEBUG
+        if (rank == root)
+            El::Print(centroids, "Updated centroids for root");
+#endif
+
+        // Reset
+        nchanged = 0;
+        El::Zero(local_centroids);
+    }
+
+    // Get the centroid assignments to the root
+    std::vector<El::Unsigned> gl_centroid_assignments;
+    get_global_assignments(centroid_assignment, gl_centroid_assignments);
+
+#if 1
+    if (rank == root) {
+        El::Print(assignment_count, "\nFinal assingment count");
+        El::Output("Centroid assignment:");
+        skyutil::pretty_printer<El::Unsigned>::
+            print_vector(gl_centroid_assignments);
+    }
+
+    if (!converged && rank == root)
+        El::Output("Algorithm failed to converge in ",
+                iters, " iterations\n");
+#endif
+
+    t = clock() - t;
+    if (rank == root)
+        El::Output("\nK-means took ",((float)t)/CLOCKS_PER_SEC, " sec ...");
+
+    return kmeans_t<T>(gl_centroid_assignments,
+            assignment_count.Buffer(), k, iters, centroids);
+}
+
+template<typename T>
+kmeans_t<T> run_tri_kmeans(El::DistMatrix<T, El::STAR, El::VC>& data,
+        El::Matrix<T>& centroids, const El::Unsigned k,
+        const double tol, const std::string init,
+        const El::Int seed, const El::Unsigned max_iters) {
+
+    // Var init
+    El::Unsigned nchanged = 0;
+    El::Unsigned nsamples = data.Width();
+    El::Unsigned nlocal_samples = data.LocalWidth();
+    El::Unsigned rank = data.DistRank();
+    El::Unsigned dim = data.Height();
+    El::mpi::Comm comm = El::mpi::COMM_WORLD;
+    clock_t t = clock();
+
+
+    // Count #samples in each centroid per proc
+    El::Matrix<El::Int> assignment_count(1, k);
+    El::Zero(assignment_count);
+
+    El::Matrix<T> local_centroids(dim, k);
+    El::Zero(local_centroids);
+
+    std::vector<El::Unsigned> centroid_assignment;
+    centroid_assignment.assign(nlocal_samples, INVALID_ID);
+
+    double perc_changed = std::numeric_limits<double>::max();
+    El::Unsigned iters = 0;
+    bool converged = false;
+
+    // For pruning
+    kpmbase::thd_safe_bool_vector::ptr recalculated_v =
+        kpmbase::thd_safe_bool_vector::create(nsamples, false);
+    kpmprune::dist_matrix::ptr dm = kpmprune::dist_matrix::create(k);
+
+    std::vector<double> dist_v;
+    dist_v.assign(nsamples, std::numeric_limits<double>::max());
+
+    // Initialize algo
+    init_centroids<T>(centroids, data, get_init_type(init),
+            seed, centroid_assignment, assignment_count);
+    // FIXME: NONE init dm->compute_dist(...)
+
 
     while (perc_changed > tol && iters < max_iters) {
         El::Zero(assignment_count); // Reset
