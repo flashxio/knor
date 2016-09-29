@@ -17,16 +17,20 @@
 
 include ../Makefile.common
 
-all: libcommon
+all: libcommon unit_test
 
 libcommon: $(OBJS)
 	rm -f libcommon.a
 	ar -cvq libcommon.a $(OBJS)
+
+unit_test:
+	$(MAKE) -C unit-test
 
 clean:
 	rm -f *.d
 	rm -f *.o
 	rm -f *~
 	rm -f libcommon.a
+	$(MAKE) clean -C unit-test
 
 -include $(DEPS)
