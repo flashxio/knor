@@ -1,4 +1,4 @@
-include ../conf/ElVars
+include ../build/conf/ElVars
 
 OS := $(shell uname)
 
