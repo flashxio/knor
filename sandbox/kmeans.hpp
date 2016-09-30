@@ -31,6 +31,46 @@ enum init_t {
 };
 
 template <typename T>
+T euclidean_distance(const T* arg0, const T* arg1, const El::Unsigned len) {
+    T dist = 0;
+    for (El::Unsigned i = 0; i < len; i++) {
+        T _dist = arg0[i] - arg1[i];
+        dist += (_dist*_dist);
+    }
+    return std::sqrt(dist);
+}
+
+template <typename T>
+void add_sample(El::Matrix<T>& centroids, const El::Unsigned cid,
+       const El::Matrix<T>& data, const El::Unsigned sample_id,
+       El::Matrix<T>& assignment_count) {
+    El::Unsigned dim = centroids.Height();
+    centroids(El::IR(0, dim), El::IR(cid, cid+1)) +=
+        data(El::IR(0, dim), El::IR(sample_id, sample_id+1));
+
+    assignment_count.Set(0, cid,
+            assignment_count.Get(0, cid) + 1);
+}
+
+template <typename T>
+void remove_sample(El::Matrix<T>& centroids, const El::Unsigned cid,
+       const El::Matrix<T>& data, const El::Unsigned sample_id) {
+    El::Unsigned dim = centroids.Height();
+    centroids(El::IR(0, dim), El::IR(cid, cid+1)) -=
+        data(El::IR(0, dim), El::IR(sample_id, sample_id+1));
+}
+
+template <typename T>
+void get_prev_dist(const El::Matrix<T>& prev_centroids,
+        const El::Matrix<T>& centroids, std::vector<T>& prev_dist) {
+    assert (prev_dist.size() == centroids.Width());
+    for (El::Unsigned cl = 0; cl < centroids.Width(); cl++) {
+        prev_dist[cl] = euclidean_distance(prev_centroids.LockedBuffer(0, cl),
+                centroids.LockedBuffer(0, cl));
+    }
+}
+
+template <typename T>
 void col_mean_raw(El::Matrix<T>& mat, El::Matrix<T>& outmat,
         const El::Matrix<El::Int>& counts) {
     assert(counts.Width() == mat.Width());
@@ -90,16 +130,6 @@ private:
     size_t _nprocs;
     El::Unsigned _rank;
 };
-
-template <typename T>
-T euclidean_distance(const T* arg0, const T* arg1, const El::Unsigned len) {
-    T dist = 0;
-    for (El::Unsigned i = 0; i < len; i++) {
-        T _dist = arg0[i] - arg1[i];
-        dist += (_dist*_dist);
-    }
-    return std::sqrt(dist);
-}
 
 template <typename T>
 void kmeanspp_init(const El::DistMatrix<T, El::VC, El::STAR>& data,
@@ -339,8 +369,8 @@ void kmeans_iteration(const El::Matrix<T>& data, El::Matrix<T>& centroids,
 
     for (size_t sample = 0; sample < nsamples; sample++) {
         El::Unsigned assigned_centroid_id = INVALID_ID;
-        double dist = std::numeric_limits<double>::max();
-        double best = std::numeric_limits<double>::max();
+        T dist = std::numeric_limits<T>::max();
+        T best = std::numeric_limits<T>::max();
 
         for (El::Unsigned cl = 0; cl < k; cl++) {
             dist = euclidean_distance<T>(data.LockedBuffer(0, sample),
@@ -377,6 +407,109 @@ void kmeans_iteration(const El::Matrix<T>& data, El::Matrix<T>& centroids,
     assert(sum(assignment_count) == nsamples);
 }
 
+template <typename T>
+void kmeans_titeration(const El::Matrix<T>& data, El::Matrix<T>& centroids,
+        El::Matrix<T>& local_centroids, El::Matrix<El::Int>& assignment_count,
+        std::vector<El::Unsigned>& centroid_assignment,
+        El::Unsigned& nchanged,
+        kpmbase::thd_safe_bool_vector::ptr recalculated_v,
+        std::vector<T>& dist_v, kpmprune::dist_matrix::ptr dm,
+        std::vector<T>& s_val_v, std::vector<T>& prev_dist,
+        const bool prune_init=false) {
+    // Populate per process centroids and keep track of how many
+    const El::Unsigned k = centroids.Width();
+    const size_t local_nsamples =  data.Width(); // Local nsamples
+    const size_t dim = data.Height();
+    assert(prev_dist.size() == centroids.Width());
+
+#if KM_DEBUG
+    if (El::mpi::Rank(El::mpi::COMM_WORLD) == 0) {
+        El::Output("Process 0 has ", local_nsamples, " samples");
+    }
+#endif
+
+    for (size_t sample = 0; sample < local_nsamples; sample++) {
+        El::Unsigned prev_centroid_id = centroid_assignment[sample];
+        El::Unsigned assigned_centroid_id = INVALID_ID;
+
+        if (prune_init) {
+            El::Unsigned assigned_centroid_id = INVALID_ID;
+            T dist = std::numeric_limits<T>::max();
+
+            for (El::Unsigned cl = 0; cl < k; cl++) {
+                dist = euclidean_distance<T>(data.LockedBuffer(0, sample),
+                        centroids.LockedBuffer(0, cl), dim);
+                if (dist < dist_v[sample]) { // TODO: Check dist_v init
+                    dist_v[sample] = dist;
+                    assigned_centroid_id = cl;
+                }
+            }
+        } else {
+            recalculated_v->set(sample, false);
+            dist_v[sample] += prev_dist(centroid_assignment[sample]);
+
+            if (dist_v[sample] <= s_val_v(centroid_assignment[sample])) {
+                // Skip all rows
+            } else {
+                for (unsigned cl = 0; cl < k; cl++) {
+                    if (dist_v[sample] <= dm->get(
+                                centroid_assignment[sample], cl))
+                        continue; // Skip this cluster
+
+                    if (!recalculated_v->get(sample)) {
+                        dist_v[sample] = euclidean_distance<T>(
+                                data.LockedBuffer(0, sample),
+                                centroids.LockedBuffer(0,
+                                    centroid_assignment[sample]), dim);
+                        recalculated_v->set(sample, true);
+                    }
+
+                    if (dist_v[sample] <= dm->get(
+                                centroid_assignment[sample], cl))
+                        continue; // Skip this cluster
+
+                    // Track 5
+                    T jdist = euclidean_distance<T>(
+                            data.LockedBuffer(0, sample),
+                            centroids.LockedBuffer(0, cl), dim);
+
+                    if (jdist < dist_v[sample]) {
+                        dist_v[sample] = jdist;
+                        centroid_assignment[sample] = cl;
+                    }
+                } // endfor
+            }
+        }
+
+        assert(assigned_centroid_id != INVALID_ID);
+        centroid_assignment[sample] = assigned_centroid_id;
+
+        if (prune_init) {
+            // FIXME: HERE
+            El::Zero(local_centroids);
+        } else {
+            // FIXME: HERE
+        }
+#if 0
+        // Have I changed clusters ?
+        if (centroid_assignment[sample] != assigned_centroid_id) {
+            centroid_assignment[sample] = assigned_centroid_id;
+            nchanged++;
+        }
+
+        // Add row to local clusters
+        local_centroids(El::IR(0, dim),
+                El::IR(assigned_centroid_id, assigned_centroid_id+1)) +=
+            data(El::IR(0, dim), El::IR(sample, sample+1));
+
+        // Increase cluster count
+        assignment_count.Set(0, assigned_centroid_id,
+                assignment_count.Get(0, assigned_centroid_id) + 1);
+#endif
+    }
+
+    assert(sum(assignment_count) == local_nsamples);
+}
 /**
   * An inefficient way to gather the assignment of every point and
   *     interleave them into a single vector.
@@ -489,7 +622,7 @@ kmeans_t<T> run_kmeans(El::DistMatrix<T, El::STAR, El::VC>& data,
         const El::Int seed, const El::Unsigned max_iters) {
     El::Unsigned nchanged = 0;
 
-    El::Unsigned nsamples = data.Width();
+    El::Unsigned nsamples = data.Width(); // Global nsamples
     El::Unsigned nlocal_samples = data.LocalWidth();
     El::Unsigned rank = data.DistRank();
     El::Unsigned dim = data.Height();
@@ -598,13 +731,12 @@ kmeans_t<T> run_tri_kmeans(El::DistMatrix<T, El::STAR, El::VC>& data,
 
     // Var init
     El::Unsigned nchanged = 0;
-    El::Unsigned nsamples = data.Width();
+    El::Unsigned nsamples = data.Width(); // Global nsamples
     El::Unsigned nlocal_samples = data.LocalWidth();
     El::Unsigned rank = data.DistRank();
     El::Unsigned dim = data.Height();
     El::mpi::Comm comm = El::mpi::COMM_WORLD;
     clock_t t = clock();
-
 
     // Count #samples in each centroid per proc
     El::Matrix<El::Int> assignment_count(1, k);
@@ -617,7 +749,6 @@ kmeans_t<T> run_tri_kmeans(El::DistMatrix<T, El::STAR, El::VC>& data,
     centroid_assignment.assign(nlocal_samples, INVALID_ID);
 
     double perc_changed = std::numeric_limits<double>::max();
-    El::Unsigned iters = 0;
     bool converged = false;
 
     // For pruning
@@ -625,23 +756,40 @@ kmeans_t<T> run_tri_kmeans(El::DistMatrix<T, El::STAR, El::VC>& data,
         kpmbase::thd_safe_bool_vector::create(nsamples, false);
     kpmprune::dist_matrix::ptr dm = kpmprune::dist_matrix::create(k);
 
-    std::vector<double> dist_v;
-    dist_v.assign(nsamples, std::numeric_limits<double>::max());
+    std::vector<T> dist_v;
+    dist_v.assign(nsamples, std::numeric_limits<T>::max());
 
     // Initialize algo
     init_centroids<T>(centroids, data, get_init_type(init),
             seed, centroid_assignment, assignment_count);
+    std::vector<T> prev_dist(centroids.Width()); // FIXME: Init & update
     // FIXME: NONE init dm->compute_dist(...)
 
+    std::vector<T> s_val_v;
+    s_val_v.assign(centroids.Width(), std::numeric_limits<T>::max());
+
+#if KM_DEBUG
+    dm->compute_dist(centroids, s_val_v);
+    El::Output("Cluster distance matrix after init ...");
+    dm->print();
+#endif
+
+    kmeans_titeration<T>(data.LockedMatrix(), centroids, local_centroids,
+            assignment_count, centroid_assignment, nchanged,
+            recalculated_v, dist_v, dm, s_val_v, prev_dist, true);
+    El::Unsigned iters = 1;
+    nchanged = 0;
 
     while (perc_changed > tol && iters < max_iters) {
         El::Zero(assignment_count); // Reset
+        dm->compute_dist(centroids, s_val_v);
 
         if (rank == root)
             El::Output("Running iteration ", iters, " ...\n");
 
-        kmeans_iteration<T>(data.LockedMatrix(), centroids, local_centroids,
-                assignment_count, centroid_assignment, nchanged);
+        kmeans_titeration<T>(data.LockedMatrix(), centroids, local_centroids,
+                assignment_count, centroid_assignment, nchanged,
+                recalculated_v, dist_v, s_val_v, dm, prev_dist);
         iters++;
 
         El::Unsigned recv_nchanged = INVALID_ID;
@@ -654,7 +802,7 @@ kmeans_t<T> run_tri_kmeans(El::DistMatrix<T, El::STAR, El::VC>& data,
         if (rank == root)
             El::Output("Global nchanged: ", nchanged);
 
-        perc_changed = (double)nchanged/nsamples; //Global perc change
+        perc_changed = (double)nchanged/nsamples; // Global perc change
         if (perc_changed <= tol) {
             converged = true;
             if (rank == root) {
