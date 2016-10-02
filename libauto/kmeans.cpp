@@ -26,6 +26,7 @@
 #include "kmeans.hpp"
 #include "clusters.hpp"
 #include "io.hpp"
+#include "util.hpp"
 
 #define KM_TEST 1
 #define VERBOSE 0
