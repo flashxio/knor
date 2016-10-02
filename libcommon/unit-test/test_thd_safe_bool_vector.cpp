@@ -24,10 +24,10 @@
 #include "thd_safe_bool_vector.hpp"
 #include "util.hpp"
 
-using namespace prune;
+namespace kpmbase = kpmeans::base;
 
 void build_state(std::vector<short> &verifier,
-        thd_safe_bool_vector::ptr data, const unsigned len) {
+        kpmbase::thd_safe_bool_vector::ptr data, const unsigned len) {
     for (unsigned i = 0; i < len; i++) {
         short rand_val = rand() % 2;
         if (rand_val == 0) {
@@ -45,7 +45,7 @@ void build_state(std::vector<short> &verifier,
 
 template <typename T>
 void test_correctness(const std::vector<T> &verifier,
-        const thd_safe_bool_vector::ptr data) {
+        const kpmbase::thd_safe_bool_vector::ptr data) {
     BOOST_VERIFY(verifier.size() == data->size());
 
     for (unsigned i = 0; i < verifier.size(); i++)
@@ -55,18 +55,19 @@ void test_correctness(const std::vector<T> &verifier,
 }
 
 void test_init_ctor(const unsigned len) {
-    thd_safe_bool_vector::ptr data = thd_safe_bool_vector::create(len, true);
+    kpmbase::thd_safe_bool_vector::ptr data =
+        kpmbase::thd_safe_bool_vector::create(len, true);
     for (unsigned i = 0; i < len; i++)
         BOOST_VERIFY(data->get(i) == true);
 
-    data = thd_safe_bool_vector::create(len, false);
+    data = kpmbase::thd_safe_bool_vector::create(len, false);
     for (unsigned i = 0; i < len; i++)
         BOOST_VERIFY(data->get(i) == false);
 
     printf("Successfully init ctor ...\n");
 }
 
-void test_thread_safety(const thd_safe_bool_vector::ptr data,
+void test_thread_safety(const kpmbase::thd_safe_bool_vector::ptr data,
         const unsigned nthreads) {
 
     constexpr unsigned NUM_TESTS = 50;
@@ -101,7 +102,8 @@ int main(int argc, char* argv[]) {
     unsigned nthreads = atol(argv[1]);
     unsigned len = atol(argv[2]);
 
-    thd_safe_bool_vector::ptr data = thd_safe_bool_vector::create(len);
+    kpmbase::thd_safe_bool_vector::ptr data =
+        kpmbase::thd_safe_bool_vector::create(len);
     std::vector<short> verifier(len);
 
     build_state(verifier, data, len);
