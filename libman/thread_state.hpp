@@ -17,8 +17,8 @@
  * limitations under the License.
  */
 
-#ifndef __KPM_THREAD_STATE_H__
-#define __KPM_THREAD_STATE_H__
+#ifndef __KPM_THREAD_STATE_HPP__
+#define __KPM_THREAD_STATE_HPP__
 
 namespace kpmeans {
     enum thread_state_t {

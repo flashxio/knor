@@ -16,8 +16,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __KPM_KMEANS_COORDINATOR_H__
-#define __KPM_KMEANS_COORDINATOR_H__
+#ifndef __KPM_KMEANS_COORDINATOR_HPP__
+#define __KPM_KMEANS_COORDINATOR_HPP__
 
 #include <vector>
 #include <unordered_map>

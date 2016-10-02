@@ -17,8 +17,8 @@
  * limitations under the License.
  */
 
-#ifndef __KPM_OMP_KMEANS_H__
-#define __KPM_OMP_KMEANS_H__
+#ifndef __KPM_OMP_KMEANS_HPP__
+#define __KPM_OMP_KMEANS_HPP__
 
 #include <stdlib.h>
 #include <stdio.h>
