@@ -18,16 +18,16 @@
 include ../../Makefile.common
 
 LDFLAGS := -L../libcommon -lcommon $(LDFLAGS)
-CXXFLAGS := -I../libcommon $(CXXFLAGS)
+CXXFLAGS := -I.. $(CXXFLAGS)
 
 TESTFILES = test_thd_safe_bool_vector test_clusters
 
 all: $(TESTFILES)
 
-test_thd_safe_bool_vector: ../libcommon.a test_thd_safe_bool_vector.o
+test_thd_safe_bool_vector: test_thd_safe_bool_vector.o ../libcommon.a
 	$(CXX) -o test_thd_safe_bool_vector test_thd_safe_bool_vector.o $(LDFLAGS)
 
-test_clusters: ../libcommon.a test_clusters.o
+test_clusters: test_clusters.o ../libcommon.a
 	$(CXX) -o test_clusters test_clusters.o $(LDFLAGS)
 
 clean:
