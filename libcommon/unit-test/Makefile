@@ -17,7 +17,7 @@
 
 include ../../Makefile.common
 
-LDFLAGS := -L../libcommon -lcommon $(LDFLAGS)
+LDFLAGS := -L.. -lcommon $(LDFLAGS)
 CXXFLAGS := -I.. $(CXXFLAGS)
 
 TESTFILES = test_thd_safe_bool_vector test_clusters
