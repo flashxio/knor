@@ -39,7 +39,7 @@
 
 namespace kpmbase = kpmeans::base;
 
-namespace kmeans { namespace omp {
+namespace kpmeans { namespace omp {
 /**
  * \brief Compute kmeans on matrix of features
  * \param matrix The matrix who's row IDs are being clustered.
