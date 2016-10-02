@@ -19,12 +19,11 @@
 
 #include <stdlib.h>
 #include <pthread.h>
-#include "clusters.hpp"
-#include "kmeans_task_thread.hpp"
-#include "io.hpp"
-#include "util.hpp"
-#include "thread_state.hpp"
 #include <atomic>
+
+#include "common.hpp"
+#include "kmeans_task_thread.hpp"
+#include "thread_state.hpp"
 
 namespace kpmprune = kpmeans::prune;
 namespace kpmbase = kpmeans::base;
