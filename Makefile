@@ -17,15 +17,17 @@
 
 include Makefile.common
 
-all: build_lib utils
+all: build_common build_libs utils
 
-build_lib:
+build_common:
 	$(MAKE) -C libcommon
+
+build_libs: build_common
 	$(MAKE) -C libauto # OMP
 	$(MAKE) -C libman # pthreads
 	#$(MAKE) -C libdist # MPI
 
-utils: build_lib
+utils: build_common
 	$(MAKE) -C utils
 
 clean:
