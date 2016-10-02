@@ -23,5 +23,5 @@
 namespace kpmeans { namespace utils {
 enum conv_layout{ RAWROW, RAWCOL };
 
-} } // end namespace kmeans, utils
+} } // End namespace kpmeans::utils
 #endif

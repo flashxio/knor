@@ -136,5 +136,5 @@ public:
     void write_consolidated(std::string fn, size_t print_row_cnt);
 };
 
-} } // End namespace kmeans, base
+} } // End namespace kpmeans::base
 #endif

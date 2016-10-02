@@ -17,7 +17,6 @@
 
 include ../Makefile.common
 
-OMP_FLAG = -fopenmp
 LDFLAGS += -L../libcommon -lcommon
 CXXFLAGS += -I../libcommon -I..
 
