@@ -109,5 +109,5 @@ T dist_comp_raw(const T* arg0, const T* arg1,
 float time_diff(struct timeval time1, struct timeval time2);
 int get_num_omp_threads();
 
-} } // End namespace kpmeans, base
+} } // End namespace kpmeans::base
 #endif

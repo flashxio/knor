@@ -20,6 +20,7 @@
 #include <atomic>
 #include "util.hpp"
 
+namespace kpmeans { namespace base {
 double get_bic(const std::vector<double>& dist_v, const unsigned nrow,
         const unsigned ncol, const unsigned k) {
         double bic = 0;
@@ -46,7 +47,7 @@ void spherical_projection(double* data, const unsigned nrow,
 }
 
 // Verbatim from FlashX
-inline float time_diff(struct timeval time1, struct timeval time2) {
+float time_diff(struct timeval time1, struct timeval time2) {
     return time2.tv_sec - time1.tv_sec +
         ((float)(time2.tv_usec - time1.tv_usec))/1000000;
 }
@@ -60,3 +61,4 @@ int get_num_omp_threads() {
     }
     return num_threads.load();
 }
+} }
