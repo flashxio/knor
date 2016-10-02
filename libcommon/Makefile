@@ -23,7 +23,7 @@ libcommon: $(OBJS)
 	rm -f libcommon.a
 	ar -cvq libcommon.a $(OBJS)
 
-unit_test:
+unit_test: libcommon
 	$(MAKE) -C unit-test
 
 clean:
@@ -31,6 +31,6 @@ clean:
 	rm -f *.o
 	rm -f *~
 	rm -f libcommon.a
-	$(MAKE) clean -C unit-test
+	$(MAKE) --ignore-errors clean -C unit-test
 
 -include $(DEPS)

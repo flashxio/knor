@@ -27,12 +27,6 @@ libauto: $(OBJS)
 	rm -f libauto.a
 	ar -cvq libauto.a $(OBJS)
 
-unit-test:
-	$(MAKE) -C unit-test
-
-test:
-	$(MAKE) -C test
-
 clean:
 	rm -f *.d
 	rm -f *.o
