@@ -15,33 +15,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-include Makefile.common
+include ../Makefile.common
 
-all: build_common build_libs utils exec
+LDFLAGS := -L../libauto -lauto -L../libcommon -lcommon $(LDFLAGS)
+CXXFLAGS += -I.. -I../libauto -I../libcommon
 
-build_common:
-	$(MAKE) -C libcommon
+all: kpmeans
 
-build_libs: build_common
-	$(MAKE) -C libauto # OMP
-	$(MAKE) -C libman # pthreads
-	#$(MAKE) -C libdist # MPI
-
-utils: build_common
-	$(MAKE) -C utils
-
-exec: build_common build_libs
-	$(MAKE) -C exec
+kpmeans: kpmeans.o
+	$(CXX) -o kpmeans kpmeans.o $(LDFLAGS)
 
 clean:
 	rm -f *.d
 	rm -f *.o
 	rm -f *~
-	make --ignore-errors -C libcommon clean
-	make --ignore-errors -C utils clean
-	make --ignore-errors -C libauto clean
-	make --ignore-errors -C libman clean
-	make --ignore-errors -C exec clean
-	#make --ignore-errors -C libdist clean
+	rm -f kpmeans
 
 -include $(DEPS)
