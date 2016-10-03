@@ -17,8 +17,9 @@
 
 include ../Makefile.common
 
-LDFLAGS := -L../libauto -lauto -L../libcommon -lcommon $(LDFLAGS)
-CXXFLAGS += -I.. -I../libauto -I../libcommon
+LDFLAGS := -L../libauto -lauto -L../libman -lman \
+	-L../libcommon -lcommon $(LDFLAGS)
+CXXFLAGS += -I.. -I../libauto -I../libman -I../libcommon
 
 all: kpmeans
 

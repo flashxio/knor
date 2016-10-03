@@ -21,15 +21,13 @@
 
 #include <limits>
 #include <fstream>
+#include <numa.h>
 
 #include "io.hpp"
 #include "kmeans.hpp"
 
-// FIXME
-#if 0
-#include "kmeans_coordinator.h"
-#include "kmeans_task_coordinator.h"
-#endif
+#include "kmeans_coordinator.hpp"
+#include "kmeans_task_coordinator.hpp"
 
 static bool is_file_exist(const char *fn) {
     std::ifstream infile(fn);
@@ -61,10 +59,7 @@ int main(int argc, char* argv[]) {
 	double tolerance = -1;
     bool use_min_tri = false;
     bool pthread = false;
-    unsigned nnodes;
-#if 0
     unsigned nnodes = numa_num_task_nodes();
-#endif
 
     // Increase by 3 -- getopt ignores argv[0]
 	argv += 3;
@@ -136,14 +131,16 @@ int main(int argc, char* argv[]) {
     } else
         printf("No centers to read ..\n");
     if (pthread) {
-#if 0
+#if 1
         if (use_min_tri) {
-            prune::kmeans_task_coordinator::ptr kc = prune::kmeans_task_coordinator::create(
+            kpmprune::kmeans_task_coordinator::ptr kc =
+                kpmprune::kmeans_task_coordinator::create(
                     datafn, nrow, ncol, k, max_iters, nnodes, nthread, p_centers,
                     init, tolerance, dist_type);
             kc->run_kmeans();
         } else {
-            km::kmeans_coordinator::ptr kc = km::kmeans_coordinator::create(datafn,
+            kpmeans::kmeans_coordinator::ptr kc =
+                kpmeans::kmeans_coordinator::create(datafn,
                     nrow, ncol, k, max_iters, nnodes, nthread, p_centers,
                     init, tolerance, dist_type);
             kc->run_kmeans();
