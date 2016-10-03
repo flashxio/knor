@@ -54,4 +54,4 @@ void thd_safe_bool_vector::print() const {
     print_vector<_bool>(data);
 }
 
-} } // End namespace kpmeans, base
+} } // End namespace kpmeans::base

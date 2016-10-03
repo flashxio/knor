@@ -20,17 +20,17 @@ include ../../Makefile.common
 LDFLAGS := -lnuma -L../../libcommon -lcommon -L../libman -lman -L.. $(LDFLAGS)
 CXXFLAGS := -I.. -I../../libcommon $(CXXFLAGS)
 
-TESTFILES = test_kmeans_task_thread test_kmeans_thread test_task_queue
+TESTFILES = test_kmeans_thread test_task_queue test_kmeans_task_thread
 
 all: $(TESTFILES)
 
-test_kmeans_task_thread: ../libman.a test_kmeans_task_thread.o
+test_kmeans_task_thread: test_kmeans_task_thread.o
 	$(CXX) -o test_kmeans_task_thread test_kmeans_task_thread.o $(LDFLAGS)
 
-test_kmeans_thread: ../libman.a test_kmeans_thread.o
+test_kmeans_thread: test_kmeans_thread.o
 	$(CXX) -o test_kmeans_thread test_kmeans_thread.o $(LDFLAGS)
 
-test_task_queue: ../libman.a ../../libcommon/libcommon.a test_task_queue.o
+test_task_queue: test_task_queue.o
 	$(CXX) -o test_task_queue test_task_queue.o $(LDFLAGS)
 
 clean:

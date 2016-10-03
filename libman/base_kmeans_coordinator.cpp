@@ -24,7 +24,8 @@
 #include "base_kmeans_coordinator.hpp"
 
 namespace kpmeans {
-base_kmeans_coordinator::base_kmeans_coordinator(const std::string fn, const size_t nrow,
+base_kmeans_coordinator::base_kmeans_coordinator(const std::string fn,
+        const size_t nrow,
         const size_t ncol, const unsigned k, const unsigned max_iters,
         const unsigned nnodes, const unsigned nthreads,
         const double* centers, const kpmbase::init_type_t it,
