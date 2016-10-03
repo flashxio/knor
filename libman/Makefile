@@ -17,9 +17,8 @@
 
 include ../Makefile.common
 
-OMP_FLAG = -fopenmp
-#LDFLAGS = -L.. -L../libcommon -lcommon $(LDFLAGS)
-CXXFLAGS += -I../libcommon -I.. -I.
+LDFLAGS += -L../libcommon -lcommon
+CXXFLAGS += -I../libcommon -I..
 
 all: libman unit-test
 
