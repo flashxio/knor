@@ -2,3 +2,14 @@
 *.d
 *.o
 *.a
+libcommon/unit-test/test_clusters
+libcommon/unit-test/test_thd_safe_bool_vector
+libman/unit-test/test_kmeans_thread
+libman/unit-test/test_task_queue
+libman/unit-test/test_kmeans_task_thread
+utils/convert_matrix
+utils/create_matrix
+utils/test/read_rrow_data
+exec/kpmeans
+scratch/
+bin/
