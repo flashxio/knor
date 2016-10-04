@@ -74,7 +74,10 @@ public:
     template<typename T>
     void compute_dist(El::Matrix<T>& cls,
             std::vector<T>& s_val_v) {
-    if (cls.Width() <= 1) return (T)0;
+    if (cls.Width() == 1) {
+        s_val_v.push_back((T)0);
+        return;
+    }
 
     assert(get_num_rows() == cls.Width());
     std::fill(s_val_v.begin(), s_val_v.end(),
