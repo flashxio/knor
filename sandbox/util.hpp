@@ -18,9 +18,45 @@
  */
 #ifndef __KPM_UTIL_HPP__
 #define __KPM_UTIL_HPP__
+
+#include <omp.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <math.h>
+#include <sys/time.h>
+
 #include <vector>
+#include <iostream>
+
+#include <boost/assert.hpp>
+#include <boost/log/trivial.hpp>
+#include "kmeans_types.hpp"
 
 namespace kpmeans { namespace base {
+
+double get_bic(const std::vector<double>& dist_v, const unsigned nrow,
+        const unsigned ncol, const unsigned k);
+void spherical_projection(double* data, const unsigned nrow,
+        const unsigned ncol);
+
+// Vector equal function
+template <typename T>
+bool v_eq(const T& lhs, const T& rhs) {
+    return std::equal(lhs.begin(), lhs.end(), rhs.begin());
+}
+
+template <typename T>
+const bool v_eq_const(const std::vector<T>& v, const T var) {
+    for (unsigned i=0; i < v.size(); i++) {
+        if (v[i] != var) return false;
+    }
+    return true;
+}
+
+template <typename T>
+bool eq_all(const T* v1, const T* v2, const unsigned len) {
+    return (std::equal(&v1[0], &(v1[len-1]), &v2[0]));
+}
 
 template <typename T>
 const double eucl_dist(const T* lhs, const T* rhs,
@@ -52,5 +88,26 @@ const double cos_dist(const T* lhs, const T* rhs,
     return  1 - (numr / ((sqrt(ldenom)*sqrt(rdenom))));
 }
 
-} } // End namespace kpmeans, base
+/** /brief Choose the correct distance function and return it
+ * /param arg0 A pointer to data
+ * /param arg1 Another pointer to data
+ * /param len The number of elements used in the comparison
+ * /return the distance based on the chosen distance metric
+ */
+template <typename T>
+T dist_comp_raw(const T* arg0, const T* arg1,
+        const unsigned len, dist_type_t dt) {
+    if (dt == dist_type_t::EUCL)
+        return eucl_dist<T>(arg0, arg1, len);
+    else if (dt == dist_type_t::COS)
+        return cos_dist(arg0, arg1, len);
+    else
+        BOOST_ASSERT_MSG(false, "Unknown distance metric!");
+    exit(EXIT_FAILURE);
+}
+
+float time_diff(struct timeval time1, struct timeval time2);
+int get_num_omp_threads();
+
+} } // End namespace kpmeans::base
 #endif
