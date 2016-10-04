@@ -68,9 +68,12 @@ template <typename T>
 void get_prev_dist(const El::Matrix<T>& prev_centroids,
         const El::Matrix<T>& centroids, std::vector<T>& prev_dist) {
     assert (prev_dist.size() == centroids.Width());
+    El::Unsigned dim = centroids.Height();
+
     for (El::Unsigned cl = 0; cl < centroids.Width(); cl++) {
-        prev_dist[cl] = euclidean_distance(prev_centroids.LockedBuffer(0, cl),
-                centroids.LockedBuffer(0, cl));
+        prev_dist[cl] = euclidean_distance<T>
+            (prev_centroids.LockedBuffer(0, cl),
+             centroids.LockedBuffer(0, cl), dim);
     }
 }
 
@@ -81,7 +84,7 @@ template <typename T>
 void unmean(El::Matrix<T>& mat, const El::Matrix<El::Int>& count) {
     const El::Unsigned dim = mat.Height();
     T* matbuf = mat.Buffer();
-    const T* countbuf = count.LockedBuffer();
+    const El::Int* countbuf = count.LockedBuffer();
     assert(dim == count.Width());
 
     for (El::Unsigned i = 0; i < mat.Width(); i++) {
@@ -373,7 +376,7 @@ T sum(const El::Matrix<T>& mat) {
 }
 
 template <typename T>
-void kmeans_iteration(const El::Matrix<T>& data, El::Matrix<T>& centroids,
+void kmeans_iteration(const El::Matrix<T>& data,const El::Matrix<T>& centroids,
         El::Matrix<T>& local_centroids, El::Matrix<El::Int>& assignment_count,
         std::vector<El::Unsigned>& centroid_assignment,
         El::Unsigned& nchanged) {
@@ -423,13 +426,14 @@ void kmeans_iteration(const El::Matrix<T>& data, El::Matrix<T>& centroids,
 }
 
 template <typename T>
-void kmeans_titeration(const El::Matrix<T>& data, El::Matrix<T>& centroids,
-        El::Matrix<T>& local_centroids, El::Matrix<El::Int>& assignment_count,
+void kmeans_titeration(const El::Matrix<T>& data,
+        const El::Matrix<T>& centroids, El::Matrix<T>& local_centroids,
+        El::Matrix<El::Int>& assignment_count,
         std::vector<El::Unsigned>& centroid_assignment,
         El::Unsigned& nchanged,
         kpmbase::thd_safe_bool_vector::ptr recalculated_v,
-        std::vector<T>& dist_v, kpmprune::dist_matrix::ptr dm,
-        std::vector<T>& s_val_v, std::vector<T>& prev_dist,
+        std::vector<T>& dist_v, const kpmprune::dist_matrix::ptr dm,
+        const std::vector<T>& s_val_v, std::vector<T>& prev_dist,
         const bool prune_init=false) {
     // Populate per process centroids and keep track of how many
     const El::Unsigned k = centroids.Width();
@@ -460,9 +464,9 @@ void kmeans_titeration(const El::Matrix<T>& data, El::Matrix<T>& centroids,
             }
         } else {
             recalculated_v->set(sample, false);
-            dist_v[sample] += prev_dist(centroid_assignment[sample]);
+            dist_v[sample] += prev_dist[centroid_assignment[sample]];
 
-            if (dist_v[sample] <= s_val_v(centroid_assignment[sample])) {
+            if (dist_v[sample] <= s_val_v[centroid_assignment[sample]]) {
                 // Skip all rows
             } else {
                 for (unsigned cl = 0; cl < k; cl++) {
@@ -791,13 +795,14 @@ kmeans_t<T> run_tri_kmeans(El::DistMatrix<T, El::STAR, El::VC>& data,
         if (iters == 0) {
             kmeans_titeration<T>(data.LockedMatrix(), centroids,
                     local_centroids, assignment_count, centroid_assignment,
-                    nchanged, recalculated_v, dist_v, dm,
-                    s_val_v, prev_dist, true);
+                    nchanged, recalculated_v, dist_v, dm, s_val_v,
+                    prev_dist, true);
         } else {
             dm->compute_dist(centroids, s_val_v);
             kmeans_titeration<T>(data.LockedMatrix(), centroids,
                     local_centroids, assignment_count, centroid_assignment,
-                    nchanged, recalculated_v, dist_v, s_val_v, dm, prev_dist);
+                    nchanged, recalculated_v, dist_v, dm, s_val_v,
+                    prev_dist);
         }
 
         El::Unsigned recv_nchanged = INVALID_ID;
