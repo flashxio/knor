@@ -15,8 +15,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-CC = gcc
-CXX = g++
+CC = mpicc
+CXX = mpic++
 #PROF=1
 #RELEASE=1
 CFLAGS = -g -O3 -fno-inline-functions -DSTATISTICS -DPROFILER
