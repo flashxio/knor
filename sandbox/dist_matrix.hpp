@@ -20,18 +20,16 @@
 #ifndef __KPM_DIST_MATRIX_HPP__
 #define __KPM_DIST_MATRIX_HPP__
 
+#include <El.hpp>
 #include <memory>
 #include <limits>
 #include <vector>
 
-#include <El.hpp>
-#include "util.hpp"
+namespace kpmbase = kpmeans::base;
 
-#if 0
 namespace kpmeans { namespace prune {
     class prune_clusters;
 } } // End namespace kpmeans, prune
-#endif
 
 namespace kpmeans { namespace prune {
 // NOTE: Creates a matrix like this e.g for K = 5
@@ -66,10 +64,9 @@ public:
     void set(unsigned row, unsigned col, double val);
 
     void print();
-#if 0
-    void compute_dist(kpmeans::base::prune_clusters::ptr cl,
+    void compute_dist(std::shared_ptr<kpmbase::prune_clusters> cl,
             const unsigned ncol);
-#endif
+
     // Note cls is col-wise unlike dist_matrix
     template<typename T>
     void compute_dist(El::Matrix<T>& cls,
@@ -85,7 +82,6 @@ public:
 
     for (unsigned i = 0; i < cls.Width(); i++) {
         for (unsigned j = i+1; j < cls.Width(); j++) {
-            // FIXME
             double dist = kpmeans::base::eucl_dist(cls.LockedBuffer(0,i),
                     cls.LockedBuffer(0,j), cls.Height()) / 2.0;
 

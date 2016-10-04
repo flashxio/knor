@@ -1,5 +1,5 @@
 #include <El.hpp>
-#include "kmeans.hpp"
+#include "dist_kmeans.hpp"
 
 /*******************************************/
 namespace skyml = skylark::ml;

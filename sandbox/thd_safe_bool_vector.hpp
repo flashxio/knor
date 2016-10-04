@@ -17,8 +17,8 @@
  * limitations under the License.
  */
 
-#ifndef __KPM_THD_SAFE_BOOL_VECTOR_H__
-#define __KPM_THD_SAFE_BOOL_VECTOR_H__
+#ifndef __KPM_THD_SAFE_BOOL_VECTOR_HPP__
+#define __KPM_THD_SAFE_BOOL_VECTOR_HPP__
 
 #include <vector>
 #include <memory>
