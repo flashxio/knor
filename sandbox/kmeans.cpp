@@ -24,6 +24,7 @@ int main(int argc, char* argv[]) {
         const double tol = El::Input("-T","Convergence tolerance",1E-6);
         const std::string centroid_fn =
             El::Input<std::string>("-c","Pre-initialized centroids","");
+        const bool prune = El::Input("-p","Use triangle inequality", false);
         El::ProcessInput();
 
         El::mpi::Comm comm = El::mpi::COMM_WORLD;
@@ -60,8 +61,14 @@ int main(int argc, char* argv[]) {
         assert(k == centroids.Width());
 
         if (rank == root) El::Output("Starting k-means ...");
-        skyml::run_kmeans<double>(data, centroids, k,
-                tol, init, seed, max_iters);
+
+        if (prune)
+            skyml::run_tri_kmeans<double>(data, centroids, k,
+                    tol, init, seed, max_iters);
+
+        else
+            skyml::run_kmeans<double>(data, centroids, k,
+                    tol, init, seed, max_iters);
     }
     catch(std::exception& e) { El::ReportException(e); }
 
