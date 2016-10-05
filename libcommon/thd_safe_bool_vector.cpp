@@ -53,5 +53,4 @@ unsigned thd_safe_bool_vector::size() const {
 void thd_safe_bool_vector::print() const {
     print_vector<_bool>(data);
 }
-
 } } // End namespace kpmeans::base

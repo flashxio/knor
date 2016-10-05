@@ -11,5 +11,6 @@ utils/convert_matrix
 utils/create_matrix
 utils/test/read_rrow_data
 exec/kpmeans
+exec/dist_kmeans
 scratch/
 bin/
