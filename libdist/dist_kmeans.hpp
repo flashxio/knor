@@ -58,14 +58,15 @@ void get_prev_dist(const El::Matrix<T>& prev_centroids,
   */
 template <typename T>
 void unmean(El::Matrix<T>& mat, const El::Matrix<El::Int>& count) {
+    BOOST_VERIFY(mat.Width() == count.Width());
     const El::Unsigned dim = mat.Height();
+
     T* matbuf = mat.Buffer();
     const El::Int* countbuf = count.LockedBuffer();
-    BOOST_VERIFY(dim == (El::Unsigned)count.Width());
 
     for (El::Unsigned i = 0; i < (El::Unsigned)mat.Width(); i++) {
         for (El::Unsigned j = 0; j < dim; j++) {
-            matbuf[i*dim + j] *= countbuf[i]; // TODO: Verify correctness
+            matbuf[i*dim + j] *= countbuf[i];
         }
     }
 }
@@ -354,7 +355,7 @@ void kmeans_iteration(const El::Matrix<T>& data,const El::Matrix<T>& centroids,
     const El::Unsigned dim = data.Height();
 
 #if KM_DEBUG
-    if (El::mpi::Rank(El::mpi::COMM_WORLD) == 0) {
+    if (El::mpi::Rank(El::mpi::COMM_WORLD) == root) {
         El::Output("Process 0 has ", nsamples, " samples");
     }
 #endif
@@ -410,7 +411,7 @@ void kmeans_titeration(const El::Matrix<T>& data,
     BOOST_VERIFY(prev_dist.size() == (El::Unsigned)centroids.Width());
 
 #if KM_DEBUG
-    if (El::mpi::Rank(El::mpi::COMM_WORLD) == 0)
+    if (El::mpi::Rank(El::mpi::COMM_WORLD) == root)
         El::Output("Process 0 has ", local_nsamples, " samples");
 #endif
 
@@ -482,8 +483,6 @@ void kmeans_titeration(const El::Matrix<T>& data,
                     data, sample, assignment_count);
         }
     }
-
-    BOOST_VERIFY((El::Unsigned)sum(assignment_count) == local_nsamples);
 }
 /**
   * An inefficient way to gather the assignment of every point and
@@ -728,11 +727,11 @@ kmeans_t<T> run_tri_kmeans(El::DistMatrix<T, El::STAR, El::VC>& data,
 
     // For pruning
     kpmbase::thd_safe_bool_vector::ptr recalculated_v =
-        kpmbase::thd_safe_bool_vector::create(nsamples, false);
+        kpmbase::thd_safe_bool_vector::create(nlocal_samples, false);
     kpmprune::dist_matrix::ptr dm = kpmprune::dist_matrix::create(k);
 
     std::vector<T> dist_v;
-    dist_v.assign(nsamples, std::numeric_limits<T>::max());
+    dist_v.assign(nlocal_samples, std::numeric_limits<T>::max());
 
     El::Matrix<T> prev_centroids;
     El::Matrix<El::Int> prev_assignment_count;
@@ -752,6 +751,8 @@ kmeans_t<T> run_tri_kmeans(El::DistMatrix<T, El::STAR, El::VC>& data,
     dm->print();
 #endif
 
+    El::Matrix<El::Int> global_assignment_count;
+    El::Zeros(global_assignment_count, 1, k);
     while (perc_changed > tol && iters < max_iters) {
         El::Zero(assignment_count); // Reset
 
@@ -777,6 +778,8 @@ kmeans_t<T> run_tri_kmeans(El::DistMatrix<T, El::STAR, El::VC>& data,
         nchanged = recv_nchanged;
 
         El::AllReduce(assignment_count, comm, El::mpi::SUM);
+        global_assignment_count += assignment_count;
+        BOOST_VERIFY((El::Unsigned)sum(global_assignment_count) == nsamples);
 
         if (rank == root)
             El::Output("Global nchanged: ", nchanged);
@@ -806,9 +809,9 @@ kmeans_t<T> run_tri_kmeans(El::DistMatrix<T, El::STAR, El::VC>& data,
 
         centroids += local_centroids;
         // Get the means of the local centroids
-        col_mean_raw(centroids, centroids, assignment_count);
-        // Copy assignment_count
-        prev_assignment_count = assignment_count;
+        col_mean_raw(centroids, centroids, global_assignment_count);
+        // Copy global_assignment_count
+        prev_assignment_count = global_assignment_count;
         // Get dist from prev
         get_prev_dist(prev_centroids, centroids, prev_dist);
 
@@ -829,7 +832,7 @@ kmeans_t<T> run_tri_kmeans(El::DistMatrix<T, El::STAR, El::VC>& data,
 
 #if 1
     if (rank == root) {
-        El::Print(assignment_count, "\nFinal assingment count");
+        El::Print(global_assignment_count, "\nFinal assingment count");
         El::Output("Centroid assignment:");
         kpmbase::print_vector<El::Unsigned>(gl_centroid_assignments);
     }
