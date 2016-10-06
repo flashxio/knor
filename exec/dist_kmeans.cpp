@@ -76,13 +76,15 @@ int main(int argc, char* argv[]) {
 
         if (rank == root) El::Output("Starting k-means ...");
 
-        if (prune)
+        if (prune) {
+            if (rank == root) El::Output("Running pruned ...");
             kpmeans::run_tri_kmeans<double>(data, centroids, k,
                     tol, init, seed, max_iters);
-
-        else
+        } else {
+            if (rank == root) El::Output("Running full ...");
             kpmeans::run_kmeans<double>(data, centroids, k,
                     tol, init, seed, max_iters);
+        }
     }
     catch(std::exception& e) { El::ReportException(e); }
 
