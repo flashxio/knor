@@ -79,7 +79,7 @@ public:
         return;
     }
 
-    BOOST_VERIFY(get_num_rows() == (El::Unsigned)cls.Width());
+    BOOST_VERIFY(get_num_rows()+1 == (El::Unsigned)cls.Width());
     std::fill(s_val_v.begin(), s_val_v.end(),
             std::numeric_limits<double>::max());
 
