@@ -6,7 +6,7 @@ A library to compure k-means in the following settings:
     systems
 2. An MPI-based implementation of the k||means algorithm.
 
-These implementaions are incarnations of algorithms
+These implementations are incarnations of algorithms in
 [our publication](https://arxiv.org/abs/1606.08905). These implementations have the ability read from local disk, Amazon S3 and HDFS.
 
 ## System Requirements
