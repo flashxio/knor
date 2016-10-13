@@ -21,7 +21,7 @@ CXX = mpicxx.mpich2
 #RELEASE=1
 LIB_PATHS:=-Wl,-rpath,/usr/local/lib/x86_64-linux-gnu:/usr/local/lib
 CFLAGS = -g -O3 -fno-inline-functions -DSTATISTICS -DPROFILER $(LIB_PATHS)
-CLANG_FLAGS = -Wno-attributes
+CLANG_FLAGS = -Wno-attributes -Wno-unused-variable
 OMP_FLAG = -fopenmp
 LDFLAGS =  -lnuma -lpthread $(OMP_FLAG) -lboost_log \
 		    -lEl -rdynamic -lrt -rdynamic -lhwloc
