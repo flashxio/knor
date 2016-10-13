@@ -54,7 +54,7 @@ int main(int argc, char* argv[]) {
     std::string centersfn = "";
 	unsigned max_iters=std::numeric_limits<unsigned>::max();
 	std::string init = "kmeanspp";
-	unsigned nthread = 1024;
+	unsigned nthread = kpmbase::get_num_omp_threads();
 	int num_opts = 0;
 	double tolerance = -1;
     bool use_min_tri = false;
