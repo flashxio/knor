@@ -29,7 +29,6 @@
 #define KM_TEST 0
 #define VERBOSE 0
 
-
 namespace kpmprune = kpmeans::prune;
 namespace kpmbase = kpmeans::base;
 
@@ -96,12 +95,14 @@ void forgy_init(const double* matrix,
     BOOST_LOG_TRIVIAL(info) << "Forgy init end";
 }
 
+#if KM_TEST
 std::string s (const double d) {
     if (d == std::numeric_limits<double>::max())
         return "max";
     else
         return std::to_string(d);
 }
+#endif
 
 /**
  * \brief A parallel version of the kmeans++ initialization alg.
@@ -304,7 +305,9 @@ static void EM_step(const double* matrix, kpmbase::prune_clusters::ptr cls,
 #endif
 }
 
-void get_sampling(std::vector<std::vector<double>>& samples, const unsigned* cluster_assignments,
+#if KM_TEST
+void get_sampling(std::vector<std::vector<double>>& samples,
+        const unsigned* cluster_assignments,
          const double* data, const unsigned* cluster_assignment_counts) {
     constexpr unsigned MAX_PLOT_POINTS = 1000;
     const unsigned samples_per_cluster =
@@ -319,6 +322,7 @@ void get_sampling(std::vector<std::vector<double>>& samples, const unsigned* clu
         //TODO: Add sample to the sampling result
     }
 }
+#endif
 } // End annon namespace
 
 namespace kpmeans { namespace omp {

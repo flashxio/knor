@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 neurodata (http://neurodata.io/)
+* Copyright 2016 neurodata (http://neurodata.io/)
  * Written by Disa Mhembere (disa@jhu.edu)
  *
  * This file is part of k-par-means
@@ -28,7 +28,7 @@
 #include "io.hpp"
 #include "util.hpp"
 
-#define KM_TEST 1
+#define KM_TEST 0
 #define VERBOSE 0
 
 namespace kpmbase = kpmeans::base;
