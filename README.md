@@ -6,8 +6,8 @@ A library to compure k-means in the following settings:
     ,via [p-threads](https://computing.llnl.gov/tutorials/pthreads/)
     implemation for shared-memory linux systems
 2. An MPI-based implementation of the ||Lloyds algorithm.
-3. Options to use a scalable adaption of 
-[Elkan's](http://users.cecs.anu.edu.au/~daa/courses/GSAC6017/kmeansicml03.pdf) 
+3. Options to use a scalable adaption of
+[Elkan's](http://users.cecs.anu.edu.au/~daa/courses/GSAC6017/kmeansicml03.pdf)
 agorithm that *can* drastically reduce the number of distance computations
 required.
 
@@ -26,6 +26,11 @@ modern compiler to take advantage of compile time optimizations:
 
 ### Auto-Install
 `./boostrap.sh`
+
+### Python bindings
+
+#### Requirements:
+- Cython 0.21+
 
 ### Usage
 Assume the following:
@@ -48,7 +53,7 @@ Assume the following:
 
 ## Data format conversion
 We provide some lightweight fast utilities to convert data from
-common formats to our own. Below we document their use:  
+common formats to our own. Below we document their use:
 TODO
 
 ## Publications
