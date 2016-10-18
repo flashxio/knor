@@ -27,6 +27,7 @@
 
 #include <vector>
 #include <iostream>
+#include <random>
 
 #include <boost/assert.hpp>
 #include <boost/log/trivial.hpp>
@@ -88,11 +89,11 @@ const double cos_dist(const T* lhs, const T* rhs,
     return  1 - (numr / ((sqrt(ldenom)*sqrt(rdenom))));
 }
 
-/** /brief Choose the correct distance function and return it
- * /param arg0 A pointer to data
- * /param arg1 Another pointer to data
- * /param len The number of elements used in the comparison
- * /return the distance based on the chosen distance metric
+/** \brief Choose the correct distance function and return it
+ * \param arg0 A pointer to data
+ * \param arg1 Another pointer to data
+ * \param len The number of elements used in the comparison
+ * \return the distance based on the chosen distance metric
  */
 template <typename T>
 T dist_comp_raw(const T* arg0, const T* arg1,
@@ -105,6 +106,47 @@ T dist_comp_raw(const T* arg0, const T* arg1,
         BOOST_ASSERT_MSG(false, "Unknown distance metric!");
     exit(EXIT_FAILURE);
 }
+
+/**
+  \brief Used to generate the a stream of random numbers on every processor but
+  allow for a parallel and serial impl to generate identical results.
+    NOTE: This only works if the data is distributed to processors in the
+  same fashion as <El::VC, El::STAR> or <El::STAR, El::VC>
+**/
+template <typename T>
+class mpi_random_generator {
+public:
+    // End range (end_range) is inclusive i.e random numbers will be
+    //      in the inclusive interval (begin_range, end_range)
+    mpi_random_generator(const size_t begin_range,
+            const size_t end_range, const size_t rank,
+            const size_t nprocs, const size_t seed) {
+        this->_nprocs = nprocs;
+        this->_gen = std::default_random_engine(seed);
+        this->_rank = rank;
+        this->_dist = std::uniform_int_distribution<T>(begin_range, end_range);
+        init();
+    }
+
+    void init() {
+        for (size_t i = 0; i < _rank; i++)
+            _dist(_gen);
+    }
+
+    T next() {
+        T ret = _dist(_gen);
+        for (size_t i = 0; i < _nprocs-1; i++)
+            _dist(_gen);
+        return ret;
+    }
+
+private:
+    std::uniform_int_distribution<T> _dist;
+    std::default_random_engine _gen;
+    size_t _nprocs;
+    size_t  _rank;
+};
+
 
 float time_diff(struct timeval time1, struct timeval time2);
 int get_num_omp_threads();
