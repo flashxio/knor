@@ -98,7 +98,6 @@ protected:
         set_thread_state(WAIT);
     }
 
-protected:
     void set_thread_state(thread_state_t state) {
         this->state = state;
     }
