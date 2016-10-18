@@ -92,46 +92,6 @@ void col_mean_raw(El::Matrix<T>& mat, El::Matrix<T>& outmat,
     }
 }
 
-/**
-  Used to generate the a stream of random numbers on every processor but
-  allow for a parallel and serial impl to generate identical results.
-    NOTE: This only works if the data is distributed to processors in the
-  same fashion as <El::VC, El::STAR> or <El::STAR, El::VC>
-**/
-template <typename T>
-class mpi_random_generator {
-public:
-    // End range (end_range) is inclusive i.e random numbers will be
-    //      in the inclusive interval (begin_range, end_range)
-    mpi_random_generator(const El::Unsigned begin_range,
-            const El::Unsigned end_range, const El::Unsigned rank,
-            const size_t nprocs, const size_t seed) {
-        this->_nprocs = nprocs;
-        this->_gen = std::default_random_engine(seed);
-        this->_rank = rank;
-        this->_dist = std::uniform_int_distribution<T>(begin_range, end_range);
-        init();
-    }
-
-    void init() {
-        for (size_t i = 0; i < _rank; i++)
-            _dist(_gen);
-    }
-
-    T next() {
-        T ret = _dist(_gen);
-        for (size_t i = 0; i < _nprocs-1; i++)
-            _dist(_gen);
-        return ret;
-    }
-
-private:
-    std::uniform_int_distribution<T> _dist;
-    std::default_random_engine _gen;
-    size_t _nprocs;
-    El::Unsigned _rank;
-};
-
 template <typename T>
 void kmeanspp_init(const El::DistMatrix<T, El::VC, El::STAR>& data,
         El::Matrix<T>& centroids, const El::Unsigned seed,
@@ -241,7 +201,7 @@ void init_centroids(El::Matrix<T>& centroids, const El::DistMatrix<T,
         case kpmbase::init_type_t::RANDOM: {
             // Get the local data first
             El::Matrix<double> local_data = data.LockedMatrix();
-            mpi_random_generator<El::Unsigned> gen(0, k-1, rank, nprocs, seed);
+            kpmbase::mpi_random_generator<El::Unsigned> gen(0, k-1, rank, nprocs, seed);
             for (El::Unsigned col = 0;
                     col < (El::Unsigned)local_data.Width(); col++) {
                 El::Unsigned chosen_centroid_id = gen.next();
@@ -279,7 +239,7 @@ void init_centroids(El::Matrix<T>& centroids, const El::DistMatrix<T,
             El::Zeros(centroids, k, ncol);
             El::Matrix<T> local_data = data.LockedMatrix();
 
-            mpi_random_generator<El::Unsigned>
+            kpmbase::mpi_random_generator<El::Unsigned>
                 gen(0, nrow-1, 0, 1, seed);
 
             for (El::Unsigned cl = 0; cl < k; cl++) {
