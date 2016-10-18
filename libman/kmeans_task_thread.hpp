@@ -34,7 +34,6 @@ class task;
     }
     namespace prune {
     class dist_matrix;
-    class kmeans_task_coordinator;
     }
 }
 
@@ -47,7 +46,7 @@ private:
     std::shared_ptr<kpmbase::prune_clusters> g_clusters; // Ptr to global cluster data
     unsigned start_rid; // The row id of the first item in this partition
 
-    kmeans_task_coordinator* driver;
+    void* driver; // Hacky, but no time ...
     kpmeans::task_queue* tasks;
     kpmeans::task* curr_task;
 
@@ -58,7 +57,8 @@ private:
 
     kmeans_task_thread(const int node_id, const unsigned thd_id,
             const unsigned start_rid, const unsigned nlocal_rows,
-            const unsigned ncol, std::shared_ptr<kpmbase::prune_clusters> g_clusters,
+            const unsigned ncol,
+            std::shared_ptr<kpmbase::prune_clusters> g_clusters,
             unsigned* cluster_assignments,
             const std::string fn);
 public:
@@ -89,7 +89,7 @@ public:
     const void print_local_data() const;
     ~kmeans_task_thread();
 
-    void set_driver(kmeans_task_coordinator* driver) {
+    void set_driver(const void* driver) const {
         this->driver = driver;
     }
 
