@@ -89,7 +89,7 @@ public:
     const void print_local_data() const;
     ~kmeans_task_thread();
 
-    void set_driver(const void* driver) const {
+    void set_driver(void* driver) {
         this->driver = driver;
     }
 
