@@ -48,7 +48,7 @@ namespace kpmprune = kpmeans::prune;
 namespace kpmeans { namespace prune {
 
 class kmeans_task_coordinator : public kpmeans::base_kmeans_coordinator {
-private:
+protected: // So lazy ..
     // Metadata
     // max index stored within each threads partition
     std::vector<unsigned> thd_max_row_idx;
@@ -57,7 +57,6 @@ private:
     double* dist_v; // global
     std::shared_ptr<kpmprune::dist_matrix> dm;
 
-protected:
     kmeans_task_coordinator(const std::string fn, const size_t nrow,
             const size_t ncol, const unsigned k, const unsigned max_iters,
             const unsigned nnodes, const unsigned nthreads,
@@ -65,7 +64,8 @@ protected:
             const double tolerance, const kpmbase::dist_type_t dt);
 
 public:
-    static ptr create(const std::string fn, const size_t nrow,
+    static base_kmeans_coordinator::ptr create(
+            const std::string fn, const size_t nrow,
             const size_t ncol, const unsigned k, const unsigned max_iters,
             const unsigned nnodes, const unsigned nthreads,
             const double* centers=NULL, const std::string init="kmeanspp",
@@ -88,19 +88,19 @@ public:
     std::pair<unsigned, unsigned> get_rid_len_tup(const unsigned thd_id);
     // Pass file handle to threads to read & numa alloc
     void create_thread_map();
-    void run_kmeans();
     void update_clusters(const bool prune_init);
-    void kmeanspp_init();
     void wake4run(kpmeans::thread_state_t state);
     void destroy_threads();
     void set_thread_clust_idx(const unsigned clust_idx);
     double reduction_on_cuml_sum();
     void set_thd_dist_v_ptr(double* v);
     void run_init();
-    void random_partition_init();
-    void forgy_init();
     void set_global_ptrs();
-    //km::task* steal_task(bool _is_numa, const unsigned node_id);
+
+    virtual void kmeanspp_init();
+    virtual void random_partition_init();
+    virtual void forgy_init();
+    virtual void run_kmeans();
 
     const double* get_thd_data(const unsigned row_id) const;
 
