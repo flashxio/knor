@@ -26,6 +26,7 @@
 #include <boost/log/trivial.hpp>
 #include "base_kmeans_coordinator.hpp"
 #include "kmeans_types.hpp"
+#include "util.hpp"
 
 namespace kpmeans {
 class task;
@@ -59,6 +60,7 @@ private:
     double* dist_v; // global
     std::shared_ptr<kpmprune::dist_matrix> dm;
 
+protected:
     kmeans_task_coordinator(const std::string fn, const size_t nrow,
             const size_t ncol, const unsigned k, const unsigned max_iters,
             const unsigned nnodes, const unsigned nthreads,
@@ -66,46 +68,23 @@ private:
             const double tolerance, const kpmbase::dist_type_t dt);
 
 public:
-    typedef std::shared_ptr<kmeans_task_coordinator> ptr;
-
     static ptr create(const std::string fn, const size_t nrow,
             const size_t ncol, const unsigned k, const unsigned max_iters,
             const unsigned nnodes, const unsigned nthreads,
             const double* centers=NULL, const std::string init="kmeanspp",
             const double tolerance=-1, const std::string dist_type="eucl") {
 
-        kpmbase::init_type_t _init_t;
-        if (init == "random")
-            _init_t = kpmbase::init_type_t::RANDOM;
-        else if (init == "forgy")
-            _init_t = kpmbase::init_type_t::FORGY;
-        else if (init == "kmeanspp")
-            _init_t = kpmbase::init_type_t::PLUSPLUS;
-        else if (init == "none")
-            _init_t = kpmbase::init_type_t::NONE;
-        else {
-            BOOST_LOG_TRIVIAL(fatal) << "[ERROR]: param init must be one of:"
-                " [random | forgy | kmeanspp]. It is '" << init << "'";
-            exit(-1);
-        }
+        kpmbase::init_type_t _init_t = kpmbase::get_init_type(init);
+        kpmbase::dist_type_t _dist_t = kpmbase::get_dist_type(dist_type);
 
-        kpmbase::dist_type_t _dist_t;
-        if (dist_type == "eucl")
-            _dist_t = kpmbase::dist_type_t::EUCL;
-        else if (dist_type == "cos")
-            _dist_t = kpmbase::dist_type_t::COS;
-        else {
-            BOOST_LOG_TRIVIAL(fatal) << "[ERROR]: param dist_type must "
-                "be one of: 'eucl', 'cos'.It is '" << dist_type << "'";
-            exit(-1);
-        }
 #if KM_TEST
         printf("kmeans task coordinator => NUMA nodes: %u, nthreads: %u, "
                 "nrow: %lu, ncol: %lu, init: '%s', dist_t: '%s', fn: '%s'"
                 "\n\n", nnodes, nthreads, nrow, ncol, init.c_str(),
                 dist_type.c_str(), fn.c_str());
 #endif
-        return ptr(new kmeans_task_coordinator(fn, nrow, ncol, k, max_iters,
+        return base_kmeans_coordinator::ptr(
+                new kmeans_task_coordinator(fn, nrow, ncol, k, max_iters,
                     nnodes, nthreads, centers, _init_t, tolerance, _dist_t));
     }
 

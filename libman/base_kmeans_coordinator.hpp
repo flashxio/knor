@@ -63,6 +63,7 @@ protected:
             const double tolerance, const kpmbase::dist_type_t dt);
 
 public:
+    typedef std::shared_ptr<base_kmeans_coordinator> ptr;
     // pass file handle to threads to read & numa alloc
     virtual void run_init() = 0;
     virtual void random_partition_init() = 0;
