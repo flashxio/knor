@@ -19,6 +19,7 @@
 
 #include <atomic>
 #include "util.hpp"
+#include "exception.hpp"
 
 namespace kpmeans { namespace base {
 double get_bic(const std::vector<double>& dist_v, const unsigned nrow,
@@ -60,5 +61,31 @@ int get_num_omp_threads() {
         num_threads = omp_get_num_threads();
     }
     return num_threads.load();
+}
+
+init_type_t get_init_type(const std::string init) {
+    if (init == "random")
+        return init_type_t::RANDOM;
+    else if (init == "forgy")
+        return init_type_t::FORGY;
+    else if (init == "kmeanspp")
+        return init_type_t::PLUSPLUS;
+    else if (init == "none")
+        return init_type_t::NONE;
+    else
+        throw thread_exception(std::string("param init must be one of:"
+                    " [random | forgy | kmeanspp]. It is '")
+                + init + std::string("'"));
+}
+
+dist_type_t get_dist_type(const std::string dist_type) {
+    if (dist_type == "eucl")
+        return dist_type_t::EUCL;
+    else if (dist_type == "cos")
+        return dist_type_t::COS;
+    else
+        throw thread_exception(std::string
+                ("[ERROR]: param dist_type must be one of: 'eucl', 'cos'."
+                 " It is '") + dist_type + std::string("'"));
 }
 } }
