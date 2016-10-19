@@ -35,6 +35,8 @@
 namespace kpmbase = kpmeans::base;
 namespace kpmeans {
 
+class base_kmeans_thread;
+
 class base_kmeans_coordinator {
 protected:
     unsigned nthreads, nnodes;
@@ -55,6 +57,7 @@ protected:
     pthread_mutex_t mutex;
     pthread_cond_t cond;
     pthread_mutexattr_t mutex_attr;
+    std::vector<std::shared_ptr<base_kmeans_thread> > threads;
 
     base_kmeans_coordinator(const std::string fn, const size_t nrow,
             const size_t ncol, const unsigned k, const unsigned max_iters,
@@ -64,6 +67,9 @@ protected:
 
 public:
     typedef std::shared_ptr<base_kmeans_coordinator> ptr;
+    typedef std::vector<std::shared_ptr
+        <base_kmeans_thread> >::iterator thread_iter;
+
     // pass file handle to threads to read & numa alloc
     virtual void run_init() = 0;
     virtual void random_partition_init() = 0;
@@ -80,6 +86,9 @@ public:
     virtual void set_thd_dist_v_ptr(double* v) = 0;
 
     void wait4complete();
+    std::vector<std::shared_ptr<base_kmeans_thread> >& get_threads() {
+        return threads;
+    }
 };
-}
+} // namespace kpmeans
 #endif

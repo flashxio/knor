@@ -46,12 +46,9 @@ namespace kpmbase = kpmeans::base;
 namespace kpmprune = kpmeans::prune;
 
 namespace kpmeans { namespace prune {
-typedef std::vector<std::shared_ptr<prune::kmeans_task_thread> >
-    ::iterator thread_iter;
 
 class kmeans_task_coordinator : public kpmeans::base_kmeans_coordinator {
 private:
-    std::vector<std::shared_ptr<prune::kmeans_task_thread> > threads;
     // Metadata
     // max index stored within each threads partition
     std::vector<unsigned> thd_max_row_idx;
@@ -87,8 +84,6 @@ public:
                 new kmeans_task_coordinator(fn, nrow, ncol, k, max_iters,
                     nnodes, nthreads, centers, _init_t, tolerance, _dist_t));
     }
-
-    std::vector<std::shared_ptr<prune::kmeans_task_thread> >& get_threads();
 
     std::pair<unsigned, unsigned> get_rid_len_tup(const unsigned thd_id);
     // Pass file handle to threads to read & numa alloc

@@ -37,17 +37,14 @@
 namespace kpmbase = kpmeans::base;
 
 namespace kpmeans {
-class kmeans_thread;
+class base_kmeans_thread;
     namespace base {
     class clusters;
 } }
 
 namespace kpmeans {
-typedef std::vector<std::shared_ptr<kmeans_thread> >::iterator thread_iter;
-
 class kmeans_coordinator : public kpmeans::base_kmeans_coordinator {
     private:
-        std::vector<std::shared_ptr<kmeans_thread> > threads;
         // Metadata
         // max index stored within each threads partition
         std::vector<unsigned> thd_max_row_idx;

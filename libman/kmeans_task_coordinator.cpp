@@ -102,11 +102,6 @@ void kmeans_task_coordinator::set_prune_init(const bool prune_init) {
         (*it)->set_prune_init(prune_init);
 }
 
-std::vector<std::shared_ptr<prune::kmeans_task_thread> >&
-    kmeans_task_coordinator::get_threads() {
-  return threads;
-}
-
 void kmeans_task_coordinator::set_global_ptrs() {
     for (thread_iter it = threads.begin(); it != threads.end(); ++it) {
         pthread_mutex_lock(&mutex);
