@@ -21,27 +21,31 @@
 #define __KPM_EXCEPTIONS_HPP__
 
 #include <exception>
+#include <stdexcept>
 
 namespace kpmeans { namespace base {
 
-class not_implemented_exception : public runtime_error {
-    public not_implemented_exception() {
-        runtime_error("Method not Implemented!\n");
+class not_implemented_exception : public std::runtime_error {
+
+public:
+    not_implemented_exception() :
+        runtime_error("Method not Implemented!\n") {
+        }
+};
+
+class thread_exception: public std::exception {
+
+private:
+    std::string msg = "[ERROR]: kpm::pthread::thread_exception ==> ";
+
+    virtual const char* what() const throw() {
+        return this->msg.c_str();
     }
-}
 
-class thread_exception: public exception {
-    private:
-        std::string msg = "kpm::pthread::thread_exception ==> ";
-
-        virtual const char* what() const throw() {
-            return this->msg.c_str();
-        }
-
-    public:
-        thread_exception(const std::string msg) {
-            this->msg += msg;
-        }
+public:
+    thread_exception(const std::string msg) {
+        this->msg += msg;
+    }
 };
 } }
 #endif // __KPM_EXCEPTIONS_HPP__
