@@ -35,11 +35,21 @@
 #define VERBOSE 0
 #define INVALID_THD_ID -1
 
-namespace kpmeans { namespace base {
+namespace kpmeans {
+class task_queue;
+
+namespace base {
     class clusters;
-} }
+    class thd_safe_bool_vector;
+}
+
+namespace prune {
+    class dist_matrix;
+}
+}
 
 namespace kpmbase = kpmeans::base;
+namespace kpmprune = kpmeans::prune;
 
 namespace kpmeans {
 
@@ -78,10 +88,10 @@ protected:
 
     friend void* callback(void* arg);
 
-    base_kmeans_thread(const int node_id, const unsigned thd_id, const unsigned ncol,
-            const unsigned nclust, unsigned* cluster_assignments, const unsigned start_rid,
+    base_kmeans_thread(const int node_id, const unsigned thd_id,
+            const unsigned ncol, const unsigned nclust,
+            unsigned* cluster_assignments, const unsigned start_rid,
             const std::string fn) {
-
 
         pthread_mutexattr_init(&mutex_attr);
         pthread_mutexattr_settype(&mutex_attr, PTHREAD_MUTEX_ERRORCHECK);
@@ -112,6 +122,16 @@ public:
     virtual const unsigned get_global_data_id(const unsigned row_id) const = 0;
     virtual void run() = 0;
     virtual void sleep() = 0;
+
+    // Used by `task' thread classes
+    virtual void set_driver(void* driver) { }
+    virtual void wake(thread_state_t state) { }
+    virtual void set_prune_init(const bool prune_init) { }
+    virtual void set_recalc_v_ptr(std::shared_ptr<kpmbase::thd_safe_bool_vector>
+            recalculated_v) { }
+    virtual void set_dist_mat_ptr(std::shared_ptr<kpmprune::dist_matrix> dm) { }
+    virtual bool try_steal_task() { return false; }
+    virtual task_queue* get_task_queue() { return NULL; }
 
     void test() {
         //printf("%u ", get_thd_id());

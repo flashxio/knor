@@ -131,7 +131,7 @@ bool kmeans_task_thread::try_steal_task() {
 #else
 
 bool kmeans_task_thread::try_steal_task() {
-  std::vector<std::shared_ptr<prune::kmeans_task_thread> > workers =
+  std::vector<std::shared_ptr<kpmeans::base_kmeans_thread> > workers =
     ((kmeans_task_coordinator*)driver)->get_threads(); // Myself included
   for (unsigned i = 0; i < workers.size(); i++) {
     if (i != get_thd_id()) { // Can't steal from myself & I'm already done

@@ -55,6 +55,7 @@ private:
     std::shared_ptr<kpmbase::thd_safe_bool_vector> recalculated_v; // global
     bool _is_numa;
 
+protected:
     kmeans_task_thread(const int node_id, const unsigned thd_id,
             const unsigned start_rid, const unsigned nlocal_rows,
             const unsigned ncol,
@@ -62,13 +63,14 @@ private:
             unsigned* cluster_assignments,
             const std::string fn);
 public:
-    typedef std::shared_ptr<kmeans_task_thread> ptr;
-
-    static ptr create(const int node_id, const unsigned thd_id,
+    static base_kmeans_thread::ptr create(const int node_id,
+            const unsigned thd_id,
             const unsigned start_rid, const unsigned nlocal_rows,
-            const unsigned ncol, std::shared_ptr<kpmbase::prune_clusters> g_clusters,
+            const unsigned ncol,
+            std::shared_ptr<kpmbase::prune_clusters> g_clusters,
             unsigned* cluster_assignments, const std::string fn) {
-        return ptr(new kmeans_task_thread(node_id, thd_id, start_rid,
+        return base_kmeans_thread::ptr(
+                new kmeans_task_thread(node_id, thd_id, start_rid,
                     nlocal_rows, ncol, g_clusters,
                     cluster_assignments, fn));
     }
@@ -84,11 +86,12 @@ public:
     void request_task();
     void lock_sleep();
     void sleep();
-    bool try_steal_task();
+    virtual bool try_steal_task();
 
     const void print_local_data() const;
     ~kmeans_task_thread();
 
+    // Override
     void set_driver(void* driver) {
         this->driver = driver;
     }
