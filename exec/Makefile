@@ -22,10 +22,13 @@ LDFLAGS := -L../libauto -lauto -L../libman -lman \
 CXXFLAGS += -I.. -I../libauto -I../libman -I../libdist -I../libcommon
 DIST_FLAGS := -L../libdist -ldist
 
-all: kpmeans dist_kmeans
+all: kpmeans el_kmeans dist_kmeans
 
 kpmeans: kpmeans.o
 	$(CXX) -o kpmeans kpmeans.o $(LDFLAGS)
+
+el_kmeans: el_kmeans.o
+	$(CXX) -o el_kmeans el_kmeans.o $(LDFLAGS) $(DIST_FLAGS)
 
 dist_kmeans: dist_kmeans.o
 	$(CXX) -o dist_kmeans dist_kmeans.o $(LDFLAGS) $(DIST_FLAGS)
@@ -36,5 +39,6 @@ clean:
 	rm -f *~
 	rm -f kpmeans
 	rm -f dist_kmeans
+	rm -f el_kmeans
 
 -include $(DEPS)
