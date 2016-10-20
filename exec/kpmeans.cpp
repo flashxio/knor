@@ -116,11 +116,6 @@ int main(int argc, char* argv[]) {
     BOOST_ASSERT_MSG(!(init=="none" && centersfn.empty()),
             "Centers file name doesn't exit!");
 
-    kpmbase::bin_reader<double> br(datafn, nrow, ncol);
-    double* p_data = new double [nrow*ncol];
-    br.read(p_data);
-    printf("Read data!\n");
-
     double* p_centers = NULL;
 
     if (is_file_exist(centersfn.c_str())) {
@@ -147,9 +142,16 @@ int main(int argc, char* argv[]) {
         }
 #endif
     } else {
+        kpmbase::bin_reader<double> br(datafn, nrow, ncol);
+        double* p_data = new double [nrow*ncol];
+        br.read(p_data);
+        printf("Read data!\n");
+
         unsigned* p_clust_asgns = new unsigned [nrow];
         unsigned* p_clust_asgn_cnt = new unsigned [k];
-        p_centers = new double [k*ncol];
+
+        if (NULL == p_centers) // We have no preallocated centers
+            p_centers = new double [k*ncol];
 
         if (use_min_tri) {
             kpmeans::omp::compute_min_kmeans(p_data, p_centers, p_clust_asgns,
