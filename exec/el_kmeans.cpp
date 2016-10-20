@@ -17,8 +17,9 @@
  * limitations under the License.
  */
 
-#include "dist_kmeans.hpp"
+#include "el_kmeans.hpp"
 
+// A LibElemental version of the ||Lloyds algorithm
 int main(int argc, char* argv[]) {
     El::Environment env(argc, argv);
 
