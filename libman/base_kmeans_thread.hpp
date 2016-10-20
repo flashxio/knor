@@ -230,7 +230,7 @@ public:
         BOOST_ASSERT_MSG(f, "File handle invalid, can only alloc once!");
         size_t blob_size = get_data_size();
         local_data = static_cast<double*>(numa_alloc_onnode(blob_size, node_id));
-        fseek(f, start_rid*ncol*sizeof(double), SEEK_CUR); // start position
+        fseek(f, start_rid*ncol*sizeof(double), SEEK_SET); // start position
         BOOST_VERIFY(1 == fread(local_data, blob_size, 1, f));
         close_file_handle();
     }
