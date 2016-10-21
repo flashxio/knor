@@ -33,6 +33,13 @@ public:
         }
 };
 
+class abstract_exception : public std::runtime_error {
+public:
+    abstract_exception() :
+        runtime_error("[ERROR]: Cannot call Base class method!\n") {
+        }
+};
+
 class thread_exception: public std::exception {
 
 private:
