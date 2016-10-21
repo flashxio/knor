@@ -42,7 +42,7 @@ namespace kpmbase = kpmeans::base;
 namespace kpmeans { namespace prune {
 
 class kmeans_task_thread : public kpmeans::base_kmeans_thread {
-private:
+protected: // Lazy
     std::shared_ptr<kpmbase::prune_clusters> g_clusters; // Ptr to global cluster data
     unsigned start_rid; // The row id of the first item in this partition
 
@@ -55,7 +55,6 @@ private:
     std::shared_ptr<kpmbase::thd_safe_bool_vector> recalculated_v; // global
     bool _is_numa;
 
-protected:
     kmeans_task_thread(const int node_id, const unsigned thd_id,
             const unsigned start_rid, const unsigned nlocal_rows,
             const unsigned ncol,
