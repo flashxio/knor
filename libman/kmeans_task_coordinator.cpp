@@ -51,31 +51,33 @@ kmeans_task_coordinator::kmeans_task_coordinator(const std::string fn, const siz
         dist_v = new double[nrow];
         std::fill(&dist_v[0], &dist_v[nrow], std::numeric_limits<double>::max());
         dm = prune::dist_matrix::create(k);
+        build_thread_state();
+}
 
-        // NUMA node affinity binding policy is round-robin
-        unsigned thds_row = nrow / nthreads;
-        for (unsigned thd_id = 0; thd_id < nthreads; thd_id++) {
-            std::pair<unsigned, unsigned> tup = get_rid_len_tup(thd_id);
-            thd_max_row_idx.push_back((thd_id*thds_row) + tup.second);
-            threads.push_back(prune::kmeans_task_thread::create((thd_id % nnodes),
-                        thd_id, tup.first, tup.second,
-                        ncol, cltrs, cluster_assignments, fn));
-            threads[thd_id]->set_parent_cond(&cond);
-            threads[thd_id]->set_parent_pending_threads(&pending_threads);
-            threads[thd_id]->start(WAIT); // Thread puts itself to sleep
-            threads[thd_id]->set_driver(this); // For computation stealing
-        }
+void kmeans_task_coordinator::build_thread_state() {
+    // NUMA node affinity binding policy is round-robin
+    unsigned thds_row = nrow / nthreads;
+    for (unsigned thd_id = 0; thd_id < nthreads; thd_id++) {
+        std::pair<unsigned, unsigned> tup = get_rid_len_tup(thd_id);
+        thd_max_row_idx.push_back((thd_id*thds_row) + tup.second);
+        threads.push_back(prune::kmeans_task_thread::create((thd_id % nnodes),
+                    thd_id, tup.first, tup.second,
+                    ncol, cltrs, cluster_assignments, fn));
+        threads[thd_id]->set_parent_cond(&cond);
+        threads[thd_id]->set_parent_pending_threads(&pending_threads);
+        threads[thd_id]->start(WAIT); // Thread puts itself to sleep
+        threads[thd_id]->set_driver(this); // For computation stealing
     }
+}
 
-
-std::pair<unsigned, unsigned> kmeans_task_coordinator::get_rid_len_tup(
+std::pair<size_t, size_t> kmeans_task_coordinator::get_rid_len_tup(
         const unsigned thd_id) {
-    unsigned rows_per_thread = nrow / nthreads;
-    unsigned start_rid = (thd_id*rows_per_thread);
+    size_t rows_per_thread = nrow / nthreads;
+    size_t start_rid = (thd_id*rows_per_thread);
 
     if (thd_id == nthreads - 1)
         rows_per_thread += nrow % nthreads;
-    return std::pair<unsigned, unsigned>(start_rid, rows_per_thread);
+    return std::pair<size_t, size_t>(start_rid, rows_per_thread);
 }
 
 
@@ -287,6 +289,15 @@ void kmeans_task_coordinator::run_init() {
         default:
             fprintf(stderr, "[FATAL]: Unknow initialization type\n");
             exit(EXIT_FAILURE);
+    }
+}
+
+// For testing
+void const kmeans_task_coordinator::print_thread_data() {
+    thread_iter it = threads.begin();
+    for (; it != threads.end(); ++it) {
+        std::cout << "\nThd: " << (*it)->get_thd_id() << std::endl;
+        (*it)->print_local_data();
     }
 }
 
