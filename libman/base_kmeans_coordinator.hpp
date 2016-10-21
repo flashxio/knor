@@ -27,6 +27,7 @@
 
 #include "kmeans_types.hpp"
 #include "thread_state.hpp"
+#include "exception.hpp"
 
 #ifdef PROFILER
 #include <gperftools/profiler.h>
@@ -89,6 +90,12 @@ public:
     std::vector<std::shared_ptr<base_kmeans_thread> >& get_threads() {
         return threads;
     }
+
+    virtual void set_global_ptrs() { throw kpmbase::abstract_exception(); };
+    virtual const void print_thread_data() {
+        throw kpmbase::abstract_exception();
+    };
+    virtual void build_thread_state() { throw kpmbase::abstract_exception(); };
 };
 } // namespace kpmeans
 #endif
