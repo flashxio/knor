@@ -35,10 +35,10 @@
 
 namespace kpmeans { namespace base {
 
-double get_bic(const std::vector<double>& dist_v, const unsigned nrow,
-        const unsigned ncol, const unsigned k);
-void spherical_projection(double* data, const unsigned nrow,
-        const unsigned ncol);
+double get_bic(const std::vector<double>& dist_v, const size_t nrow,
+        const size_t ncol, const unsigned k);
+void spherical_projection(double* data, const size_t nrow,
+        const size_t ncol);
 
 // Vector equal function
 template <typename T>

@@ -23,8 +23,8 @@
 #include "exception.hpp"
 
 namespace kpmeans { namespace base {
-double get_bic(const std::vector<double>& dist_v, const unsigned nrow,
-        const unsigned ncol, const unsigned k) {
+double get_bic(const std::vector<double>& dist_v, const size_t nrow,
+        const size_t ncol, const unsigned k) {
         double bic = 0;
 #pragma omp parallel for reduction(+:bic) shared (dist_v)
     for (unsigned i = 0; i < dist_v.size(); i++) {
@@ -35,8 +35,8 @@ double get_bic(const std::vector<double>& dist_v, const unsigned nrow,
     return 2*bic + log(nrow)*ncol*k;
 }
 
-void spherical_projection(double* data, const unsigned nrow,
-        const unsigned ncol) {
+void spherical_projection(double* data, const size_t nrow,
+        const size_t ncol) {
 #pragma omp parallel for shared (data)
     for (unsigned row = 0; row < nrow; row++) {
         double norm2 = 0;
