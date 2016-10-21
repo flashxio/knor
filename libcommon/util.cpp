@@ -18,6 +18,7 @@
  */
 
 #include <atomic>
+#include <fstream>
 #include "util.hpp"
 #include "exception.hpp"
 
@@ -88,4 +89,11 @@ dist_type_t get_dist_type(const std::string dist_type) {
                 ("[ERROR]: param dist_type must be one of: 'eucl', 'cos'."
                  " It is '") + dist_type + std::string("'"));
 }
+
+bool is_file_exist(const char *fn) {
+    std::ifstream infile(fn);
+    return infile.good();
+}
+
+void int_handler(int sig_num) { exit(0); }
 } }

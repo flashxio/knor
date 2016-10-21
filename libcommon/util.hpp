@@ -153,6 +153,8 @@ int get_num_omp_threads();
 
 init_type_t get_init_type(const std::string init);
 dist_type_t get_dist_type(const std::string dist_type);
+void int_handler(int sig_num);
+bool is_file_exist(const char *fn);
 
 } } // End namespace kpmeans::base
 #endif
