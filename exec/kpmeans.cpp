@@ -20,7 +20,6 @@
 #include "signal.h"
 
 #include <limits>
-#include <fstream>
 #include <numa.h>
 
 #include "io.hpp"
@@ -28,13 +27,8 @@
 
 #include "kmeans_coordinator.hpp"
 #include "kmeans_task_coordinator.hpp"
+#include "util.hpp"
 
-static bool is_file_exist(const char *fn) {
-    std::ifstream infile(fn);
-    return infile.good();
-}
-
-static void int_handler(int sig_num) { exit(0); }
 static void print_usage();
 
 int main(int argc, char* argv[]) {
@@ -65,7 +59,7 @@ int main(int argc, char* argv[]) {
 	argv += 3;
 	argc -= 3;
 
-	signal(SIGINT, int_handler);
+	signal(SIGINT, kpmbase::int_handler);
 	while ((opt = getopt(argc, argv, "l:i:t:T:d:C:mpN:")) != -1) {
 		num_opts++;
 		switch (opt) {
@@ -91,7 +85,7 @@ int main(int argc, char* argv[]) {
 				break;
 			case 'C':
 				centersfn = std::string(optarg);
-                BOOST_ASSERT_MSG(is_file_exist(centersfn.c_str()),
+                BOOST_ASSERT_MSG(kpmbase::is_file_exist(centersfn.c_str()),
                         "Centers file name doesn't exit!");
                 init = "none"; // Ignore whatever you pass in
 				num_opts++;
@@ -116,9 +110,12 @@ int main(int argc, char* argv[]) {
     BOOST_ASSERT_MSG(!(init=="none" && centersfn.empty()),
             "Centers file name doesn't exit!");
 
+    if (kpmbase::filesize(datafn.c_str()) != (sizeof(double)*nrow*ncol))
+        throw kpmbase::io_exception("File size does not match input size.");
+
     double* p_centers = NULL;
 
-    if (is_file_exist(centersfn.c_str())) {
+    if (kpmbase::is_file_exist(centersfn.c_str())) {
         p_centers = new double [k*ncol];
         kpmbase::bin_reader<double> br2(centersfn, k, ncol);
         br2.read(p_centers);
