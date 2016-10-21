@@ -40,6 +40,13 @@ public:
         }
 };
 
+class io_exception : public std::runtime_error {
+public:
+    io_exception(const std::string msg) :
+        runtime_error(std::string("[ERROR]: IO ") + msg) {
+        }
+};
+
 class thread_exception: public std::exception {
 
 private:
