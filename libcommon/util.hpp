@@ -115,12 +115,17 @@ T dist_comp_raw(const T* arg0, const T* arg1,
 **/
 template <typename T>
 class mpi_random_generator {
+private:
+    std::uniform_int_distribution<T> _dist;
+    std::default_random_engine _gen;
+    size_t _nprocs;
+    size_t  _rank;
 public:
     // End range (end_range) is inclusive i.e random numbers will be
     //      in the inclusive interval (begin_range, end_range)
     mpi_random_generator(const size_t begin_range,
             const size_t end_range, const size_t rank,
-            const size_t nprocs, const size_t seed) {
+            const size_t nprocs, const size_t seed=1234) {
         this->_nprocs = nprocs;
         this->_gen = std::default_random_engine(seed);
         this->_rank = rank;
@@ -139,14 +144,36 @@ public:
             _dist(_gen);
         return ret;
     }
-
-private:
-    std::uniform_int_distribution<T> _dist;
-    std::default_random_engine _gen;
-    size_t _nprocs;
-    size_t  _rank;
 };
 
+/**
+  * \brief To avoid further dependencies and because we rarely use this
+  *     , we emulate a counter-based random number generator like Random123
+  *     to allow for skipping forward in a random stream.
+  */
+template <typename T>
+class rand123emulator {
+private:
+    std::uniform_int_distribution<T> dist;
+    std::default_random_engine gen;
+
+    const void skip(const size_t nskip) {
+        for (size_t i = 0; i < nskip; i++)
+            dist(gen); // Throw away some random numbers
+    }
+
+public:
+    rand123emulator(const size_t begin_range, const size_t end_range,
+            const size_t nskip, const size_t seed=1234) {
+        this->gen = std::default_random_engine(seed);
+        this->dist = std::uniform_int_distribution<T>(begin_range, end_range);
+        skip(nskip);
+    }
+
+    const T next() {
+        return dist(gen);
+    }
+};
 
 float time_diff(struct timeval time1, struct timeval time2);
 int get_num_omp_threads();
