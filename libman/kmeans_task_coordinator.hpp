@@ -85,6 +85,10 @@ public:
                     nnodes, nthreads, centers, _init_t, tolerance, _dist_t));
     }
 
+    std::shared_ptr<kpmbase::prune_clusters> get_gcltrs() {
+        return cltrs;
+    }
+
     std::pair<size_t, size_t> get_rid_len_tup(const unsigned thd_id);
     // Pass file handle to threads to read & numa alloc
     void create_thread_map();
