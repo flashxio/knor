@@ -36,7 +36,7 @@ private:
     // Together are nXd matrix
     unsigned ncol;
     unsigned nclust;
-    std::vector<int> num_members_v; // Cluster assignment counts
+    std::vector<long> num_members_v; // Cluster assignment counts
     std::vector<bool> complete_v; // Have we already divided by num_members
 
     kmsvector means; // Cluster means
@@ -64,11 +64,11 @@ public:
         return means;
     }
 
-    const int get_num_members(const unsigned idx) const {
+    const long get_num_members(const unsigned idx) const {
         return num_members_v[idx];
     }
 
-    const std::vector<int>& get_num_members_v() const {
+    const std::vector<long>& get_num_members_v() const {
         return num_members_v;
     }
 
@@ -80,7 +80,7 @@ public:
         return means.size();
     }
 
-    void num_members_peq(const int val, const unsigned idx) {
+    void num_members_peq(const long val, const unsigned idx) {
         num_members_v[idx] += val;
     }
 
@@ -183,6 +183,7 @@ public:
     void set_mean(const double* mean, const int idx=-1);
     void finalize(const unsigned idx);
     void unfinalize(const unsigned idx);
+    void set_num_members_v(const long* arg);
 };
 
 class prune_clusters : public clusters {

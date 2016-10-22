@@ -79,6 +79,10 @@ void clusters::unfinalize(const unsigned idx) {
     }
 }
 
+void clusters::set_num_members_v(const long* arg) {
+    std::copy(&(arg[0]), &(arg[nclust]), num_members_v.begin());
+}
+
 clusters& clusters::operator=(const clusters& other) {
     this->means = other.get_means();
     this->num_members_v = other.get_num_members_v();
