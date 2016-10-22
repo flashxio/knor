@@ -35,7 +35,7 @@ private:
 
     unsigned mpi_rank;
     unsigned nprocs;
-    size_t start_rid_offset; // Per process offset into the file
+    size_t g_nrow;
 
     /* NOTE
         nrow: The number of rows LOCAL to the process
@@ -70,14 +70,16 @@ public:
                     _init_t, tolerance, _dist_t));
     }
 
-    const void print_thread_data();
-    std::pair<size_t, size_t> get_rid_len_tup(const unsigned thd_id);
+    const void print_thread_data() override;
 
     // Must override routines
-    void kmeanspp_init();
-    void random_partition_init();
-    void forgy_init();
-    void run_kmeans(); /*Run a single iteration*/
+    void kmeanspp_init() override;
+    void random_partition_init() override;
+    void forgy_init() override;
+    void run_kmeans() override; /*Run a single iteration*/
+
+    const size_t global_rid(const size_t local_rid) const;
+    const size_t local_rid(const size_t global_rid) const;
 };
 } } // End namespace kpmeans, prune
 #endif

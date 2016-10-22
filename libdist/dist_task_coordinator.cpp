@@ -24,6 +24,7 @@
 #include "dist_task_coordinator.hpp"
 #include "dist_task_thread.hpp"
 #include "clusters.hpp"
+#include "io.hpp"
 
 namespace kpmeans { namespace prune {
 
@@ -39,6 +40,7 @@ dist_task_coordinator::dist_task_coordinator(
 
         this->mpi_rank = mpi_rank;
         this->nprocs = nprocs;
+        this->g_nrow = nrow;
 
         for (thread_iter it = threads.begin(); it < threads.end(); ++it)
             (*it)->set_start_rid((*it)->get_start_rid()
@@ -58,10 +60,11 @@ size_t const dist_task_coordinator::get_proc_rows(const size_t g_nrow,
 }
 
 void dist_task_coordinator::random_partition_init() {
-
-    for (unsigned row = 0; row < nrow; row++) {
-        unsigned asgnd_clust = random() % k; // 0...k
-        const double* dp = this->get_thd_data(row); // TODO: Test get_thd_data
+    kpmbase::rand123emulator<unsigned> gen(0, k-1,
+            ((g_nrow / nprocs) * mpi_rank));
+    for (size_t row = 0; row < nrow; row++) {
+        unsigned asgnd_clust = gen.next();
+        const double* dp = this->get_thd_data(row);
 
         cltrs->add_member(dp, asgnd_clust);
         cluster_assignments[row] = asgnd_clust;
@@ -71,9 +74,19 @@ void dist_task_coordinator::random_partition_init() {
     printf("After rand paritions cluster_asgns: ");
     print_arr<unsigned>(cluster_assignments, nrow);
 #endif
-
 }
 
+const size_t dist_task_coordinator::global_rid(const size_t local_rid) const {
+    return ((g_nrow / nprocs)*mpi_rank) + local_rid;
+}
+
+const size_t dist_task_coordinator::local_rid(const size_t global_rid) const {
+    size_t rid = global_rid - (mpi_rank * (g_nrow / nprocs));
+    if (rid > this->nrow)
+        throw kpmbase::thread_exception("Row: " + std::to_string(rid) +
+                " out of bounds for Proc: " + std::to_string( mpi_rank));
+    return rid;
+}
 
 // For testing
 void const dist_task_coordinator::print_thread_data() {
