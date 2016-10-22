@@ -236,9 +236,12 @@ void kmeans_coordinator::random_partition_init() {
 }
 
 void kmeans_coordinator::forgy_init() {
+    std::default_random_engine generator;
+    std::uniform_int_distribution<unsigned> distribution(0, nrow-1);
+
     BOOST_LOG_TRIVIAL(info) << "Forgy init start";
     for (unsigned clust_idx = 0; clust_idx < k; clust_idx++) { // 0...k
-        unsigned rand_idx = random() % nrow; // 0...(nrow-1)
+        unsigned rand_idx = distribution(generator);
         cltrs->set_mean(get_thd_data(rand_idx), clust_idx);
     }
     BOOST_LOG_TRIVIAL(info) << "Forgy init end";

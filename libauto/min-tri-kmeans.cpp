@@ -85,10 +85,13 @@ void forgy_init(const double* matrix,
         std::shared_ptr<kpmbase::clusters> clusters,
         const unsigned num_rows, const unsigned num_cols, const unsigned k) {
 
+    std::default_random_engine generator;
+    std::uniform_int_distribution<unsigned> distribution(0, num_rows-1);
+
     BOOST_LOG_TRIVIAL(info) << "Forgy init start";
 
     for (unsigned clust_idx = 0; clust_idx < k; clust_idx++) { // 0...K
-        unsigned rand_idx = random() % num_rows; // 0...(n-1)
+        unsigned rand_idx = distribution(generator);
         clusters->set_mean(&matrix[rand_idx*num_cols], clust_idx);
     }
 
@@ -318,7 +321,6 @@ void get_sampling(std::vector<std::vector<double>>& samples,
     }
 
     for (unsigned k=0; k < K; k++) {
-        //unsigned rand_idx = random() % (cluster_assignment_counts[k]-1);
         //TODO: Add sample to the sampling result
     }
 }
