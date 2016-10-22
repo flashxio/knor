@@ -47,6 +47,14 @@ public:
         }
 };
 
+class mpi_exception : public std::runtime_error {
+public:
+    mpi_exception(const std::string msg, const int error_code) :
+        runtime_error(std::string("[ERROR]: MPI ") + msg +
+                ". Error code: " + std::to_string(error_code)) {
+        }
+};
+
 class thread_exception: public std::exception {
 
 private:
