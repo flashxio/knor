@@ -36,7 +36,7 @@ private:
     // Together are nXd matrix
     unsigned ncol;
     unsigned nclust;
-    std::vector<long> num_members_v; // Cluster assignment counts
+    std::vector<size_t> num_members_v; // Cluster assignment counts
     std::vector<bool> complete_v; // Have we already divided by num_members
 
     kmsvector means; // Cluster means
@@ -64,11 +64,11 @@ public:
         return means;
     }
 
-    const long get_num_members(const unsigned idx) const {
+    const size_t get_num_members(const unsigned idx) const {
         return num_members_v[idx];
     }
 
-    const std::vector<long>& get_num_members_v() const {
+    const std::vector<size_t>& get_num_members_v() const {
         return num_members_v;
     }
 
@@ -76,11 +76,21 @@ public:
         return complete_v[idx];
     }
 
+    // NOTE: Thread unsafe
+    void set_complete(const unsigned idx, const bool complete=true) {
+        complete_v[idx] = complete;
+    }
+
+    void set_complete_all(const bool complete=true) {
+        for (unsigned c = 0; c < get_nclust(); c++)
+            complete_v[c] = complete;
+    }
+
     const unsigned size() const {
         return means.size();
     }
 
-    void num_members_peq(const long val, const unsigned idx) {
+    void num_members_peq(const size_t val, const unsigned idx) {
         num_members_v[idx] += val;
     }
 
@@ -183,7 +193,13 @@ public:
     void set_mean(const double* mean, const int idx=-1);
     void finalize(const unsigned idx);
     void unfinalize(const unsigned idx);
-    void set_num_members_v(const long* arg);
+    void finalize_all();
+    void unfinalize_all();
+    void set_num_members_v(const size_t* arg);
+
+    const void print_membership_count() const;
+    void means_peq(const double* other);
+    void num_members_v_peq(const size_t* other);
 };
 
 class prune_clusters : public clusters {

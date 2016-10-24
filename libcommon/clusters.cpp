@@ -79,7 +79,19 @@ void clusters::unfinalize(const unsigned idx) {
     }
 }
 
-void clusters::set_num_members_v(const long* arg) {
+// TODO: Untested
+void clusters::finalize_all() {
+    for (unsigned c = 0;  c < get_nclust(); c++)
+        finalize(c);
+}
+
+// TODO: Untested
+void clusters::unfinalize_all() {
+    for (unsigned c = 0;  c < get_nclust(); c++)
+        unfinalize(c);
+}
+
+void clusters::set_num_members_v(const size_t* arg) {
     std::copy(&(arg[0]), &(arg[nclust]), num_members_v.begin());
 }
 
@@ -100,7 +112,6 @@ bool clusters::operator==(const clusters& other) {
 }
 
 clusters& clusters::operator+=(clusters& rhs) {
-    // TODO vectorize perhaps OR omp parallel
     for (unsigned i = 0; i < size(); i++)
         this->means[i] += rhs[i];
 
@@ -116,6 +127,18 @@ void clusters::peq(ptr rhs) {
 
     for (unsigned idx = 0; idx < nclust; idx++)
         num_members_peq(rhs->get_num_members(idx), idx);
+}
+
+// TODO: Untested
+void clusters::means_peq(const double* other) {
+    for (unsigned i = 0; i < size(); i++)
+        this->means[i] += other[i];
+}
+
+// TODO: Untested
+void clusters::num_members_v_peq(const size_t* other) {
+    for (unsigned i = 0; i < num_members_v.size(); i++)
+        this->num_members_v[i] += other[i];
 }
 
 // Begin Helpers //
@@ -144,6 +167,15 @@ clusters::clusters(const unsigned nclust, const unsigned ncol,
     set_mean(means);
     num_members_v.resize(nclust);
     complete_v.assign(nclust, true);
+}
+
+const void clusters::print_membership_count() const {
+    std::string p = "[ ";
+    for (unsigned cl_idx = 0; cl_idx < get_nclust(); cl_idx++) {
+        p += std::to_string(get_num_members(cl_idx)) + " ";
+    }
+    p += "]\n";
+    std::cout << p;
 }
 
 // Pruning clusters //
