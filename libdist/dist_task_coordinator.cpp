@@ -45,6 +45,8 @@ dist_task_coordinator::dist_task_coordinator(
         for (thread_iter it = threads.begin(); it < threads.end(); ++it)
             (*it)->set_start_rid((*it)->get_start_rid()
                     + (nrow / nprocs) * mpi_rank);
+
+        prev_num_members.resize(k);
 }
 
 /**
@@ -94,7 +96,32 @@ void const dist_task_coordinator::print_thread_data() {
     kmeans_task_coordinator::print_thread_data();
 }
 
-void dist_task_coordinator::kmeanspp_init() {}
-void dist_task_coordinator::forgy_init() {}
-void dist_task_coordinator::run_kmeans() {}
+void dist_task_coordinator::kmeanspp_init() {
+    throw kpmbase::not_implemented_exception();
+}
+void dist_task_coordinator::forgy_init() {
+    throw kpmbase::not_implemented_exception();
+}
+
+void dist_task_coordinator::run_kmeans() {
+    throw kpmbase::not_implemented_exception();
+}
+
+// Aggregate per process from threads &
+//      save to `cltrs' as the delta for 1 EM-step
+void dist_task_coordinator::pp_aggregate() {
+    num_changed = 0; // Reset every iteration
+    cltrs->set_prev_means();
+    std::copy(cltrs->get_num_members_v().begin(),
+            cltrs->get_num_members_v().end(), prev_num_members.begin());
+
+    cltrs->clear(); // NOTE: So we don't clear prev_means
+
+    for (thread_iter it = threads.begin(); it != threads.end(); ++it) {
+        // Updated the changed cluster count
+        num_changed += (*it)->get_num_changed();
+        cltrs->peq((*it)->get_local_clusters());
+    }
+}
+
 } } // End namespace kpmeans, prune

@@ -36,6 +36,7 @@ private:
     unsigned mpi_rank;
     unsigned nprocs;
     size_t g_nrow;
+    std::vector<size_t> prev_num_members;
 
     /* NOTE
         nrow: The number of rows LOCAL to the process
@@ -80,6 +81,10 @@ public:
 
     const size_t global_rid(const size_t local_rid) const;
     const size_t local_rid(const size_t global_rid) const;
+    void pp_aggregate();
+    std::vector<size_t>& get_prev_num_members() {
+        return prev_num_members;
+    }
 };
 } } // End namespace kpmeans, prune
 #endif
