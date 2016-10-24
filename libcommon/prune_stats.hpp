@@ -32,7 +32,7 @@ private:
     unsigned lemma1, _3a, _3b, _3c, _4;
 
     // Total counts
-    unsigned long tot_lemma1, tot_3a, tot_3b, tot_3c, tot_4, iter;
+    size_t tot_lemma1, tot_3a, tot_3b, tot_3c, tot_4, iter;
     unsigned nrow;
     unsigned nclust;
 

@@ -28,7 +28,7 @@ namespace kpmeans { namespace utils {
 void to_spark(const std::string fn, std::ofstream& of,
         const conv_layout lay, const size_t nrow, const size_t ncol) {
 
-    unsigned long size = nrow*ncol;
+    size_t size = nrow*ncol;
     BOOST_LOG_TRIVIAL(info) << "Malloc-ing matrix with size: " << size;
 
     double* outmat = new double [size];
@@ -68,7 +68,7 @@ void to_spark(const std::string fn, std::ofstream& of,
 // KMEANS_PAR
 void to_kmeans_par(const std::string fn, std::ofstream& of,
         const conv_layout lay, const size_t nrow, const size_t ncol) {
-    unsigned long size = nrow*ncol;
+    size_t size = nrow*ncol;
     BOOST_LOG_TRIVIAL(info) << "Malloc-ing matrix with size: " << size;
 
     double* outmat = new double [size];
@@ -109,7 +109,7 @@ void to_kmeans_par(const std::string fn, std::ofstream& of,
 
 void to_fg(const std::string fn, std::ofstream& of,
         const conv_layout lay, const size_t nrow, const size_t ncol) {
-    unsigned long size = nrow*ncol;
+    size_t size = nrow*ncol;
     BOOST_LOG_TRIVIAL(info) << "Malloc-ing matrix with size: " << size;
 
     double* outmat = new double [size];
@@ -133,7 +133,7 @@ void to_fg(const std::string fn, std::ofstream& of,
 void to_h2o(const std::string fn, std::ofstream& of,
         const conv_layout lay, const size_t nrow, const size_t ncol) {
 
-    unsigned long size = nrow*ncol;
+    size_t size = nrow*ncol;
     BOOST_LOG_TRIVIAL(info) << "Malloc-ing matrix with size: " << size;
 
     double* outmat = new double [size];
