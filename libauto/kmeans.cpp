@@ -289,8 +289,7 @@ unsigned compute_kmeans(const double* matrix, double* clusters_ptr,
         random_partition_init(cluster_assignments, matrix,
                 clusters, NUM_ROWS, NUM_COLS, K);
         g_init_type = kpmbase::init_type_t::RANDOM;
-        for (unsigned cl = 0; cl < K; cl++)
-            clusters->finalize(cl);
+        clusters->finalize_all();
     } else if (init == "forgy") {
         forgy_init(matrix, clusters, NUM_ROWS, NUM_COLS, K);
         g_init_type = kpmbase::init_type_t::FORGY;

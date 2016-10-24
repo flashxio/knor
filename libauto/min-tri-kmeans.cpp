@@ -273,8 +273,7 @@ static void EM_step(const double* matrix, kpmbase::prune_clusters::ptr cls,
         cls->clear();
     } else {
         cls->set_prev_means();
-        for (unsigned idx = 0; idx < K; idx++)
-            cls->unfinalize(idx);
+        cls->unfinalize_all();
     }
 
     // Serial aggreate of OMP_MAX_THREADS vectors
@@ -390,8 +389,7 @@ unsigned compute_min_kmeans(const double* matrix, double* clusters_ptr,
         random_partition_init(cluster_assignments, matrix,
                 clusters, NUM_ROWS, NUM_COLS, K);
         g_init_type = kpmbase::init_type_t::RANDOM;
-        for (unsigned cl = 0; cl < K; cl++)
-            clusters->finalize(cl);
+        clusters->finalize_all();
     } else if (init == "forgy") {
         forgy_init(matrix, clusters, NUM_ROWS, NUM_COLS, K);
         g_init_type = kpmbase::init_type_t::FORGY;
