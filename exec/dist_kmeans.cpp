@@ -47,16 +47,6 @@ int main(int argc, char* argv[]) {
     MPI_Comm_size(MPI_COMM_WORLD, &nprocs); // Set the num_procs
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-#if 0
-    // Create the pthread handler that launches multiple threads
-    std::string datafn = "/data/kmeans/r10_c100_k10_rw.dat";
-    size_t nrow = 100; size_t ncol = 10; size_t k = 5;
-    size_t max_iters = 10; unsigned nnodes = numa_num_task_nodes();
-    size_t nthread = 3; double* p_centers = NULL;
-    std::string init = "random"; double tolerance = -1;
-    std::string dist_type = "eucl";
-#endif
-
     if (argc < 5) {
         print_usage();
         exit(EXIT_FAILURE);
