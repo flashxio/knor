@@ -79,13 +79,11 @@ void clusters::unfinalize(const unsigned idx) {
     }
 }
 
-// TODO: Untested
 void clusters::finalize_all() {
     for (unsigned c = 0;  c < get_nclust(); c++)
         finalize(c);
 }
 
-// TODO: Untested
 void clusters::unfinalize_all() {
     for (unsigned c = 0;  c < get_nclust(); c++)
         unfinalize(c);
@@ -129,13 +127,11 @@ void clusters::peq(ptr rhs) {
         num_members_peq(rhs->get_num_members(idx), idx);
 }
 
-// TODO: Untested
 void clusters::means_peq(const double* other) {
     for (unsigned i = 0; i < size(); i++)
         this->means[i] += other[i];
 }
 
-// TODO: Untested
 void clusters::num_members_v_peq(const size_t* other) {
     for (unsigned i = 0; i < num_members_v.size(); i++)
         this->num_members_v[i] += other[i];

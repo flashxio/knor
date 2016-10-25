@@ -203,7 +203,7 @@ int main(int argc, char* argv[]) {
 
         // Init iteration
         if (rank == root)
-            BOOST_LOG_TRIVIAL(info) << "Running iteration " << iters << " ...";
+            printf("Running iteration %lu ...\n", iters);
 
         std::static_pointer_cast<kpmprune::
             dist_task_coordinator>(dc)->get_dm()->compute_dist(cltrs_ptr, ncol);
@@ -253,7 +253,7 @@ int main(int argc, char* argv[]) {
         kpmmpi::mpi::reduce_size_t(&pp_num_changed, &nchanged);
 
         if (rank == root) {
-            BOOST_LOG_TRIVIAL(info) << "\nGlobal nchanged: " << nchanged;
+            printf("Global nchanged: %lu ...\n", nchanged);
             cltrs_ptr->print_membership_count();
         }
 
@@ -264,10 +264,8 @@ int main(int argc, char* argv[]) {
         perc_changed = (double)nchanged/nrow; // Global perc change
         if (nchanged == 0 || perc_changed <= tolerance) {
             converged = true;
-            if (rank == root) {
-                BOOST_LOG_TRIVIAL(info) << "Algorithm converged in "
-                    << (iters + 1) << " iterations!";
-            }
+            if (rank == root)
+                printf("Algorithm converged in %lu iterations!\n", (iters + 1));
             break;
         }
 
@@ -285,12 +283,12 @@ int main(int argc, char* argv[]) {
     }
 
     if (!converged && rank == root)
-        BOOST_LOG_TRIVIAL(info) << "Algorithm failed to converge in " <<
-            iters << " iterations";
+        printf("Algorithm failed to converge in %lu iterations\n", iters);
 
+    gettimeofday(&end, NULL);
     if (rank == root)
-        BOOST_LOG_TRIVIAL(info) << "\nAlgorithmic time taken = " <<
-            kpmbase::time_diff(start, end) << " sec\n";
+        printf("\nAlgorithmic time taken = %.5f sec\n",
+                kpmbase::time_diff(start, end));
 
     // MPI cleanup and graceful exit
     delete [] clstr_buff;
