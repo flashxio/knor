@@ -22,7 +22,7 @@
 #endif
 
 #include "dist_task_coordinator.hpp"
-#include "dist_task_thread.hpp"
+#include "kmeans_task_thread.hpp"
 #include "clusters.hpp"
 #include "io.hpp"
 
