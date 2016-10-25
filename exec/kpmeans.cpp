@@ -17,11 +17,11 @@
  * limitations under the License.
  */
 
-#include "signal.h"
 
 #include <limits>
 #include <numa.h>
 
+#include "signal.h"
 #include "io.hpp"
 #include "kmeans.hpp"
 
@@ -172,15 +172,14 @@ int main(int argc, char* argv[]) {
 
 void print_usage() {
 	fprintf(stderr,
-        "test-kmeans data-file num-rows num-cols k [alg-options]\n");
+        "kpmeans data-file num-rows num-cols k [alg-options]\n");
     fprintf(stderr, "-t type: type of initialization for kmeans"
            " ['random', 'forgy', 'kmeanspp', 'none']\n");
     fprintf(stderr, "-T num_thread: The number of threads to run\n");
     fprintf(stderr, "-i iters: maximum number of iterations\n");
     fprintf(stderr, "-C File with initial clusters in same format as data\n");
     fprintf(stderr, "-l tolerance for convergence (1E-6)\n");
-    fprintf(stderr, "-d Distance matric [eucl,cos]\n");
-    fprintf(stderr, "-m Use the minimal triangle inequality\n");
-    fprintf(stderr, "-p Use pthread routine instead of OpenMP\n");
+    fprintf(stderr, "-d Distance metric [eucl,cos]\n");
+    fprintf(stderr, "-m Use the minimal triangle inequality (~Elkan's alg)\n");
     fprintf(stderr, "-N No. of numa nodes you want to use\n");
 }
