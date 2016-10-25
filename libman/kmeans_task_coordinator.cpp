@@ -140,8 +140,7 @@ void kmeans_task_coordinator::update_clusters(const bool prune_init) {
         cltrs->clear();
     } else {
         cltrs->set_prev_means();
-        for (unsigned idx = 0; idx < k; idx++)
-            cltrs->unfinalize(idx);
+        cltrs->unfinalize_all();
     }
 
     for (thread_iter it = threads.begin(); it != threads.end(); ++it) {
@@ -259,8 +258,7 @@ void kmeans_task_coordinator::random_partition_init() {
         cluster_assignments[row] = asgnd_clust;
     }
 
-    for (unsigned cl = 0; cl < k; cl++)
-        cltrs->finalize(cl);
+    cltrs->finalize_all();
 
 #if VERBOSE
     printf("After rand paritions cluster_asgns: ");

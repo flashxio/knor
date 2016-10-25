@@ -44,13 +44,13 @@ protected:
     size_t nrow, ncol;
     std::string fn; // file on disk
     unsigned* cluster_assignments;
-    unsigned* cluster_assignment_counts;
+    size_t* cluster_assignment_counts;
     unsigned k;
     kpmbase::init_type_t _init_t;
     kpmbase::dist_type_t _dist_t;
     double tolerance;
     unsigned max_iters;
-    unsigned num_changed; // total # samples changed in an iter
+    size_t num_changed; // total # samples changed in an iter
     // how many threads have not completed their task
     std::atomic<unsigned> pending_threads;
 
@@ -67,6 +67,7 @@ protected:
             const double tolerance, const kpmbase::dist_type_t dt);
 
 public:
+    const size_t get_num_changed() const { return num_changed; }
     typedef std::shared_ptr<base_kmeans_coordinator> ptr;
     typedef std::vector<std::shared_ptr
         <base_kmeans_thread> >::iterator thread_iter;

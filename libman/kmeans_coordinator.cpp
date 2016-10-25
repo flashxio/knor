@@ -226,8 +226,7 @@ void kmeans_coordinator::random_partition_init() {
         cluster_assignments[row] = asgnd_clust;
     }
 
-    for (unsigned cl = 0; cl < k; cl++)
-        cltrs->finalize(cl);
+    cltrs->finalize_all();
 
 #if VERBOSE
     printf("After rand paritions cluster_asgns: ");

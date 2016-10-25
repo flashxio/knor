@@ -37,11 +37,12 @@ class task;
     }
 
     namespace prune {
-    class dist_matrix;
+    //class dist_matrix;
     class kmeans_task_thread;
     }
 }
 
+#include "dist_matrix.hpp" // FIXME: Unnecessitate this
 namespace kpmbase = kpmeans::base;
 namespace kpmprune = kpmeans::prune;
 
@@ -87,6 +88,10 @@ public:
 
     std::shared_ptr<kpmbase::prune_clusters> get_gcltrs() {
         return cltrs;
+    }
+
+    std::shared_ptr<kpmprune::dist_matrix> get_dm() {
+        return dm;
     }
 
     std::pair<size_t, size_t> get_rid_len_tup(const unsigned thd_id);
