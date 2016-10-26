@@ -56,20 +56,23 @@ kmeans_coordinator::kmeans_coordinator(const std::string fn, const size_t nrow,
                 BOOST_LOG_TRIVIAL(info) << "Init-ed centers ...";
             }
         }
-
-        // NUMA node affinity binding policy is round-robin
-        unsigned thds_row = nrow / nthreads;
-        for (unsigned thd_id = 0; thd_id < nthreads; thd_id++) {
-            std::pair<unsigned, unsigned> tup = get_rid_len_tup(thd_id);
-            thd_max_row_idx.push_back((thd_id*thds_row) + tup.second);
-            threads.push_back(kmeans_thread::create((thd_id % nnodes),
-                        thd_id, tup.first, tup.second,
-                        ncol, cltrs, cluster_assignments, fn));
-            threads[thd_id]->set_parent_cond(&cond);
-            threads[thd_id]->set_parent_pending_threads(&pending_threads);
-            threads[thd_id]->start(WAIT); // Thread puts itself to sleep
-        }
+        build_thread_state();
     }
+
+void kmeans_coordinator::build_thread_state() {
+    // NUMA node affinity binding policy is round-robin
+    unsigned thds_row = nrow / nthreads;
+    for (unsigned thd_id = 0; thd_id < nthreads; thd_id++) {
+        std::pair<unsigned, unsigned> tup = get_rid_len_tup(thd_id);
+        thd_max_row_idx.push_back((thd_id*thds_row) + tup.second);
+        threads.push_back(kmeans_thread::create((thd_id % nnodes),
+                    thd_id, tup.first, tup.second,
+                    ncol, cltrs, cluster_assignments, fn));
+        threads[thd_id]->set_parent_cond(&cond);
+        threads[thd_id]->set_parent_pending_threads(&pending_threads);
+        threads[thd_id]->start(WAIT); // Thread puts itself to sleep
+    }
+}
 
 std::pair<unsigned, unsigned> kmeans_coordinator::get_rid_len_tup(const unsigned thd_id) {
     unsigned rows_per_thread = nrow / nthreads;
@@ -332,5 +335,13 @@ kmeans_coordinator::~kmeans_coordinator() {
     delete [] g_data;
 #endif
     destroy_threads();
+}
+
+void const kmeans_coordinator::print_thread_data() {
+    thread_iter it = threads.begin();
+    for (; it != threads.end(); ++it) {
+        std::cout << "\nThd: " << (*it)->get_thd_id() << std::endl;
+        (*it)->print_local_data();
+    }
 }
 }

@@ -21,6 +21,7 @@
 #include "signal.h"
 
 #include "dist_task_driver.hpp"
+#include "dist_driver.hpp"
 #include "io.hpp"
 
 #define DIST_TEST 1
@@ -122,7 +123,9 @@ int main(int argc, char* argv[]) {
                 datafn, nrow, ncol, k, max_iters, nnodes, nthread,
                 p_centers, init, tolerance, dist_type);
     } else {
-        throw kpmbase::not_implemented_exception();
+        kpmeans::mpi::driver::run_kmeans(argc, argv,
+                datafn, nrow, ncol, k, max_iters, nnodes, nthread,
+                p_centers, init, tolerance, dist_type);
     }
 
     return EXIT_SUCCESS;
