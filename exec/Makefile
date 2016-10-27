@@ -17,15 +17,11 @@
 
 include ../Makefile.common
 
-LDFLAGS := -L../libauto -lauto -L../libman -lman \
-	-L../libcommon -lcommon $(LDFLAGS)
-CXXFLAGS += -I.. -I../libauto -I../libman -I../libdist -I../libcommon
+LDFLAGS := -L../libcommon -lcommon $(LDFLAGS)
+CXXFLAGS += -I.. -I../libdist -I../libcommon
 DIST_FLAGS := -L../libdist -ldist
 
-all: kpmeans dist_kmeans
-
-kpmeans: kpmeans.o
-	$(CXX) -o kpmeans kpmeans.o $(LDFLAGS)
+all: dist_kmeans
 
 dist_kmeans: dist_kmeans.o
 	$(CXX) -o dist_kmeans dist_kmeans.o $(LDFLAGS) $(DIST_FLAGS)
@@ -34,7 +30,6 @@ clean:
 	rm -f *.d
 	rm -f *.o
 	rm -f *~
-	rm -f kpmeans
 	rm -f dist_kmeans
 
 -include $(DEPS)

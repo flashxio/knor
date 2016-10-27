@@ -31,10 +31,6 @@
 namespace kpmbase = kpmeans::base;
 
 namespace kpmeans { namespace prune {
-    class prune_clusters;
-} } // End namespace kpmeans, prune
-
-namespace kpmeans { namespace prune {
 // NOTE: Creates a matrix like this e.g for K = 5
 /* - Don't store full matrix, don't store dist to myself -> space: (k*k-1)/2
    0 ==> 1 2 3 4
@@ -67,9 +63,6 @@ public:
     void set(unsigned row, unsigned col, double val);
 
     void print();
-    void compute_dist(std::shared_ptr<kpmbase::prune_clusters> cl,
-            const unsigned ncol);
-
     // Note cls is col-wise unlike dist_matrix
     template<typename T>
     void compute_dist(El::Matrix<T>& cls,

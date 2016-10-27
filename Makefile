@@ -17,18 +17,13 @@
 
 include Makefile.common
 
-all: build_common build_libs utils exec
+all: build_libs exec
 
 build_common:
 	$(MAKE) -C libcommon
 
 build_libs: build_common
-	$(MAKE) -C libauto # OMP
-	$(MAKE) -C libman # pthreads
 	$(MAKE) -C libdist # MPI
-
-utils: build_common
-	$(MAKE) -C utils
 
 exec: build_common build_libs
 	$(MAKE) -C exec
@@ -38,9 +33,6 @@ clean:
 	rm -f *.o
 	rm -f *~
 	make --ignore-errors -C libcommon clean
-	make --ignore-errors -C utils clean
-	make --ignore-errors -C libauto clean
-	make --ignore-errors -C libman clean
 	make --ignore-errors -C exec clean
 	make --ignore-errors -C libdist clean
 
