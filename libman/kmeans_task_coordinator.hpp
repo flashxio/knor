@@ -37,11 +37,12 @@ class task;
     }
 
     namespace prune {
-    class dist_matrix;
+    //class dist_matrix;
     class kmeans_task_thread;
     }
 }
 
+#include "dist_matrix.hpp" // FIXME: Unnecessitate this
 namespace kpmbase = kpmeans::base;
 namespace kpmprune = kpmeans::prune;
 
@@ -85,7 +86,15 @@ public:
                     nnodes, nthreads, centers, _init_t, tolerance, _dist_t));
     }
 
-    std::pair<unsigned, unsigned> get_rid_len_tup(const unsigned thd_id);
+    std::shared_ptr<kpmbase::prune_clusters> get_gcltrs() {
+        return cltrs;
+    }
+
+    std::shared_ptr<kpmprune::dist_matrix> get_dm() {
+        return dm;
+    }
+
+    std::pair<size_t, size_t> get_rid_len_tup(const unsigned thd_id);
     // Pass file handle to threads to read & numa alloc
     void create_thread_map();
     void update_clusters(const bool prune_init);
@@ -106,6 +115,9 @@ public:
 
     ~kmeans_task_coordinator();
     void set_prune_init(const bool prune_init);
+    virtual const void print_thread_data();
+    virtual void build_thread_state();
+
 };
 } } // End namespace kpmeans, prune
 #endif

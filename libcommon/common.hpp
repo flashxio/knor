@@ -27,4 +27,5 @@
 #include "prune_stats.hpp"
 #include "thd_safe_bool_vector.hpp"
 #include "util.hpp"
+#include "thread_state.hpp"
 #endif

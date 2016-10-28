@@ -76,14 +76,12 @@ void test_clusters() {
 
     cls->print_means();
 
-    for (unsigned cl = 0; cl < NCLUST; cl++)
-        cls->finalize(cl);
+    cls->finalize_all();
     printf("After finalize all should be equal as well:\n");
     cls->print_means();
 
     printf("Test unfinalize should return to original:\n");
-    for (unsigned cl = 0; cl < NCLUST; cl++)
-        cls->unfinalize(cl);
+    cls->unfinalize_all();
     BOOST_VERIFY(*old == *cls);
     printf("Success ...\n");
 

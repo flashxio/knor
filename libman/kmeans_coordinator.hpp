@@ -44,7 +44,7 @@ class base_kmeans_thread;
 
 namespace kpmeans {
 class kmeans_coordinator : public kpmeans::base_kmeans_coordinator {
-    private:
+    protected:
         // Metadata
         // max index stored within each threads partition
         std::vector<unsigned> thd_max_row_idx;
@@ -77,6 +77,10 @@ class kmeans_coordinator : public kpmeans::base_kmeans_coordinator {
                     nnodes, nthreads, centers, _init_t, tolerance, _dist_t));
         }
 
+        std::shared_ptr<kpmbase::clusters> get_gcltrs() {
+            return cltrs;
+        }
+
         std::pair<unsigned, unsigned> get_rid_len_tup(const unsigned thd_id);
         // Pass file handle to threads to read & numa alloc
         void create_thread_map();
@@ -93,6 +97,10 @@ class kmeans_coordinator : public kpmeans::base_kmeans_coordinator {
         void forgy_init();
         const double* get_thd_data(const unsigned row_id) const;
         ~kmeans_coordinator();
+
+        // For testing
+        void const print_thread_data() override;
+        void build_thread_state() override;
 };
 }
 #endif

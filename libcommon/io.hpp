@@ -142,7 +142,7 @@ class bin_reader {
   */
 void store_cluster(const unsigned id, const double* data,
         const unsigned numel, const unsigned* cluster_assignments,
-        const unsigned nrow, const unsigned ncol, const std::string dir);
+        const size_t nrow, const size_t ncol, const std::string dir);
 
 } } // End namespace kpmeans, base
 

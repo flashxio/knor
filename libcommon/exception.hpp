@@ -33,6 +33,28 @@ public:
         }
 };
 
+class abstract_exception : public std::runtime_error {
+public:
+    abstract_exception() :
+        runtime_error("[ERROR]: Cannot call Base class method!\n") {
+        }
+};
+
+class io_exception : public std::runtime_error {
+public:
+    io_exception(const std::string msg) :
+        runtime_error(std::string("[ERROR]: IO ") + msg) {
+        }
+};
+
+class mpi_exception : public std::runtime_error {
+public:
+    mpi_exception(const std::string msg, const int error_code) :
+        runtime_error(std::string("[ERROR]: MPI ") + msg +
+                ". Error code: " + std::to_string(error_code)) {
+        }
+};
+
 class thread_exception: public std::exception {
 
 private:

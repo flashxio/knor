@@ -17,76 +17,131 @@
  * limitations under the License.
  */
 
-#include "dist_kmeans.hpp"
+
+#include "signal.h"
+
+#include "dist_task_driver.hpp"
+#include "dist_driver.hpp"
+#include "io.hpp"
+
+#define DIST_TEST 1
+
+static int rank;
+static int nprocs;
+static constexpr unsigned root = 0;
+
+static void print_usage();
 
 int main(int argc, char* argv[]) {
-    El::Environment env(argc, argv);
-
-    try {
-        const std::string data_fn =
-            El::Input<std::string>("-f","datafile (TSV)","");
-        const El::Unsigned k = El::Input("-k","number of clusters",2);
-        const size_t nsamples =
-            El::Input("-n","number of samples in data",10);
-        const size_t dim =
-            El::Input("-d","Dimensionality of data",4);
-        std::string init = El::Input<std::string>("-I",
-                "initialization method [forgy | random | plusplus]","forgy");
-        const El::Unsigned max_iters =
-            El::Input("-i","number of iterations",10);
-        const El::Int seed = El::Input("-s","seeding for random init",2);
-        const double tol = El::Input("-T","Convergence tolerance",1E-6);
-        const std::string centroid_fn =
-            El::Input<std::string>("-c","Pre-initialized centroids","");
-        const bool prune = El::Input("-p","Use triangle inequality", false);
-        El::ProcessInput();
-
-        El::mpi::Comm comm = El::mpi::COMM_WORLD;
-        El::Grid grid(comm);
-        El::Unsigned rank = El::mpi::Rank(comm);
-
-        El::DistMatrix<double, El::STAR, El::VC> data(dim, nsamples);
-        El::Matrix<double> centroids;
-
-        if (!data_fn.empty()) {
-            //El::Read(data, data_fn, El::ASCII);
-            El::Read(data, data_fn, El::BINARY_FLAT);
-            if (rank == root) {
-                El::Output("Read complete for proc: ", rank);
-                El::Output("Dim: (", data.Height(), ", ", data.Width() ,")");
-            }
-#if KM_DEBUG
-            El::Print(data, "Data:");
-#endif
-        } else {
-            El::Output("Creating random data:");
-            El::Uniform(data, dim, nsamples);
-        }
-
-        if (!centroid_fn.empty()) {
-            init = "none";
-            El::Read(centroids, centroid_fn, El::ASCII);
-        } else {
-            El::Zeros(centroids, data.Height(), k);
-        }
-
-        // Do some checking
-        assert(data.Height() == centroids.Height());
-        assert(k == (El::Unsigned)centroids.Width());
-
-        if (rank == root) El::Output("Starting k-means ...");
-
-        if (prune) {
-            if (rank == root) El::Output("Running pruned ...");
-            kpmeans::run_tri_kmeans<double>(data, centroids, k,
-                    tol, init, seed, max_iters);
-        } else {
-            if (rank == root) El::Output("Running full ...");
-            kpmeans::run_kmeans<double>(data, centroids, k,
-                    tol, init, seed, max_iters);
-        }
+    if (argc < 5) {
+        print_usage();
+        exit(EXIT_FAILURE);
     }
-    catch(std::exception& e) { El::ReportException(e); }
+
+	int opt;
+    std::string datafn = std::string(argv[1]);
+    size_t nrow = atol(argv[2]);
+    size_t ncol = atol(argv[3]);
+    unsigned k = atol(argv[4]);
+
+    std::string dist_type = "eucl";
+    std::string centersfn = "";
+	unsigned max_iters=std::numeric_limits<unsigned>::max();
+	std::string init = "kmeanspp";
+	unsigned nthread = kpmbase::get_num_omp_threads();
+	int num_opts = 0;
+	double tolerance = -1;
+    bool use_min_tri = false;
+    unsigned nnodes = numa_num_task_nodes();
+
+    // Increase by 3 -- getopt ignores argv[0]
+	argv += 3;
+	argc -= 3;
+
+	signal(SIGINT, kpmbase::int_handler);
+	while ((opt = getopt(argc, argv, "l:i:t:T:d:C:mN:")) != -1) {
+		num_opts++;
+		switch (opt) {
+			case 'l':
+				tolerance = atof(optarg);
+				num_opts++;
+				break;
+			case 'i':
+				max_iters = atol(optarg);
+				num_opts++;
+				break;
+			case 't':
+				init = optarg;
+				num_opts++;
+				break;
+			case 'T':
+				nthread = atoi(optarg);
+				num_opts++;
+				break;
+			case 'd':
+				dist_type = std::string(optarg);
+				num_opts++;
+				break;
+			case 'C':
+				centersfn = std::string(optarg);
+                BOOST_ASSERT_MSG(kpmbase::is_file_exist(centersfn.c_str()),
+                        "Centers file name doesn't exit!");
+                init = "none"; // Ignore whatever you pass in
+				num_opts++;
+				break;
+			case 'm':
+				use_min_tri = true;
+				num_opts++;
+				break;
+			case 'N':
+				nnodes = atoi(optarg);
+				num_opts++;
+				break;
+			default:
+				print_usage();
+                exit(EXIT_FAILURE);
+		}
+	}
+
+    BOOST_ASSERT_MSG(!(init=="none" && centersfn.empty()),
+            "Centers file name doesn't exit!");
+
+    if (kpmbase::filesize(datafn.c_str()) != (sizeof(double)*nrow*ncol))
+        throw kpmbase::io_exception("File size does not match input size.");
+
+    double* p_centers = NULL;
+
+    if (kpmbase::is_file_exist(centersfn.c_str())) {
+        p_centers = new double [k*ncol];
+        kpmbase::bin_reader<double> br2(centersfn, k, ncol);
+        br2.read(p_centers);
+        printf("Read centers!\n");
+    }
+
+    if (use_min_tri) {
+        kpmeans::prune::driver::run_kmeans(argc, argv,
+                datafn, nrow, ncol, k, max_iters, nnodes, nthread,
+                p_centers, init, tolerance, dist_type);
+    } else {
+        kpmeans::mpi::driver::run_kmeans(argc, argv,
+                datafn, nrow, ncol, k, max_iters, nnodes, nthread,
+                p_centers, init, tolerance, dist_type);
+    }
 
     return EXIT_SUCCESS;
+}
+
+void print_usage() {
+	fprintf(stderr,
+            "mpirun.mpich -n NUM_PROCS dist_kmeans data-file num-rows"
+            " num-cols k [alg-options]\n");
+    fprintf(stderr, "-t type: type of initialization for kmeans"
+           " ['random', 'forgy', 'kmeanspp', 'none']\n");
+    fprintf(stderr, "-T num_thread: The number of threads per process\n");
+    fprintf(stderr, "-i iters: maximum number of iterations\n");
+    fprintf(stderr, "-C File with initial clusters in same format as data\n");
+    fprintf(stderr, "-l tolerance for convergence (1E-6)\n");
+    fprintf(stderr, "-d Distance metric [eucl,cos]\n");
+    fprintf(stderr, "-m Use the minimal triangle inequality (~Elkan's alg)\n");
+    fprintf(stderr, "-N No. of numa nodes you want to use\n");
 }

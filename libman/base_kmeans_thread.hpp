@@ -31,6 +31,7 @@
 #include <boost/log/trivial.hpp>
 
 #include "thread_state.hpp"
+#include "exception.hpp"
 
 #define VERBOSE 0
 #define INVALID_THD_ID -1
@@ -63,8 +64,8 @@ protected:
     pthread_t hw_thd;
     unsigned node_id; // Which NUMA node are you on?
     int thd_id;
-    unsigned start_rid; // With respect to the original data
-    unsigned ncol; // How many columns in the data
+    size_t start_rid; // With respect to the original data
+    size_t ncol; // How many columns in the data
     double* local_data; // Pointer to where the data begins that the thread works on
     size_t data_size; // true size of local_data at any point
     std::shared_ptr<kpmbase::clusters> local_clusters;
@@ -124,14 +125,29 @@ public:
     virtual void sleep() = 0;
 
     // Used by `task' thread classes
-    virtual void set_driver(void* driver) { }
-    virtual void wake(thread_state_t state) { }
-    virtual void set_prune_init(const bool prune_init) { }
+    virtual void set_driver(void* driver) {
+        throw kpmbase::abstract_exception();
+    }
+    virtual void wake(thread_state_t state) {
+        throw kpmbase::abstract_exception();
+    }
+    virtual void set_prune_init(const bool prune_init) {
+        throw kpmbase::abstract_exception();
+    }
     virtual void set_recalc_v_ptr(std::shared_ptr<kpmbase::thd_safe_bool_vector>
-            recalculated_v) { }
-    virtual void set_dist_mat_ptr(std::shared_ptr<kpmprune::dist_matrix> dm) { }
-    virtual bool try_steal_task() { return false; }
-    virtual task_queue* get_task_queue() { return NULL; }
+            recalculated_v) {
+        throw kpmbase::abstract_exception();
+    }
+    virtual void set_dist_mat_ptr(std::shared_ptr<kpmprune::dist_matrix> dm) {
+        throw kpmbase::abstract_exception();
+    }
+    virtual bool try_steal_task() { throw kpmbase::abstract_exception(); }
+    virtual task_queue* get_task_queue() {
+        throw kpmbase::abstract_exception();
+    }
+    virtual const void print_local_data() const {
+        throw kpmbase::abstract_exception();
+    };
 
     void test() {
         //printf("%u ", get_thd_id());
@@ -199,6 +215,14 @@ public:
 
     void destroy_numa_mem() {
         numa_free(local_data, get_data_size());
+    }
+
+    const size_t get_start_rid() const {
+        return start_rid;
+    }
+
+    void set_start_rid(size_t start_rid) {
+        this->start_rid = start_rid;
     }
 
     void join() {
