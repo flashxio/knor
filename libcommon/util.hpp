@@ -111,7 +111,7 @@ T dist_comp_raw(const T* arg0, const T* arg1,
   \brief Used to generate the a stream of random numbers on every processor but
   allow for a parallel and serial impl to generate identical results.
     NOTE: This only works if the data is distributed to processors in the
-  same fashion as <El::VC, El::STAR> or <El::STAR, El::VC>
+  same fashion as libElementals <VC, STAR> or <STAR, VC>
 **/
 template <typename T>
 class mpi_random_generator {
