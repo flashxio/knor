@@ -12,7 +12,7 @@ Turi (Graphlab, Dato) and MLlib often by an order of magnitude or more. The libr
 [Elkan's](http://users.cecs.anu.edu.au/~daa/courses/GSAC6017/kmeansicml03.pdf) 
 agorithm that *can* drastically reduce the number of distance computations
 required **without the memory blowup** that traditionally ailes Elkan's alogrithm.
-4. A semi-external memory implementation that scales well beyond the size of RAM and is geared
+4. **NOTE: Under migration** -- A semi-external memory implementation that scales well beyond the size of RAM and is geared
 toward high-io enabled, stand-alone, thick nodes. Performance is comparable to in-memory
 even when the data is significantly larger than RAM.
 
