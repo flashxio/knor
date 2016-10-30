@@ -1,15 +1,20 @@
-# k||means
+# k||means (Alpha Release)
 
-A library to compure k-means in the following settings:
+A Parallel and Distributed library to compute **k-means**. This library outperforms commercial products like
+Turi (Graphlab, Dato) and MLlib often by an order of magnitude or more. The library contains:
 
-1. Non-Uniform Memory Access (NUMA) machines. A NUMA-optimized multithreaded
+1. Non-Uniform Memory Access (NUMA) machine optimizations. A NUMA-optimized multithreaded
     ,via [p-threads](https://computing.llnl.gov/tutorials/pthreads/)
-    implemation for shared-memory linux systems
-2. An MPI-based implementation of the ||Lloyds algorithm.
-3. Options to use a scalable adaption of 
+    implemation for shared-memory linux systems.
+2. An MPI-based distributed-parallel implementation of the ||Lloyds algorithm
+	where each *thread* lauched by an MPI *process* then executes our NUMA optimizations.
+3. Options to use a scalable lightweight adaption of
 [Elkan's](http://users.cecs.anu.edu.au/~daa/courses/GSAC6017/kmeansicml03.pdf) 
 agorithm that *can* drastically reduce the number of distance computations
-required.
+required **without the memory blowup** that traditionally ailes Elkan's alogrithm.
+4. A semi-external memory implementation that scales well beyond the size of RAM and is geared
+toward high-io enabled, stand-alone, thick nodes. Performance is comparable to in-memory
+even when the data is significantly larger than RAM.
 
 These implementations are incarnations of algorithms in
 [our publication](https://arxiv.org/abs/1606.08905). These implementations
@@ -34,25 +39,34 @@ Assume the following:
 	- `nsamples` is the number of samples
 
 * NUMA-k||means:
-    `./kpmeans datafile nsamples dim k -t random -i 10 -p -m`
+    ```bash
+    ./kpmeans datafile nsamples dim k -t [random|forgy|kmeanspp] \
+    -i 10 -p [-T,-i,-C,-l,-d,-m,-N]
+    ```
 
 * OMP-k||means:
-    `./kpmeans datafile nsamples dim k -t random -i 10 -m`
+    ```bash
+    ./kpmeans datafile nsamples dim k -t [random|forgy|kmeanspp] \
+    -i 10 [-T,-i,-C,-l,-d,-m,-N]
+    ````
 
 * MPI-k||means:
-    `mpirun.mpich -n nproc ./dist_kmeans -f datafile_cw.dat\`
-   	`-k k -n nsamples -d dim -I random -i 10`
+    ```bash
+    mpirun.mpich -n nproc -host <workerip1>[,workerip2,...] \
+    --map-by ppr:1:node \
+    ./dist_kmeans datafile_cw.dat \
+    k nsamples dim -t [random|forgy|kmeanspp] [-T,-i,-C,-l,-d,-m,-N]
+    ```
 
 * SEM-k||means:
-    `TODO`
+    `TODO:` Migration from [FlashX branch](https://github.com/zheng-da/FlashX/tree/disa-graph-attr)
+    in progress
 
 ## Data format conversion
-We provide some lightweight fast utilities to convert data from
-common formats to our own. Below we document their use:  
-TODO
+We provide some utilities to convert data from common formats to our own which is simply **row-major flat binary**
+with **no headers**. The `convert_matrix`utility obtained when [convert_matrix.cpp](https://github.com/disa-mhembere/k-par-means/blob/master/utils/convert_matrix.cpp) is compiled has several options. Execute `convert_matrix` to see options.
 
 ## Publications
-
 Mhembere, D., Zheng, D., Vogelstein, J. T., Priebe, C. E., & Burns, R. (2016).
 NUMA-optimized In-memory and Semi-external-memory Parameterized Clustering.
 arXiv preprint arXiv:1606.08905.
