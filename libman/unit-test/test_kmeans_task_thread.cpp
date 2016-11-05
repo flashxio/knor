@@ -72,15 +72,14 @@ static void test_thread_creation(const unsigned NTHREADS, const unsigned nnodes)
     std::cout << "SUCCESS: for creation & join\n";
 }
 
-void test_numa_populate_data() {
-    constexpr unsigned NTHREADS = 10;
-    printf("\n\nRunning test_numa_populate_data with"
-            " constexpr NTHREADS = %u...\n", NTHREADS);
-    constexpr unsigned nnodes = 4;
-    constexpr unsigned nrow = 50;
-    const unsigned nprocrows = nrow/NTHREADS;
-    constexpr unsigned ncol = 5;
-    const std::string fn = "/mnt/nfs/disa/data/tiny/matrix_r50_c5_rrw.bin";
+void test_numa_populate_data(const unsigned NTHREADS, const unsigned nnodes,
+    const size_t nrow = 50, const size_t ncol = 5,
+    const std::string fn = "./matrix_r50_c5_rrw.bin") {
+
+    printf("\nRunning test_numa_populate_data with "
+            "%u threads ...\n", NTHREADS);
+    const size_t nprocrows = nrow/NTHREADS;
+
 
     std::vector<kpmprune::kmeans_task_thread::ptr> threads;
 
@@ -123,13 +122,28 @@ int main(int argc, char* argv[]) {
     pthread_mutex_init(&mutex, &mutex_attr);
     pthread_cond_init(&cond, NULL);
 
+    unsigned nnodes = numa_num_task_nodes();
     if (argc < 2) {
-        fprintf(stderr, "usage: ./test_prune::kmeans_task_thread nthreads nnodes\n");
+        fprintf(stderr, "usage: ./test_prune::kmeans_task_thread nthreads [nnodes]\n");
         exit(EXIT_FAILURE);
     }
+    const unsigned nthreads = atoi(argv[1]);
 
-    test_thread_creation(atoi(argv[1]), atoi(argv[2]));
-    test_numa_populate_data();
+    if (argc > 2) {
+        if (atol(argv[2]) <= nnodes) {
+            std::cout << "[NOTE]: Setting NUMA nodes to: " << argv[2] <<
+                ". The max is: " << nnodes << std::endl;
+            nnodes = atoi(argv[2]);
+        } else {
+            std::cout << "[WARNING]: Rejected excess request of NUMA nodes of: " <<
+                argv[2] << "\n\n";
+        }
+    }
+
+    std::cout << "Test begins with: " << nthreads << " threads, " << nnodes <<
+        " numa nodes.\n";
+    test_thread_creation(nthreads, nnodes);
+    test_numa_populate_data(nthreads, nnodes);
 
     pthread_cond_destroy(&cond);
     pthread_mutex_destroy(&mutex);
