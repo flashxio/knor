@@ -124,7 +124,7 @@ int main(int argc, char* argv[]) {
 
     unsigned nnodes = numa_num_task_nodes();
     if (argc < 2) {
-        fprintf(stderr, "usage: ./test_prune::kmeans_task_thread nthreads [nnodes]\n");
+        fprintf(stderr, "usage: ./test_kmeans_task_thread nthreads [nnodes]\n");
         exit(EXIT_FAILURE);
     }
     const unsigned nthreads = atoi(argv[1]);
