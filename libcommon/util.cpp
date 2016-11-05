@@ -18,11 +18,13 @@
  */
 
 #include <atomic>
+#include <fstream>
 #include "util.hpp"
+#include "exception.hpp"
 
 namespace kpmeans { namespace base {
-double get_bic(const std::vector<double>& dist_v, const unsigned nrow,
-        const unsigned ncol, const unsigned k) {
+double get_bic(const std::vector<double>& dist_v, const size_t nrow,
+        const size_t ncol, const unsigned k) {
         double bic = 0;
 #pragma omp parallel for reduction(+:bic) shared (dist_v)
     for (unsigned i = 0; i < dist_v.size(); i++) {
@@ -33,8 +35,8 @@ double get_bic(const std::vector<double>& dist_v, const unsigned nrow,
     return 2*bic + log(nrow)*ncol*k;
 }
 
-void spherical_projection(double* data, const unsigned nrow,
-        const unsigned ncol) {
+void spherical_projection(double* data, const size_t nrow,
+        const size_t ncol) {
 #pragma omp parallel for shared (data)
     for (unsigned row = 0; row < nrow; row++) {
         double norm2 = 0;
@@ -60,5 +62,44 @@ int get_num_omp_threads() {
         num_threads = omp_get_num_threads();
     }
     return num_threads.load();
+}
+
+init_type_t get_init_type(const std::string init) {
+    if (init == "random")
+        return init_type_t::RANDOM;
+    else if (init == "forgy")
+        return init_type_t::FORGY;
+    else if (init == "kmeanspp")
+        return init_type_t::PLUSPLUS;
+    else if (init == "none")
+        return init_type_t::NONE;
+    else
+        throw thread_exception(std::string("param init must be one of:"
+                    " [random | forgy | kmeanspp]. It is '")
+                + init + std::string("'"));
+}
+
+dist_type_t get_dist_type(const std::string dist_type) {
+    if (dist_type == "eucl")
+        return dist_type_t::EUCL;
+    else if (dist_type == "cos")
+        return dist_type_t::COS;
+    else
+        throw thread_exception(std::string
+                ("[ERROR]: param dist_type must be one of: 'eucl', 'cos'."
+                 " It is '") + dist_type + std::string("'"));
+}
+
+bool is_file_exist(const char *fn) {
+    std::ifstream infile(fn);
+    return infile.good();
+}
+
+void int_handler(int sig_num) { exit(0); }
+
+size_t filesize(const char* filename) {
+    std::ifstream in(filename, std::ifstream::ate
+            | std::ifstream::binary);
+    return in.tellg();
 }
 } }

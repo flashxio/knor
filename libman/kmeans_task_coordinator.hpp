@@ -26,6 +26,7 @@
 #include <boost/log/trivial.hpp>
 #include "base_kmeans_coordinator.hpp"
 #include "kmeans_types.hpp"
+#include "util.hpp"
 
 namespace kpmeans {
 class task;
@@ -36,21 +37,19 @@ class task;
     }
 
     namespace prune {
-    class dist_matrix;
+    //class dist_matrix;
     class kmeans_task_thread;
     }
 }
 
+#include "dist_matrix.hpp" // FIXME: Unnecessitate this
 namespace kpmbase = kpmeans::base;
 namespace kpmprune = kpmeans::prune;
 
 namespace kpmeans { namespace prune {
-typedef std::vector<std::shared_ptr<prune::kmeans_task_thread> >
-    ::iterator thread_iter;
 
 class kmeans_task_coordinator : public kpmeans::base_kmeans_coordinator {
-private:
-    std::vector<std::shared_ptr<prune::kmeans_task_thread> > threads;
+protected: // So lazy ..
     // Metadata
     // max index stored within each threads partition
     std::vector<unsigned> thd_max_row_idx;
@@ -66,72 +65,59 @@ private:
             const double tolerance, const kpmbase::dist_type_t dt);
 
 public:
-    typedef std::shared_ptr<kmeans_task_coordinator> ptr;
-
-    static ptr create(const std::string fn, const size_t nrow,
+    static base_kmeans_coordinator::ptr create(
+            const std::string fn, const size_t nrow,
             const size_t ncol, const unsigned k, const unsigned max_iters,
             const unsigned nnodes, const unsigned nthreads,
             const double* centers=NULL, const std::string init="kmeanspp",
             const double tolerance=-1, const std::string dist_type="eucl") {
 
-        kpmbase::init_type_t _init_t;
-        if (init == "random")
-            _init_t = kpmbase::init_type_t::RANDOM;
-        else if (init == "forgy")
-            _init_t = kpmbase::init_type_t::FORGY;
-        else if (init == "kmeanspp")
-            _init_t = kpmbase::init_type_t::PLUSPLUS;
-        else if (init == "none")
-            _init_t = kpmbase::init_type_t::NONE;
-        else {
-            BOOST_LOG_TRIVIAL(fatal) << "[ERROR]: param init must be one of:"
-                " [random | forgy | kmeanspp]. It is '" << init << "'";
-            exit(-1);
-        }
+        kpmbase::init_type_t _init_t = kpmbase::get_init_type(init);
+        kpmbase::dist_type_t _dist_t = kpmbase::get_dist_type(dist_type);
 
-        kpmbase::dist_type_t _dist_t;
-        if (dist_type == "eucl")
-            _dist_t = kpmbase::dist_type_t::EUCL;
-        else if (dist_type == "cos")
-            _dist_t = kpmbase::dist_type_t::COS;
-        else {
-            BOOST_LOG_TRIVIAL(fatal) << "[ERROR]: param dist_type must "
-                "be one of: 'eucl', 'cos'.It is '" << dist_type << "'";
-            exit(-1);
-        }
 #if KM_TEST
         printf("kmeans task coordinator => NUMA nodes: %u, nthreads: %u, "
                 "nrow: %lu, ncol: %lu, init: '%s', dist_t: '%s', fn: '%s'"
                 "\n\n", nnodes, nthreads, nrow, ncol, init.c_str(),
                 dist_type.c_str(), fn.c_str());
 #endif
-        return ptr(new kmeans_task_coordinator(fn, nrow, ncol, k, max_iters,
+        return base_kmeans_coordinator::ptr(
+                new kmeans_task_coordinator(fn, nrow, ncol, k, max_iters,
                     nnodes, nthreads, centers, _init_t, tolerance, _dist_t));
     }
 
-    std::vector<std::shared_ptr<prune::kmeans_task_thread> >& get_threads();
+    std::shared_ptr<kpmbase::prune_clusters> get_gcltrs() {
+        return cltrs;
+    }
 
-    std::pair<unsigned, unsigned> get_rid_len_tup(const unsigned thd_id);
+    std::shared_ptr<kpmprune::dist_matrix> get_dm() {
+        return dm;
+    }
+
+    std::pair<size_t, size_t> get_rid_len_tup(const unsigned thd_id);
     // Pass file handle to threads to read & numa alloc
     void create_thread_map();
-    void run_kmeans();
     void update_clusters(const bool prune_init);
-    void kmeanspp_init();
     void wake4run(kpmeans::thread_state_t state);
     void destroy_threads();
     void set_thread_clust_idx(const unsigned clust_idx);
     double reduction_on_cuml_sum();
     void set_thd_dist_v_ptr(double* v);
     void run_init();
-    void random_partition_init();
-    void forgy_init();
     void set_global_ptrs();
-    //km::task* steal_task(bool _is_numa, const unsigned node_id);
+
+    virtual void kmeanspp_init();
+    virtual void random_partition_init();
+    virtual void forgy_init();
+    virtual void run_kmeans();
 
     const double* get_thd_data(const unsigned row_id) const;
 
     ~kmeans_task_coordinator();
     void set_prune_init(const bool prune_init);
+    virtual const void print_thread_data();
+    virtual void build_thread_state();
+
 };
 } } // End namespace kpmeans, prune
 #endif

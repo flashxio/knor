@@ -50,7 +50,7 @@ base_kmeans_coordinator::base_kmeans_coordinator(const std::string fn,
     pending_threads = 0;
 
     BOOST_VERIFY(cluster_assignments = new unsigned [nrow]);
-    BOOST_VERIFY(cluster_assignment_counts = new unsigned [k]);
+    BOOST_VERIFY(cluster_assignment_counts = new size_t [k]);
 
     std::fill(&cluster_assignments[0],
             (&cluster_assignments[0])+nrow, -1);

@@ -16,12 +16,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Ubuntu bootstrap script
+# Ubuntu install script
 
-NPROC=`nproc`
-./install.sh
-git clone https://github.com/disa-mhembere/k-par-means.git
-cd k-par-means
-git checkout master
-make -j$NPROC
-echo "done"
+cd $HOME
+# Make sure the package information is up-to-date
+apt-get update
+apt-get -y upgrade
+
+apt-get -y install build-essential
+# In memory dependencies
+apt-get -y install libboost-all-dev
+# NUMA
+apt-get install -y libnuma-dbg libnuma-dev libnuma1
+
+# Message Passing Interface
+if [ $(dpkg-query -W -f='${Status}' libmpich2-dev 2>/dev/null | grep -c "ok installed")
+    -eq 0 ]; then
+    apt-get install libmpich2-dev;
+fi
+
+# Source control
+apt-get install -y git

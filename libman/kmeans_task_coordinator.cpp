@@ -21,6 +21,7 @@
 #include <gperftools/profiler.h>
 #endif
 
+#include <random>
 #include "kmeans_task_coordinator.hpp"
 #include "kmeans_task_thread.hpp"
 #include "common.hpp"
@@ -51,31 +52,33 @@ kmeans_task_coordinator::kmeans_task_coordinator(const std::string fn, const siz
         dist_v = new double[nrow];
         std::fill(&dist_v[0], &dist_v[nrow], std::numeric_limits<double>::max());
         dm = prune::dist_matrix::create(k);
+        build_thread_state();
+}
 
-        // NUMA node affinity binding policy is round-robin
-        unsigned thds_row = nrow / nthreads;
-        for (unsigned thd_id = 0; thd_id < nthreads; thd_id++) {
-            std::pair<unsigned, unsigned> tup = get_rid_len_tup(thd_id);
-            thd_max_row_idx.push_back((thd_id*thds_row) + tup.second);
-            threads.push_back(prune::kmeans_task_thread::create((thd_id % nnodes),
-                        thd_id, tup.first, tup.second,
-                        ncol, cltrs, cluster_assignments, fn));
-            threads[thd_id]->set_parent_cond(&cond);
-            threads[thd_id]->set_parent_pending_threads(&pending_threads);
-            threads[thd_id]->start(WAIT); // Thread puts itself to sleep
-            threads[thd_id]->set_driver(this); // For computation stealing
-        }
+void kmeans_task_coordinator::build_thread_state() {
+    // NUMA node affinity binding policy is round-robin
+    unsigned thds_row = nrow / nthreads;
+    for (unsigned thd_id = 0; thd_id < nthreads; thd_id++) {
+        std::pair<unsigned, unsigned> tup = get_rid_len_tup(thd_id);
+        thd_max_row_idx.push_back((thd_id*thds_row) + tup.second);
+        threads.push_back(prune::kmeans_task_thread::create((thd_id % nnodes),
+                    thd_id, tup.first, tup.second,
+                    ncol, cltrs, cluster_assignments, fn));
+        threads[thd_id]->set_parent_cond(&cond);
+        threads[thd_id]->set_parent_pending_threads(&pending_threads);
+        threads[thd_id]->start(WAIT); // Thread puts itself to sleep
+        threads[thd_id]->set_driver(this); // For computation stealing
     }
+}
 
-
-std::pair<unsigned, unsigned> kmeans_task_coordinator::get_rid_len_tup(
+std::pair<size_t, size_t> kmeans_task_coordinator::get_rid_len_tup(
         const unsigned thd_id) {
-    unsigned rows_per_thread = nrow / nthreads;
-    unsigned start_rid = (thd_id*rows_per_thread);
+    size_t rows_per_thread = nrow / nthreads;
+    size_t start_rid = (thd_id*rows_per_thread);
 
     if (thd_id == nthreads - 1)
         rows_per_thread += nrow % nthreads;
-    return std::pair<unsigned, unsigned>(start_rid, rows_per_thread);
+    return std::pair<size_t, size_t>(start_rid, rows_per_thread);
 }
 
 
@@ -100,11 +103,6 @@ kmeans_task_coordinator::~kmeans_task_coordinator() {
 void kmeans_task_coordinator::set_prune_init(const bool prune_init) {
     for (thread_iter it = threads.begin(); it != threads.end(); ++it)
         (*it)->set_prune_init(prune_init);
-}
-
-std::vector<std::shared_ptr<prune::kmeans_task_thread> >&
-    kmeans_task_coordinator::get_threads() {
-  return threads;
 }
 
 void kmeans_task_coordinator::set_global_ptrs() {
@@ -142,8 +140,7 @@ void kmeans_task_coordinator::update_clusters(const bool prune_init) {
         cltrs->clear();
     } else {
         cltrs->set_prev_means();
-        for (unsigned idx = 0; idx < k; idx++)
-            cltrs->unfinalize(idx);
+        cltrs->unfinalize_all();
     }
 
     for (thread_iter it = threads.begin(); it != threads.end(); ++it) {
@@ -250,16 +247,18 @@ void kmeans_task_coordinator::kmeanspp_init() {
 }
 
 void kmeans_task_coordinator::random_partition_init() {
+    std::default_random_engine generator;
+    std::uniform_int_distribution<unsigned> distribution(0, k-1);
+
     for (unsigned row = 0; row < nrow; row++) {
-        unsigned asgnd_clust = random() % k; // 0...k
+        unsigned asgnd_clust = distribution(generator);
         const double* dp = get_thd_data(row);
 
         cltrs->add_member(dp, asgnd_clust);
         cluster_assignments[row] = asgnd_clust;
     }
 
-    for (unsigned cl = 0; cl < k; cl++)
-        cltrs->finalize(cl);
+    cltrs->finalize_all();
 
 #if VERBOSE
     printf("After rand paritions cluster_asgns: ");
@@ -268,9 +267,12 @@ void kmeans_task_coordinator::random_partition_init() {
 }
 
 void kmeans_task_coordinator::forgy_init() {
+    std::default_random_engine generator;
+    std::uniform_int_distribution<unsigned> distribution(0, nrow-1);
+
     BOOST_LOG_TRIVIAL(info) << "Forgy init start";
     for (unsigned clust_idx = 0; clust_idx < k; clust_idx++) { // 0...k
-        unsigned rand_idx = random() % nrow; // 0...(nrow-1)
+        unsigned rand_idx = distribution(generator);
         cltrs->set_mean(get_thd_data(rand_idx), clust_idx);
     }
     BOOST_LOG_TRIVIAL(info) << "Forgy init end";
@@ -292,6 +294,15 @@ void kmeans_task_coordinator::run_init() {
         default:
             fprintf(stderr, "[FATAL]: Unknow initialization type\n");
             exit(EXIT_FAILURE);
+    }
+}
+
+// For testing
+void const kmeans_task_coordinator::print_thread_data() {
+    thread_iter it = threads.begin();
+    for (; it != threads.end(); ++it) {
+        std::cout << "\nThd: " << (*it)->get_thd_id() << std::endl;
+        (*it)->print_local_data();
     }
 }
 

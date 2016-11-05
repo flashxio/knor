@@ -31,15 +31,26 @@
 #include <boost/log/trivial.hpp>
 
 #include "thread_state.hpp"
+#include "exception.hpp"
 
 #define VERBOSE 0
 #define INVALID_THD_ID -1
 
-namespace kpmeans { namespace base {
+namespace kpmeans {
+class task_queue;
+
+namespace base {
     class clusters;
-} }
+    class thd_safe_bool_vector;
+}
+
+namespace prune {
+    class dist_matrix;
+}
+}
 
 namespace kpmbase = kpmeans::base;
+namespace kpmprune = kpmeans::prune;
 
 namespace kpmeans {
 
@@ -53,8 +64,8 @@ protected:
     pthread_t hw_thd;
     unsigned node_id; // Which NUMA node are you on?
     int thd_id;
-    unsigned start_rid; // With respect to the original data
-    unsigned ncol; // How many columns in the data
+    size_t start_rid; // With respect to the original data
+    size_t ncol; // How many columns in the data
     double* local_data; // Pointer to where the data begins that the thread works on
     size_t data_size; // true size of local_data at any point
     std::shared_ptr<kpmbase::clusters> local_clusters;
@@ -78,10 +89,10 @@ protected:
 
     friend void* callback(void* arg);
 
-    base_kmeans_thread(const int node_id, const unsigned thd_id, const unsigned ncol,
-            const unsigned nclust, unsigned* cluster_assignments, const unsigned start_rid,
+    base_kmeans_thread(const int node_id, const unsigned thd_id,
+            const unsigned ncol, const unsigned nclust,
+            unsigned* cluster_assignments, const unsigned start_rid,
             const std::string fn) {
-
 
         pthread_mutexattr_init(&mutex_attr);
         pthread_mutexattr_settype(&mutex_attr, PTHREAD_MUTEX_ERRORCHECK);
@@ -98,7 +109,6 @@ protected:
         set_thread_state(WAIT);
     }
 
-protected:
     void set_thread_state(thread_state_t state) {
         this->state = state;
     }
@@ -113,6 +123,31 @@ public:
     virtual const unsigned get_global_data_id(const unsigned row_id) const = 0;
     virtual void run() = 0;
     virtual void sleep() = 0;
+
+    // Used by `task' thread classes
+    virtual void set_driver(void* driver) {
+        throw kpmbase::abstract_exception();
+    }
+    virtual void wake(thread_state_t state) {
+        throw kpmbase::abstract_exception();
+    }
+    virtual void set_prune_init(const bool prune_init) {
+        throw kpmbase::abstract_exception();
+    }
+    virtual void set_recalc_v_ptr(std::shared_ptr<kpmbase::thd_safe_bool_vector>
+            recalculated_v) {
+        throw kpmbase::abstract_exception();
+    }
+    virtual void set_dist_mat_ptr(std::shared_ptr<kpmprune::dist_matrix> dm) {
+        throw kpmbase::abstract_exception();
+    }
+    virtual bool try_steal_task() { throw kpmbase::abstract_exception(); }
+    virtual task_queue* get_task_queue() {
+        throw kpmbase::abstract_exception();
+    }
+    virtual const void print_local_data() const {
+        throw kpmbase::abstract_exception();
+    };
 
     void test() {
         //printf("%u ", get_thd_id());
@@ -182,6 +217,14 @@ public:
         numa_free(local_data, get_data_size());
     }
 
+    const size_t get_start_rid() const {
+        return start_rid;
+    }
+
+    void set_start_rid(size_t start_rid) {
+        this->start_rid = start_rid;
+    }
+
     void join() {
         void* join_status;
         int rc = pthread_join(hw_thd, &join_status);
@@ -211,7 +254,7 @@ public:
         BOOST_ASSERT_MSG(f, "File handle invalid, can only alloc once!");
         size_t blob_size = get_data_size();
         local_data = static_cast<double*>(numa_alloc_onnode(blob_size, node_id));
-        fseek(f, start_rid*ncol*sizeof(double), SEEK_CUR); // start position
+        fseek(f, start_rid*ncol*sizeof(double), SEEK_SET); // start position
         BOOST_VERIFY(1 == fread(local_data, blob_size, 1, f));
         close_file_handle();
     }

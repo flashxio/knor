@@ -28,6 +28,7 @@
 #include "base_kmeans_coordinator.hpp"
 #include "kmeans_types.hpp"
 #include "thread_state.hpp"
+#include "util.hpp"
 
 #ifdef PROFILER
 #include <gperftools/profiler.h>
@@ -36,17 +37,14 @@
 namespace kpmbase = kpmeans::base;
 
 namespace kpmeans {
-class kmeans_thread;
+class base_kmeans_thread;
     namespace base {
     class clusters;
 } }
 
 namespace kpmeans {
-typedef std::vector<std::shared_ptr<kmeans_thread> >::iterator thread_iter;
-
 class kmeans_coordinator : public kpmeans::base_kmeans_coordinator {
-    private:
-        std::vector<std::shared_ptr<kmeans_thread> > threads;
+    protected:
         // Metadata
         // max index stored within each threads partition
         std::vector<unsigned> thd_max_row_idx;
@@ -59,47 +57,28 @@ class kmeans_coordinator : public kpmeans::base_kmeans_coordinator {
                 const double tolerance, const kpmbase::dist_type_t dt);
 
     public:
-        typedef std::shared_ptr<kmeans_coordinator> ptr;
-
-        static ptr create(const std::string fn, const size_t nrow,
+        static base_kmeans_coordinator::ptr create(const std::string fn,
+                const size_t nrow,
                 const size_t ncol, const unsigned k, const unsigned max_iters,
                 const unsigned nnodes, const unsigned nthreads,
                 const double* centers=NULL, const std::string init="kmeanspp",
                 const double tolerance=-1, const std::string dist_type="eucl") {
 
-            kpmbase::init_type_t _init_t;
-            if (init == "random")
-                _init_t = kpmbase::init_type_t::RANDOM;
-            else if (init == "forgy")
-                _init_t = kpmbase::init_type_t::FORGY;
-            else if (init == "kmeanspp")
-                _init_t = kpmbase::init_type_t::PLUSPLUS;
-            else if (init == "none")
-                _init_t = kpmbase::init_type_t::NONE;
-            else {
-                BOOST_LOG_TRIVIAL(fatal) << "[ERROR]: param init must be one of:"
-                   " [random | forgy | kmeanspp]. It is '" << init << "'";
-                exit(-1);
-            }
-
-            kpmbase::dist_type_t _dist_t;
-            if (dist_type == "eucl")
-                _dist_t = kpmbase::dist_type_t::EUCL;
-            else if (dist_type == "cos")
-                _dist_t = kpmbase::dist_type_t::COS;
-            else {
-                BOOST_LOG_TRIVIAL(fatal) << "[ERROR]: param dist_type must be one of:"
-                   " 'eucl', 'cos'.It is '" << dist_type << "'";
-                exit(-1);
-            }
+            kpmbase::init_type_t _init_t = kpmbase::get_init_type(init);
+            kpmbase::dist_type_t _dist_t = kpmbase::get_dist_type(dist_type);
 #if KM_TEST
             printf("kmeans coordinator => NUMA nodes: %u, nthreads: %u, "
                     "nrow: %lu, ncol: %lu, init: '%s', dist_t: '%s', fn: '%s'"
                     "\n\n", nnodes, nthreads, nrow, ncol, init.c_str(),
                     dist_type.c_str(), fn.c_str());
 #endif
-            return ptr(new kmeans_coordinator(fn, nrow, ncol, k, max_iters,
-                        nnodes, nthreads, centers, _init_t, tolerance, _dist_t));
+            return base_kmeans_coordinator::ptr(
+                    new kmeans_coordinator(fn, nrow, ncol, k, max_iters,
+                    nnodes, nthreads, centers, _init_t, tolerance, _dist_t));
+        }
+
+        std::shared_ptr<kpmbase::clusters> get_gcltrs() {
+            return cltrs;
         }
 
         std::pair<unsigned, unsigned> get_rid_len_tup(const unsigned thd_id);
@@ -118,6 +97,10 @@ class kmeans_coordinator : public kpmeans::base_kmeans_coordinator {
         void forgy_init();
         const double* get_thd_data(const unsigned row_id) const;
         ~kmeans_coordinator();
+
+        // For testing
+        void const print_thread_data() override;
+        void build_thread_state() override;
 };
 }
 #endif

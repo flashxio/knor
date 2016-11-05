@@ -24,27 +24,23 @@
 #include "task_queue.hpp"
 #include "io.hpp"
 #include "util.hpp"
+#include "numa.h"
 
-void test_queue_get() {
-    constexpr unsigned NTHREADS = 1;
-    printf("\n\nRunning test_queue_get with"
+void test_queue_get(const unsigned NTHREADS, const unsigned nnodes,
+    const size_t nrow = 50, const size_t ncol = 5,
+    const std::string fn = "./matrix_r50_c5_rrw.bin") {
+
+    printf("\nRunning test_queue_get with"
             " constexpr NTHREADS = %u...\n", NTHREADS);
-    constexpr unsigned nrow = 50;
-    constexpr unsigned ncol = 5;
-    const std::string fn = "/mnt/nfs/disa/data/tiny/matrix_r50_c5_rrw.bin";
 
     kpmbase::bin_reader<double> br(fn, nrow, ncol);
     double* data = new double [nrow*ncol];
     printf("Bin read data\n");
     br.read(data);
-#if 0
-    printf("Raw data print out ...\n");
-    print_mat<double>(data, nrow, ncol);
-    printf("END Raw data ...\n\n");
-#endif
+
     kpmeans::task_queue q(data, 0, nrow, ncol);
     printf("Task queue ==> nrow: %u, ncol: %u\n",
-            q.get_nrow(), nrow);
+            q.get_nrow(), q.get_ncol());
 
     printf("run:");
     for (unsigned i = 0; i < 4; i++) {
@@ -53,12 +49,9 @@ void test_queue_get() {
         q.reset();
         while(q.has_task()) {
             kpmeans::task* t = q.get_task();
-#if 0
-            print_mat<double>(t->get_data_ptr(), t->get_nrow(), ncol);
-#endif
             BOOST_VERIFY(kpmbase::eq_all<double>(
                         t->get_data_ptr(), &(data[t->get_start_rid()*ncol]),
-                        MIN_TASK_ROWS*ncol));
+                        t->get_nrow()*ncol));
             delete t;
         }
     }
@@ -68,6 +61,23 @@ void test_queue_get() {
 }
 
 int main(int argc, char* argv[]) {
-    test_queue_get();
+    if (argc < 2) {
+        fprintf(stderr, "usage: ./test_task_queue nthreads [nnodes]\n");
+        exit(EXIT_FAILURE);
+    }
+
+    unsigned nnodes = numa_num_task_nodes();
+    if (argc > 2) {
+        if (atol(argv[2]) <= nnodes) {
+            std::cout << "[NOTE]: Setting NUMA nodes to: " << argv[2] <<
+                ". The max is: " << nnodes << std::endl;
+            nnodes = atoi(argv[2]);
+        } else {
+            std::cout << "[WARNING]: Rejected excess request of NUMA nodes of: " <<
+                argv[2] << "\n\n";
+        }
+    }
+
+    test_queue_get(atol(argv[1]), nnodes);
     return (EXIT_SUCCESS);
 }

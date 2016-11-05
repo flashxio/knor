@@ -17,8 +17,8 @@
 
 include ../Makefile.common
 
-LDFLAGS += -L../libcommon -lcommon
-CXXFLAGS += -I../libcommon -I..
+LDFLAGS += -L../libman -lman -L../libcommon -lcommon
+CXXFLAGS += -I.. -I../libman -I../libcommon
 
 all: libdist
 

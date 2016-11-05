@@ -24,8 +24,6 @@
 #include <limits>
 #include <vector>
 
-#include <El.hpp>
-
 #include "util.hpp"
 
 namespace kpmbase = kpmeans::base;
@@ -69,43 +67,6 @@ public:
     void print();
     void compute_dist(std::shared_ptr<kpmbase::prune_clusters> cl,
             const unsigned ncol);
-
-    // Note cls is col-wise unlike dist_matrix
-    template<typename T>
-    void compute_dist(El::Matrix<T>& cls,
-            std::vector<T>& s_val_v) {
-    if (cls.Width() == 1) {
-        s_val_v.push_back((T)0);
-        return;
-    }
-
-    BOOST_VERIFY(get_num_rows()+1 == (El::Unsigned)cls.Width());
-    std::fill(s_val_v.begin(), s_val_v.end(),
-            std::numeric_limits<double>::max());
-
-    for (El::Unsigned i = 0; i < (El::Unsigned)cls.Width(); i++) {
-        for (El::Unsigned j = i+1; j < (El::Unsigned)cls.Width(); j++) {
-            double dist = kpmbase::eucl_dist(cls.LockedBuffer(0,i),
-                    cls.LockedBuffer(0,j), cls.Height()) / 2.0;
-
-            set(i,j, dist);
-
-            // Set s(x) for each cluster
-            if (dist < s_val_v[i])
-                s_val_v[i] = dist;
-
-            if (dist < s_val_v[j])
-                s_val_v[j] = dist;
-        }
-    }
-#if VERBOSE
-    for (El::Unsigned cl = 0; cl < (El::Unsigned)cls.Width(); cl++) {
-        BOOST_VERIFY(s_val_v[cl] == get_min_dist(cl));
-        if (El::mpi::Rank(El::mpi::COMM_WORLD) == 0)
-            El::Output("cl: ", cl," get_s_val: ", s_val_v[cl]);
-    }
-#endif
-}
 };
 } } // End namespace kpmeans, prune
 #endif

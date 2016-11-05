@@ -26,6 +26,7 @@ namespace kpmeans { namespace base {
 
 _bool::_bool(char c) {
     _[0] = c;
+    _[1] = 0;
 }
 
 _bool::operator bool() const {

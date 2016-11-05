@@ -17,24 +17,18 @@
  * limitations under the License.
  */
 
-#include "signal.h"
 
 #include <limits>
-#include <fstream>
 #include <numa.h>
 
+#include "signal.h"
 #include "io.hpp"
 #include "kmeans.hpp"
 
 #include "kmeans_coordinator.hpp"
 #include "kmeans_task_coordinator.hpp"
+#include "util.hpp"
 
-static bool is_file_exist(const char *fn) {
-    std::ifstream infile(fn);
-    return infile.good();
-}
-
-static void int_handler(int sig_num) { exit(0); }
 static void print_usage();
 
 int main(int argc, char* argv[]) {
@@ -65,7 +59,7 @@ int main(int argc, char* argv[]) {
 	argv += 3;
 	argc -= 3;
 
-	signal(SIGINT, int_handler);
+	signal(SIGINT, kpmbase::int_handler);
 	while ((opt = getopt(argc, argv, "l:i:t:T:d:C:mpN:")) != -1) {
 		num_opts++;
 		switch (opt) {
@@ -91,7 +85,7 @@ int main(int argc, char* argv[]) {
 				break;
 			case 'C':
 				centersfn = std::string(optarg);
-                BOOST_ASSERT_MSG(is_file_exist(centersfn.c_str()),
+                BOOST_ASSERT_MSG(kpmbase::is_file_exist(centersfn.c_str()),
                         "Centers file name doesn't exit!");
                 init = "none"; // Ignore whatever you pass in
 				num_opts++;
@@ -116,14 +110,12 @@ int main(int argc, char* argv[]) {
     BOOST_ASSERT_MSG(!(init=="none" && centersfn.empty()),
             "Centers file name doesn't exit!");
 
-    kpmbase::bin_reader<double> br(datafn, nrow, ncol);
-    double* p_data = new double [nrow*ncol];
-    br.read(p_data);
-    printf("Read data!\n");
+    if (kpmbase::filesize(datafn.c_str()) != (sizeof(double)*nrow*ncol))
+        throw kpmbase::io_exception("File size does not match input size.");
 
     double* p_centers = NULL;
 
-    if (is_file_exist(centersfn.c_str())) {
+    if (kpmbase::is_file_exist(centersfn.c_str())) {
         p_centers = new double [k*ncol];
         kpmbase::bin_reader<double> br2(centersfn, k, ncol);
         br2.read(p_centers);
@@ -147,9 +139,16 @@ int main(int argc, char* argv[]) {
         }
 #endif
     } else {
+        kpmbase::bin_reader<double> br(datafn, nrow, ncol);
+        double* p_data = new double [nrow*ncol];
+        br.read(p_data);
+        printf("Read data!\n");
+
         unsigned* p_clust_asgns = new unsigned [nrow];
         unsigned* p_clust_asgn_cnt = new unsigned [k];
-        p_centers = new double [k*ncol];
+
+        if (NULL == p_centers) // We have no preallocated centers
+            p_centers = new double [k*ncol];
 
         if (use_min_tri) {
             kpmeans::omp::compute_min_kmeans(p_data, p_centers, p_clust_asgns,
@@ -173,15 +172,14 @@ int main(int argc, char* argv[]) {
 
 void print_usage() {
 	fprintf(stderr,
-        "test-kmeans data-file num-rows num-cols k [alg-options]\n");
+        "kpmeans data-file num-rows num-cols k [alg-options]\n");
     fprintf(stderr, "-t type: type of initialization for kmeans"
            " ['random', 'forgy', 'kmeanspp', 'none']\n");
     fprintf(stderr, "-T num_thread: The number of threads to run\n");
     fprintf(stderr, "-i iters: maximum number of iterations\n");
     fprintf(stderr, "-C File with initial clusters in same format as data\n");
     fprintf(stderr, "-l tolerance for convergence (1E-6)\n");
-    fprintf(stderr, "-d Distance matric [eucl,cos]\n");
-    fprintf(stderr, "-m Use the minimal triangle inequality\n");
-    fprintf(stderr, "-p Use pthread routine instead of OpenMP\n");
+    fprintf(stderr, "-d Distance metric [eucl,cos]\n");
+    fprintf(stderr, "-m Use the minimal triangle inequality (~Elkan's alg)\n");
     fprintf(stderr, "-N No. of numa nodes you want to use\n");
 }

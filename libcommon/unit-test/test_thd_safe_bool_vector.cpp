@@ -50,8 +50,6 @@ void test_correctness(const std::vector<T> &verifier,
 
     for (unsigned i = 0; i < verifier.size(); i++)
         BOOST_VERIFY((bool)verifier[i] == data->get(i));
-
-    printf("Successfully passed correctness ...\n");
 }
 
 void test_init_ctor(const unsigned len) {
@@ -108,6 +106,7 @@ int main(int argc, char* argv[]) {
 
     build_state(verifier, data, len);
     test_correctness<short>(verifier, data);
+    printf("Successfully passed correctness ...\n");
     test_init_ctor(len);
 
     test_thread_safety(data, nthreads);
