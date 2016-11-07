@@ -432,7 +432,7 @@ kpmbase::kmeans_t compute_min_kmeans(const double* matrix, double* clusters_ptr,
         "until convergence ...":
         std::to_string(MAX_ITERS) + " iterations ...";
     BOOST_LOG_TRIVIAL(info) << "Computing " << str_iters;
-    size_t iter = 1;
+    size_t iter = 2;
 
     while (iter < MAX_ITERS) {
         // Hold cluster assignment counter
