@@ -94,7 +94,7 @@ void test_numa_populate_data(const unsigned NTHREADS, const unsigned nnodes,
         threads[i]->start(kpmeans::thread_state_t::WAIT); // Thread puts itself to sleep
     }
 
-    kpmbase::bin_reader<double> br(fn, nrow, ncol);
+    kpmbase::bin_io<double> br(fn, nrow, ncol);
     double* data = new double [nrow*ncol];
     printf("Bin read data\n");
     br.read(data);

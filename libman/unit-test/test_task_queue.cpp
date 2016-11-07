@@ -33,7 +33,7 @@ void test_queue_get(const unsigned NTHREADS, const unsigned nnodes,
     printf("\nRunning test_queue_get with"
             " constexpr NTHREADS = %u...\n", NTHREADS);
 
-    kpmbase::bin_reader<double> br(fn, nrow, ncol);
+    kpmbase::bin_io<double> br(fn, nrow, ncol);
     double* data = new double [nrow*ncol];
     printf("Bin read data\n");
     br.read(data);

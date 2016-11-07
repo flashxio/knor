@@ -113,7 +113,7 @@ int main(int argc, char* argv[]) {
 
     if (kpmbase::is_file_exist(centersfn.c_str())) {
         p_centers = new double [k*ncol];
-        kpmbase::bin_reader<double> br2(centersfn, k, ncol);
+        kpmbase::bin_io<double> br2(centersfn, k, ncol);
         br2.read(p_centers);
         printf("Read centers!\n");
     }

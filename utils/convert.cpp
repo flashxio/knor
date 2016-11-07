@@ -34,7 +34,7 @@ void to_spark(const std::string fn, std::ofstream& of,
     double* outmat = new double [size];
     BOOST_LOG_TRIVIAL(info) << "Reading " << fn << ", with r:" << nrow
         << ", c: " << ncol;
-    kpmbase::bin_reader<double> b(fn, nrow, ncol);
+    kpmbase::bin_io<double> b(fn, nrow, ncol);
     b.read(outmat);
 
     BOOST_LOG_TRIVIAL(info) << "Writing matrix ...";
@@ -74,7 +74,7 @@ void to_kmeans_par(const std::string fn, std::ofstream& of,
     double* outmat = new double [size];
     BOOST_LOG_TRIVIAL(info) << "Reading " << fn << ", with r:" << nrow
         << ", c: " << ncol;
-    kpmbase::bin_reader<double> b(fn, nrow, ncol);
+    kpmbase::bin_io<double> b(fn, nrow, ncol);
     b.read(outmat);
 
     BOOST_LOG_TRIVIAL(info) << "Writing matrix ...";
@@ -115,7 +115,7 @@ void to_fg(const std::string fn, std::ofstream& of,
     double* outmat = new double [size];
     BOOST_LOG_TRIVIAL(info) << "Reading " << fn << ", with r:" << nrow
         << ", c: " << ncol;
-    kpmbase::bin_reader<double> b(fn, nrow, ncol);
+    kpmbase::bin_io<double> b(fn, nrow, ncol);
     b.read(outmat);
 
     BOOST_LOG_TRIVIAL(info) << "Writing matrix ...";
@@ -139,7 +139,7 @@ void to_h2o(const std::string fn, std::ofstream& of,
     double* outmat = new double [size];
     BOOST_LOG_TRIVIAL(info) << "Reading " << fn << ", with r:" << nrow
         << ", c: " << ncol;
-    kpmbase::bin_reader<double> b(fn, nrow, ncol);
+    kpmbase::bin_io<double> b(fn, nrow, ncol);
     b.read(outmat);
 
     BOOST_LOG_TRIVIAL(info) << "Writing matrix ...";
