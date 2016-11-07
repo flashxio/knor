@@ -439,7 +439,9 @@ kpmbase::kmeans_t compute_min_kmeans(const double* matrix, double* clusters_ptr,
         BOOST_LOG_TRIVIAL(info) << "E-step Iteration " << iter <<
             ". Computing cluster assignments ...";
 
+#if VERBOSE
         BOOST_LOG_TRIVIAL(info) << "Main: Computing cluster distance matrix ...";
+#endif
         dm->compute_dist(clusters, NUM_COLS);
 #if VERBOSE
         BOOST_LOG_TRIVIAL(info) << "Before: Cluster distance matrix ...";

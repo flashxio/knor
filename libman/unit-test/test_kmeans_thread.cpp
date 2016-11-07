@@ -76,8 +76,8 @@ static void test_thread_creation(const unsigned NTHREADS,
 }
 
 void test_numa_populate_data(const unsigned NTHREADS, const unsigned nnodes,
-    const size_t nrow = 50, const size_t ncol = 5,
-    const std::string fn = "./matrix_r50_c5_rrw.bin") {
+    const size_t nrow=50, const size_t ncol=5,
+    const std::string fn="../../test-data/matrix_r50_c5_rrw.bin") {
 
     printf("\nRunning test_numa_populate_data with "
             "%u threads ...\n", NTHREADS);

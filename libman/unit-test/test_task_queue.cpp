@@ -27,8 +27,8 @@
 #include "numa.h"
 
 void test_queue_get(const unsigned NTHREADS, const unsigned nnodes,
-    const size_t nrow = 50, const size_t ncol = 5,
-    const std::string fn = "./matrix_r50_c5_rrw.bin") {
+    const size_t nrow=50, const size_t ncol=5,
+    const std::string fn="../../test-data/matrix_r50_c5_rrw.bin") {
 
     printf("\nRunning test_queue_get with"
             " constexpr NTHREADS = %u...\n", NTHREADS);
