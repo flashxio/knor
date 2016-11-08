@@ -66,6 +66,8 @@ int main(int argc, char* argv[]) {
     double* res = new double [kpmtest::TEST_K*kpmtest::TEST_NCOL];
     kpmtest::load_result(res);
 
+    kpmtest::init_log();
+
     // Auto only
     {
         kpmbase::kmeans_t ret = kpmeans::test::test_inited(false);
@@ -73,7 +75,7 @@ int main(int argc, char* argv[]) {
                     ret.centroids.begin(), ret.centroids.end(),
                     res, res + kpmtest::TEST_K*kpmtest::TEST_NCOL,
                     kpmtest::TEST_TOL));
-        BOOST_LOG_TRIVIAL(info) << "\n***Auto inited passed ***\n";
+        std::cout << "\n***Auto inited passed ***\n";
     }
 
     {
@@ -82,7 +84,7 @@ int main(int argc, char* argv[]) {
                 ret.centroids.begin(), ret.centroids.end(),
                 res, res + kpmtest::TEST_K*kpmtest::TEST_NCOL,
                 kpmtest::TEST_TOL));
-    BOOST_LOG_TRIVIAL(info) << "\n***Min Auto inited passed ***\n";
+    std::cout << "\n***Min Auto inited passed ***\n";
     }
 
     delete [] res;
