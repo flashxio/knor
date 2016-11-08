@@ -38,6 +38,7 @@ public:
     std::vector<size_t> assignment_count;
     std::vector<double> centroids;
 
+    kmeans_t(){ }
     kmeans_t(const size_t nrow, const size_t ncol, const size_t iters,
              const size_t k, const unsigned* assignments_buf,
              const size_t* assignment_count_buf,
