@@ -17,7 +17,7 @@
 
 include Makefile.common
 
-all: build_common build_libs utils exec
+all: build_common build_libs utils exec release-test
 
 build_common:
 	$(MAKE) -C libcommon
@@ -33,6 +33,9 @@ utils: build_common
 exec: build_common build_libs
 	$(MAKE) -C exec
 
+release-test: build_common build_libs
+	$(MAKE) -C release-test
+
 clean:
 	rm -f *.d
 	rm -f *.o
@@ -43,5 +46,6 @@ clean:
 	make --ignore-errors -C libman clean
 	make --ignore-errors -C exec clean
 	make --ignore-errors -C libdist clean
+	make --ignore-errors -C release-test clean
 
 -include $(DEPS)
