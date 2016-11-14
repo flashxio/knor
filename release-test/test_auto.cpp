@@ -25,14 +25,10 @@ namespace kpmtest = kpmeans::test;
 
 namespace kpmeans { namespace test {
 
-kpmbase::kmeans_t test_inited(const bool prune) {
-    double* p_centers = new double [TEST_K*TEST_NCOL];
-    double* p_data = new double [TEST_NROW*TEST_NCOL];
-    size_t* p_clust_asgn_cnt = new size_t [TEST_K];
-    unsigned* p_clust_asgns = new unsigned [TEST_NROW];
+kpmbase::kmeans_t test_inited(double* p_centers, double* p_data,
+        size_t* p_clust_asgn_cnt, unsigned* p_clust_asgns, const bool prune) {
     constexpr unsigned MAX_ITER = 10;
     constexpr unsigned NTHREADS = 2;
-
     {
     kpmbase::bin_io<double> br(TEST_INIT_CLUSTERS, TEST_K, TEST_NCOL);
     br.read(p_centers); } {
@@ -53,40 +49,43 @@ kpmbase::kmeans_t test_inited(const bool prune) {
                 2, "none", 0);
     }
 
-    delete [] p_centers;
-    delete [] p_data;
-    delete [] p_clust_asgn_cnt;
-    delete [] p_clust_asgns;
-
     return ret;
 }
 } }
 
 int main(int argc, char* argv[]) {
-    double* res = new double [kpmtest::TEST_K*kpmtest::TEST_NCOL];
-    kpmtest::load_result(res);
+    std::vector<double> p_centers(kpmtest::TEST_K*kpmtest::TEST_NCOL);
+    std::vector<double> p_data(kpmtest::TEST_NROW*kpmtest::TEST_NCOL);
+    std::vector<size_t> p_clust_asgn_cnt(kpmtest::TEST_K);
+    std::vector<unsigned> p_clust_asgns(kpmtest::TEST_NROW);
 
     kpmtest::init_log();
 
-    // Auto only
     {
-        kpmbase::kmeans_t ret = kpmeans::test::test_inited(false);
-        BOOST_VERIFY(kpmtest::check_collection_equal(
-                    ret.centroids.begin(), ret.centroids.end(),
-                    res, res + kpmtest::TEST_K*kpmtest::TEST_NCOL,
-                    kpmtest::TEST_TOL));
-        std::cout << "\n***Auto inited passed ***\n";
-    }
+        std::vector<double>res(kpmtest::TEST_K*kpmtest::TEST_NCOL);
+        kpmtest::load_result(&res[0]);
 
-    {
-    kpmbase::kmeans_t ret = kpmeans::test::test_inited(false);
-    BOOST_VERIFY(kpmtest::check_collection_equal(
-                ret.centroids.begin(), ret.centroids.end(),
-                res, res + kpmtest::TEST_K*kpmtest::TEST_NCOL,
-                kpmtest::TEST_TOL));
-    std::cout << "\n***Min Auto inited passed ***\n";
-    }
+        // Auto only
+        {
+            kpmbase::kmeans_t ret = kpmeans::test::test_inited(&p_centers[0],
+                    &p_data[0], &p_clust_asgn_cnt[0], &p_clust_asgns[0], false);
+            BOOST_VERIFY(kpmtest::check_collection_equal(
+                        ret.centroids.begin(), ret.centroids.end(),
+                        res.begin(), res.end(),
+                        kpmtest::TEST_TOL));
+            std::cout << "\n***Auto inited passed ***\n";
+        }
 
-    delete [] res;
+        // Min auto
+        {
+            kpmbase::kmeans_t ret = kpmeans::test::test_inited(&p_centers[0],
+                    &p_data[0], &p_clust_asgn_cnt[0], &p_clust_asgns[0], true);
+            BOOST_VERIFY(kpmtest::check_collection_equal(
+                        ret.centroids.begin(), ret.centroids.end(),
+                        res.begin(), res.end(),
+                        kpmtest::TEST_TOL));
+            std::cout << "\n***Min Auto inited passed ***\n";
+        }
+    }
     return EXIT_SUCCESS;
 }
