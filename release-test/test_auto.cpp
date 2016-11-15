@@ -24,34 +24,37 @@
 namespace kpmtest = kpmeans::test;
 
 namespace kpmeans { namespace test {
-
-kpmbase::kmeans_t test_inited(double* p_centers, double* p_data,
-        size_t* p_clust_asgn_cnt, unsigned* p_clust_asgns, const bool prune) {
-    constexpr unsigned MAX_ITER = 10;
+kpmbase::kmeans_t run_test(double* p_centers, double* p_data,
+        size_t* p_clust_asgn_cnt, unsigned* p_clust_asgns, const bool prune,
+        const std::string init, const unsigned max_iter) {
     constexpr unsigned NTHREADS = 2;
-    {
-    kpmbase::bin_io<double> br(TEST_INIT_CLUSTERS, TEST_K, TEST_NCOL);
-    br.read(p_centers); } {
-    kpmbase::bin_io<double> br(TESTDATA_FN, TEST_NROW, TEST_NCOL);
-    br.read(p_data);
+
+    if (init == "none") {
+        {
+            kpmbase::bin_io<double> br(TEST_INIT_CLUSTERS, TEST_K, TEST_NCOL);
+            br.read(p_centers); } {
+                kpmbase::bin_io<double> br(TESTDATA_FN, TEST_NROW, TEST_NCOL);
+                br.read(p_data);
+            }
     }
 
     kpmbase::kmeans_t ret;
     if (prune) {
         ret = kpmeans::omp::compute_min_kmeans(
                 p_data, p_centers, p_clust_asgns,
-                p_clust_asgn_cnt, TEST_NROW, TEST_NCOL, TEST_K, MAX_ITER,
-                NTHREADS, "none", 0);
+                p_clust_asgn_cnt, TEST_NROW, TEST_NCOL, TEST_K, max_iter,
+                NTHREADS, init, 0);
     } else {
         ret = kpmeans::omp::compute_kmeans(
                 p_data, p_centers, p_clust_asgns,
-                p_clust_asgn_cnt, TEST_NROW, TEST_NCOL, TEST_K, 10,
-                2, "none", 0);
+                p_clust_asgn_cnt, TEST_NROW, TEST_NCOL, TEST_K, max_iter,
+                NTHREADS, init, 0);
     }
 
     return ret;
 }
 } }
+
 
 int main(int argc, char* argv[]) {
     std::vector<double> p_centers(kpmtest::TEST_K*kpmtest::TEST_NCOL);
@@ -65,10 +68,11 @@ int main(int argc, char* argv[]) {
         std::vector<double>res(kpmtest::TEST_K*kpmtest::TEST_NCOL);
         kpmtest::load_result(&res[0]);
 
-        // Auto only
+        /////////////////////////// Auto only ///////////////////////////
         {
-            kpmbase::kmeans_t ret = kpmeans::test::test_inited(&p_centers[0],
-                    &p_data[0], &p_clust_asgn_cnt[0], &p_clust_asgns[0], false);
+            kpmbase::kmeans_t ret = kpmeans::test::run_test(&p_centers[0],
+                    &p_data[0], &p_clust_asgn_cnt[0], &p_clust_asgns[0], false,
+                    "none", 10);
             BOOST_VERIFY(kpmtest::check_collection_equal(
                         ret.centroids.begin(), ret.centroids.end(),
                         res.begin(), res.end(),
@@ -76,15 +80,45 @@ int main(int argc, char* argv[]) {
             std::cout << "\n***Auto inited passed ***\n";
         }
 
-        // Min auto
+        /////////////////////////// Min auto ///////////////////////////
         {
-            kpmbase::kmeans_t ret = kpmeans::test::test_inited(&p_centers[0],
-                    &p_data[0], &p_clust_asgn_cnt[0], &p_clust_asgns[0], true);
+            kpmbase::kmeans_t ret = kpmeans::test::run_test(&p_centers[0],
+                    &p_data[0], &p_clust_asgn_cnt[0], &p_clust_asgns[0], true,
+                    "none", 10);
             BOOST_VERIFY(kpmtest::check_collection_equal(
                         ret.centroids.begin(), ret.centroids.end(),
                         res.begin(), res.end(),
                         kpmtest::TEST_TOL));
             std::cout << "\n***Min Auto inited passed ***\n";
+        }
+
+        //////////////////////////////////////////////////////////////////
+        ////////////////////// Compare to each other /////////////////////
+        //////////////////////////////////////////////////////////////////
+
+        std::vector<std::string> inits;
+        inits.push_back("random"); inits.push_back("forgy");
+
+        for (std::vector<std::string>::iterator it = inits.begin();
+                it != inits.end(); ++it) {
+            kpmbase::kmeans_t ret_auto = kpmeans::test::run_test(&p_centers[0],
+                    &p_data[0], &p_clust_asgn_cnt[0], &p_clust_asgns[0], false,
+                    *it, 4);
+            kpmbase::kmeans_t ret_min_auto =
+                kpmeans::test::run_test(&p_centers[0],
+                        &p_data[0], &p_clust_asgn_cnt[0],
+                        &p_clust_asgns[0], true,
+                        *it, 4);
+
+            BOOST_VERIFY(std::equal(ret_auto.assignment_count.begin(),
+                        ret_auto.assignment_count.end(),
+                        ret_min_auto.assignment_count.begin()
+                        ));
+            BOOST_VERIFY(kpmtest::check_collection_equal(
+                        ret_auto.centroids.begin(), ret_auto.centroids.end(),
+                        ret_min_auto.centroids.begin(),
+                        ret_min_auto.centroids.end(),
+                        kpmtest::TEST_TOL));
         }
     }
     return EXIT_SUCCESS;
