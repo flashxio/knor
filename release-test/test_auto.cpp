@@ -97,18 +97,22 @@ int main(int argc, char* argv[]) {
         //////////////////////////////////////////////////////////////////
 
         std::vector<std::string> inits;
-        inits.push_back("random"); inits.push_back("forgy");
+        inits.push_back("random");
+        inits.push_back("forgy");
+        inits.push_back("kmeanspp");
 
         for (std::vector<std::string>::iterator it = inits.begin();
                 it != inits.end(); ++it) {
-            kpmbase::kmeans_t ret_auto = kpmeans::test::run_test(&p_centers[0],
-                    &p_data[0], &p_clust_asgn_cnt[0], &p_clust_asgns[0], false,
-                    *it, 4);
+            srand(1);
+            kpmbase::kmeans_t ret_auto =
+                kpmeans::test::run_test(&p_centers[0],
+                &p_data[0], &p_clust_asgn_cnt[0], &p_clust_asgns[0], false,
+                *it, 4);
+            srand(1);
             kpmbase::kmeans_t ret_min_auto =
                 kpmeans::test::run_test(&p_centers[0],
-                        &p_data[0], &p_clust_asgn_cnt[0],
-                        &p_clust_asgns[0], true,
-                        *it, 4);
+                &p_data[0], &p_clust_asgn_cnt[0], &p_clust_asgns[0], true,
+                *it, 4);
 
             BOOST_VERIFY(std::equal(ret_auto.assignment_count.begin(),
                         ret_auto.assignment_count.end(),
