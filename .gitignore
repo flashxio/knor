@@ -16,3 +16,4 @@ exec/dist_kmeans
 scratch/
 bin/
 release-test/test_auto
+release-test/test_man
