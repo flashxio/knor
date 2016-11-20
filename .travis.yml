@@ -9,8 +9,6 @@ notifications:
       email: false
 
 before_install:
-    - apt-get update -qq
-    - apt-get -y upgrade
     - test -n $CC  && unset CC
     - test -n $CXX && unset CXX
 
