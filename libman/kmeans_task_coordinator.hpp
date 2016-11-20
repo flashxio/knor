@@ -109,7 +109,7 @@ public:
     virtual void kmeanspp_init();
     virtual void random_partition_init();
     virtual void forgy_init();
-    virtual void run_kmeans();
+    virtual kpmbase::kmeans_t run_kmeans() override;
 
     const double* get_thd_data(const unsigned row_id) const;
 
