@@ -1,8 +1,18 @@
 #TODO: Set OMP_NUM_THREADS = 4 via environment variables
 language: cpp
 
+# 14.04
+sudo: required
+dist: trusty
+
 notifications:
       email: false
+
+before_install:
+    - apt-get update -qq
+    - apt-get -y upgrade
+    - test -n $CC  && unset CC
+    - test -n $CXX && unset CXX
 
 install:
     ./install.sh
@@ -10,9 +20,23 @@ install:
 compiler:
     - mpicc.mpich2
 
-before_install:
-    - test -n $CC  && unset CC
-    - test -n $CXX && unset CXX
+script:
+    - make clean; make
+    # Test full
+    - release_test/test_auto
+    - release_test/test_man
+    # First unit-test
+    # libcommon
+    #- libcommon/unit-test/test_clusters
+    #- libcommon/unit-test/test_thd_safe_bool_vector
+
+    # libman
+    #- libman/unit-test/test_kmeans_task_thread
+    #- libman/unit-test/test_kmeans_thread
+    #- libman/unit-test/test_task_queue
+
+    # utils
+    #- utils/test/read_rrow_data 50 5 test-data/matrix_r50_c5_rrw.bin
 
 #env:
 #    - TEST_DIR=utils/test
