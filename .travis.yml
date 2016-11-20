@@ -13,7 +13,7 @@ before_install:
     - test -n $CXX && unset CXX
 
 install:
-    ./install.sh
+    sudo ./install.sh
 
 compiler:
     - mpicc.mpich2
