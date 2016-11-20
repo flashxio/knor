@@ -43,6 +43,8 @@ script:
 #    - TEST_DIR=libcommon/unit-test
 #    - TEST_DIR=libman/unit-test
 
-#branches:
+branches:
+    only:
+        dev
 #    except:
 #    - branch-name
