@@ -22,30 +22,15 @@ LDFLAGS := -L../libauto -lauto -L../libman -lman \
 CXXFLAGS += -I.. -I../libauto -I../libman -I../libdist -I../libcommon
 DIST_FLAGS := -L../libdist -ldist
 
-TESTFILES = test_auto
-			#test_min_auto \
-			test_man test_min_man \
-			test_dist test_min_dist
+TESTFILES = test_auto test_man
 
 all: $(TESTFILES)
 
 test_auto: test_auto.o
 	$(CXX) -o test_auto test_auto.o $(LDFLAGS)
 
-#test_min_auto: test_min_auto.o
-	#$(CXX) -o test_min_auto test_min_auto.o $(LDFLAGS)
-
-#test_man: test_man.o
-	#$(CXX) -o test_man test_man.o $(LDFLAGS)
-
-#test_min_man: test_min_man.o
-	#$(CXX) -o test_min_man test_min_man.o $(LDFLAGS)
-
-#test_dist: test_dist.do
-	#$(CXX) -o test_dist test_dist.o $(LDFLAGS)
-
-#test_min_dist: test_min_dist.o
-	#$(CXX) -o test_min_dist test_min_dist.o $(LDFLAGS)
+test_man: test_man.o
+	$(CXX) -o test_man test_man.o $(LDFLAGS)
 
 clean:
 	rm -f *.d
