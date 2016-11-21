@@ -22,8 +22,8 @@ script:
     - make clean; make
     # Test full
     - cd release-test
-    - test_auto
-    - test_man
+    - ./test_auto
+    - ./test_man
     - cd ..
     # First unit-test
     # libcommon
