@@ -1,3 +1,4 @@
+![logo](https://docs.google.com/drawings/d/1wDfKYzNoYk4xmtgFbN2VrQJQemGQip_0BlOGkP9E87U/pub?w=480&amp;h=360)
 # knor
 
 The K-means NUMA Optimized Routine library or **knor** is a
