@@ -20,24 +20,19 @@
 #ifndef __KPM_TEST_SHARED_HPP__
 #define __KPM_TEST_SHARED_HPP__
 
-//#include <unistd.h>
 #include <string>
 #include <iostream>
 
 #include <boost/log/expressions.hpp>
 #include "io.hpp"
-#include "config.hpp"
+//#include "config.hpp"
 
 namespace kpmeans { namespace test {
-    /*const size_t path_len = _PC_PATH_MAX == -1 ? _PC_PATH_MAX : 1024;
-    char path [path_len];
-    char* p_path = getcwd(&path[0], path_len);*/
-
-    const std::string TESTDATA_FN = "test-data/matrix_r50_c5_rrw.bin";
+    const std::string TESTDATA_FN = "../test-data/matrix_r50_c5_rrw.bin";
     const std::string TEST_INIT_CLUSTERS =
-        "test-data/init_clusters_k8_c5.bin";
+        "../test-data/init_clusters_k8_c5.bin";
     const std::string TEST_CONVERGED_INIT_RES =
-        "test-data/converged_result_init_k8_c5.bin";
+        "../test-data/converged_result_init_k8_c5.bin";
     constexpr size_t TEST_NROW = 50;
     constexpr size_t TEST_NCOL = 5;
     constexpr unsigned TEST_K = 8;
@@ -49,7 +44,6 @@ namespace kpmeans { namespace test {
     }
 
 void init_log() {
-    /*std::cout << "The cwd is: " << p_path << std::endl;*/
     namespace logging = boost::log;
 
     logging::core::get()->set_filter(

@@ -21,8 +21,10 @@ compiler:
 script:
     - make clean; make
     # Test full
-    - release-test/test_auto
-    - release-test/test_man
+    - cd release-test
+    - test_auto
+    - test_man
+    - cd ..
     # First unit-test
     # libcommon
     #- libcommon/unit-test/test_clusters
