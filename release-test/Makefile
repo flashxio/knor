@@ -22,9 +22,13 @@ LDFLAGS := -L../libauto -lauto -L../libman -lman \
 CXXFLAGS += -I.. -I../libauto -I../libman -I../libdist -I../libcommon
 DIST_FLAGS := -L../libdist -ldist
 
-TESTFILES = test_auto test_man
+TESTFILES := test_auto test_man
 
 all: $(TESTFILES)
+
+test: all
+	./test_auto
+	./test_man
 
 test_auto: test_auto.o
 	$(CXX) -o test_auto test_auto.o $(LDFLAGS)

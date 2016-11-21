@@ -20,9 +20,13 @@ include ../../Makefile.common
 LDFLAGS := -L.. -lcommon $(LDFLAGS)
 CXXFLAGS := -I.. $(CXXFLAGS)
 
-TESTFILES = test_thd_safe_bool_vector test_clusters
+TESTFILES := test_thd_safe_bool_vector test_clusters
 
 all: $(TESTFILES)
+
+test: all
+	./test_clusters
+	./test_thd_safe_bool_vector 2 500
 
 test_thd_safe_bool_vector: test_thd_safe_bool_vector.o ../libcommon.a
 	$(CXX) -o test_thd_safe_bool_vector test_thd_safe_bool_vector.o $(LDFLAGS)

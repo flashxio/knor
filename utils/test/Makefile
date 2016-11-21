@@ -22,6 +22,9 @@ CXXFLAGS := -I../../libcommon $(CXXFLAGS)
 
 all: read_rrow_data
 
+test: all
+	./read_rrow_data 50 5 ../../test-data/matrix_r50_c5_rrw.bin
+
 read_rrow_data: read_rrow_data.o
 	$(CXX) -o read_rrow_data read_rrow_data.o
 

@@ -18,32 +18,15 @@ install:
 compiler:
     - mpicc.mpich2
 
+env:
+    - TEST_DIR=libcommon/unit-test
+    - TEST_DIR=libman/unit-test
+    - TEST_DIR=utils/test
+    - TEST_DIR=release-test
+
 script:
     - make clean; make
-
-    # libcommon unit-tests
-    - cd libcommon/unit-test
-    - ./test_clusters
-    - ./test_thd_safe_bool_vector 2 500
-    - cd ../..
-
-    # libman unit-tests
-    - cd libman/unit-test
-    - ./test_kmeans_task_thread 2
-    - ./test_kmeans_thread 2
-    - ./test_task_queue 2
-    - cd ../..
-
-    # utils
-    - cd utils/test
-    - ./read_rrow_data 50 5 ../../test-data/matrix_r50_c5_rrw.bin
-    - cd ../..
-
-    # Test full
-    - cd release-test
-    - ./test_auto
-    - ./test_man
-    - cd ..
+    - cd $TEST_DIR && make test
 
 branches:
     only:
