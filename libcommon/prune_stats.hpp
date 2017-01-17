@@ -29,14 +29,14 @@ namespace kpmeans { namespace base {
 class prune_stats {
 private:
     // Counts per iteration
-    unsigned lemma1, _3a, _3b, _3c, _4;
+    size_t lemma1, _3a, _3b, _3c, _4;
 
     // Total counts
     size_t tot_lemma1, tot_3a, tot_3b, tot_3c, tot_4, iter;
-    unsigned nrow;
-    unsigned nclust;
+    size_t nrow;
+    size_t nclust;
 
-    prune_stats(const unsigned nrows, const unsigned nclust) {
+    prune_stats(const size_t nrows, const size_t nclust) {
         _3a = 0; _3b = 0; lemma1 = 0; _3c = 0; _4 = 0;
         tot_lemma1 = 0; tot_3a = 0; tot_3b = 0;
         tot_3c = 0; tot_4 = 0; iter = 0;
@@ -48,20 +48,20 @@ private:
 public:
     typedef std::shared_ptr<prune_stats> ptr;
 
-    static ptr create(const unsigned nrows, const unsigned nclust) {
+    static ptr create(const size_t nrows, const size_t nclust) {
         return ptr(new prune_stats(nrows, nclust));
     }
-    void pp_lemma1(const unsigned var=1);
+    void pp_lemma1(const size_t var=1);
     void pp_3a();
     void pp_3b();
     void pp_3c();
     void pp_4();
 
-    const unsigned get_lemma1() const;
-    const unsigned get_3a() const;
-    const unsigned get_3b() const;
-    const unsigned get_3c() const;
-    const unsigned get_4() const;
+    const size_t get_lemma1() const;
+    const size_t get_3a() const;
+    const size_t get_3b() const;
+    const size_t get_3c() const;
+    const size_t get_4() const;
 
     prune_stats& operator+=(prune_stats& other);
     void finalize();
@@ -70,8 +70,8 @@ public:
 
 class activation_counter {
     private:
-    std::vector<unsigned> agg_active_count; // summation of per thread
-    std::vector<unsigned> active_count;
+    std::vector<size_t> agg_active_count; // summation of per thread
+    std::vector<size_t> active_count;
 
     activation_counter(const unsigned nthread) {
         active_count.resize(nthread);
@@ -85,7 +85,7 @@ class activation_counter {
 
     void active(const unsigned thd);
     void complete();
-    std::vector<unsigned>& get_active_count_per_iter();
+    std::vector<size_t>& get_active_count_per_iter();
 };
 
 class active_counter {
@@ -110,7 +110,7 @@ private:
             const size_t rows) {
         for (size_t row = 0; row < rows; row++) {
             std::vector<bool> sample(active.size());
-            for (unsigned iter = 0; iter < active.size(); iter++) {
+            for (size_t iter = 0; iter < active.size(); iter++) {
                 sample[iter] = active[iter][row];
             }
 

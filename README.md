@@ -5,15 +5,16 @@ The K-means NUMA Optimized Routine library or **knor** is a
 library for computing k-means in parallel with accelerations for
 Non-Uniform Memory Access (NUMA) architectures in the following settings.
 
-1. On a single machine with all data In-memory, *knor-IM*.
-2. In a cluster in distributed memory *knor-DM*.
+1. On a single machine with all data In-memory, *knori*.
+2. In a cluster in distributed memory *knord*.
 3. On a single machine with some data in-memory and the rest on SSDs i.e.,
-Semi-External Memory, *knor-SEM*.
+Semi-External Memory, *knors*.
 
-knor can use a scalable adaption of
+knor can use a **scalable** adaption of
 [Elkan's](http://users.cecs.anu.edu.au/~daa/courses/GSAC6017/kmeansicml03.pdf)
 algorithm that *can* drastically reduce the number of distance computations
-required for k-means.
+required for k-means without the memory bloat traditionally associated with
+Elkan's algorithm.
 
 ## knor backbone
 
@@ -25,9 +26,9 @@ multithreading.
 - [FlashGraph](https://github.com/flashxio/FlashX) for a semi-external memory
 vertex-centric interface.
 
-These modules are incarnations of algorithms in
+<!--These modules are incarnations of algorithms in
 [our publication](https://arxiv.org/abs/1606.08905). These implementations
-have the ability read from local disk, Amazon S3 and HDFS.
+have the ability read from local disk, Amazon S3 and HDFS.-->
 
 ## System Requirements
 - Linux
@@ -56,27 +57,58 @@ Assume the following:
 To run modules from the `$INSTALL_HOME/exec` directory, you may do the
 following:
 
-* knor-IM:
+* knori:
     `./kpmeans datafile nsamples dim k -t random -i 10 -p -m`
 
 *For comparison run our algorithms using [OpenMP](http://www.openmp.org/)*
     `./kpmeans datafile nsamples dim k -t random -i 10 -m`
 
-* knor-DM:
+* knord:
     `mpirun.mpich -n nproc ./dist_kmeans -f datafile_cw.dat\`
    	`-k k -n nsamples -d dim -I random -i 10`
 
-* knor-SEM:
+* knors:
     `TODO`
 
-## Data format conversion
-We provide some lightweight fast utilities to convert data from
-common formats to our own. Below we document their use:
-TODO
+## Data format
+
+We use two different formats dependent upon if you operate fully in-memory or
+use semi-external memory.
+
+### *knori* and *knord*
+
+In-memory and distributed memory routines (*knori*, *knord*) use row-major
+binary matrices of type `double` i.e., 16 Bytes per entry. For example the
+matrix:
+
+```
+1 2 3 4
+5 6 7 8
+```
+
+Must be written out in row-major form i.e., the bytes would be organized such
+that on disk they would look like:
+
+```
+1 2 3 4 5 6 7 8
+```
+
+### *knors*
+
+Semi-external memory (*knors*) data is stored in row-major format with a leading
+4KB FlashGraph header. You can convert binary data to *knors* format using:
+
+- TODO: coming soon ...
+
+### Data Conversion
+
+We provide a single threaded data conversion script to convert data from one
+format to the other.
+
+- TODO: coming soon ...
 
 ## Publications
 
-Mhembere, D., Zheng, D., Vogelstein, J. T., Priebe, C. E., & Burns, R. (2016).
-NUMA-optimized In-memory and Semi-external-memory Parameterized Clustering.
-arXiv preprint arXiv:1606.08905.
-
+Mhembere, D., Zheng, D., Vogelstein, J. T., Priebe, C. E., & Burns, R. (2017).
+knor: A NUMA-optimized In-memory, Distributed and Semi-external-memory k-means
+Library. arXiv preprint arXiv:1606.08905.
