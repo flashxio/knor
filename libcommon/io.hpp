@@ -76,7 +76,7 @@ void print_vector(typename std::vector<T> v, unsigned max_print=100) {
 
 // A very C-style binary data reader
 template <typename T>
-class bin_reader {
+class bin_io {
     private:
         FILE* f;
         size_t nrow, ncol;
@@ -90,9 +90,14 @@ class bin_reader {
         }
 
     public:
-        bin_reader(const std::string fn, const size_t nrow, const size_t ncol) {
-            f = fopen(fn.c_str(), "rb");
+        bin_io(const std::string fn, const std::string mode) {
+            f = fopen(fn.c_str(), mode.c_str());
             BOOST_VERIFY(NULL != f);
+        }
+
+        bin_io(const std::string fn, const size_t nrow,
+                const size_t ncol, const std::string mode="rb") :
+            bin_io(fn, mode) {
             this->nrow = nrow;
             this->ncol = ncol;
         }
@@ -132,7 +137,16 @@ class bin_reader {
             BOOST_ASSERT_MSG(num_read == 1, "Error reading file!\n");
         }
 
-        ~bin_reader() {
+        void write(const T* data, const size_t numel) {
+            size_t num_put = fwrite(data, sizeof(T)*numel, 1, f);
+            BOOST_ASSERT_MSG(num_put == 1, "Error writing file!\n");
+        }
+
+        void write(const std::vector<T>& data, const size_t numel) {
+            write(&(data[0]), numel);
+        }
+
+        ~bin_io() {
             fclose(f);
         }
 };

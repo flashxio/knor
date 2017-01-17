@@ -185,4 +185,35 @@ bool is_file_exist(const char *fn);
 size_t filesize(const char* filename);
 
 } } // End namespace kpmeans::base
+
+namespace kpmeans { namespace test {
+
+template <typename It1, typename It2, typename T>
+bool check_collection_equal(It1 arg0first, It1 arg0last,
+        It2 arg1first, It2 arg1last, const T tolerance=0,
+        const bool check_all=true) {
+    size_t pos = 0;
+    bool all_eq = true;
+
+    // Are values equal
+    while(arg0first != arg0last) {
+        T diff = *arg0first - *arg1first;
+        if ((T)((diff*diff)/(T)2) > tolerance) {
+            std::cerr << "Position " << pos << " mismatch " << *arg0first
+                << " !~= " << *arg1first << std::endl;
+            all_eq = false;
+            if (!check_all)
+                return all_eq;
+        }
+        ++arg0first; ++arg1first;
+    }
+
+    // Are lenghts equal
+    if (arg1first != arg1last) {
+        std::cerr << "Iterator 1 length != Iterator 2 length" << std::endl;
+        all_eq = false;
+    }
+    return all_eq;
+}
+}}; // End namespace kpmeans::test
 #endif

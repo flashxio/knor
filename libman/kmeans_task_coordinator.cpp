@@ -37,14 +37,13 @@ kmeans_task_coordinator::kmeans_task_coordinator(const std::string fn, const siz
             nnodes, nthreads, centers, it, tolerance, dt) {
 
         cltrs = kpmbase::prune_clusters::create(k, ncol);
+
         if (centers) {
-            cltrs->set_mean(centers);
-            if (_init_t != kpmbase::init_type_t::NONE) {
-                BOOST_LOG_TRIVIAL(warning) << "[WARNING]: Init method " <<
-                    "ignored because centers provided!";
-            } else {
-                BOOST_LOG_TRIVIAL(info) << "Init-ed centers ...";
-            }
+            if (kpmbase::init_type_t::NONE)
+                cltrs->set_mean(centers);
+            else
+                BOOST_LOG_TRIVIAL(warning) << "[WARNING]: Both init centers" <<
+                    "provided & non-NONE init method specified";
         }
 
         // For pruning
@@ -163,7 +162,6 @@ void kmeans_task_coordinator::update_clusters(const bool prune_init) {
         cluster_assignment_counts[clust_idx] = cltrs->get_num_members(clust_idx);
         chk_nmemb += cluster_assignment_counts[clust_idx];
     }
-    printf("chk_nmemb: %u\n", chk_nmemb);
     BOOST_VERIFY(chk_nmemb == nrow);
 
 #if KM_TEST
@@ -309,7 +307,7 @@ void const kmeans_task_coordinator::print_thread_data() {
 /**
  * Main driver for kmeans
  */
-void kmeans_task_coordinator::run_kmeans() {
+kpmbase::kmeans_t kmeans_task_coordinator::run_kmeans() {
 #ifdef PROFILER
     ProfilerStart("matrix/kmeans_task_coordinator.perf");
 #endif
@@ -335,7 +333,7 @@ void kmeans_task_coordinator::run_kmeans() {
 
     num_changed = 0;
     // Run kmeans loop
-    size_t iter = 1;
+    size_t iter = 2;
     bool converged = false;
     while (iter <= max_iters) {
         BOOST_LOG_TRIVIAL(info) << "E-step Iteration: " << iter;
@@ -347,8 +345,10 @@ void kmeans_task_coordinator::run_kmeans() {
         wait4complete();
         update_clusters(false);
 
+#if VERBOSE
         printf("Cluster assignment counts: ");
         kpmbase::print_arr(cluster_assignment_counts, k);
+#endif
 
         if (num_changed == 0 ||
                 ((num_changed/(double)nrow)) <= tolerance) {
@@ -374,6 +374,13 @@ void kmeans_task_coordinator::run_kmeans() {
         BOOST_LOG_TRIVIAL(warning) << "[Warning]: K-means failed to converge in "
             << iter << " iterations";
     }
+
+    printf("Final cluster counts: ");
+    kpmbase::print_arr(cluster_assignment_counts, k);
     BOOST_LOG_TRIVIAL(info) << "\n******************************************\n";
+
+    return kpmbase::kmeans_t(this->nrow, this->ncol, iter, this->k,
+            cluster_assignments, cluster_assignment_counts,
+            cltrs->get_means());
 }
 } } // End namespace kpmeans, prune

@@ -52,18 +52,19 @@ namespace kpmeans { namespace omp {
  * \param max_iters The maximum number of iterations of K-means to perform.
  * \param init The type of initilization ["random", "forgy", "kmeanspp"]
  **/
-unsigned compute_kmeans(const double* matrix, double* clusters,
-		unsigned* cluster_assignments, unsigned* cluster_assignment_counts,
-		const unsigned num_rows, const unsigned num_cols, const unsigned k,
-		const unsigned MAX_ITERS, const int max_threads,
+kpmbase::kmeans_t compute_kmeans(const double* matrix, double* clusters,
+		unsigned* cluster_assignments, size_t* cluster_assignment_counts,
+		const size_t num_rows, const size_t num_cols, const unsigned k,
+		const size_t MAX_ITERS, const int max_threads,
         const std::string init="kmeanspp", const double tolerance=-1,
         const std::string dist_type="eucl");
 
 /** See `compute_kmeans` for argument list */
-unsigned compute_min_kmeans(const double* matrix, double* clusters_ptr,
-        unsigned* cluster_assignments, unsigned* cluster_assignment_counts,
-		const unsigned num_rows, const unsigned num_cols, const unsigned k,
-        const unsigned MAX_ITERS, const int max_threads,
+kpmbase::kmeans_t compute_min_kmeans
+    (const double* matrix, double* clusters_ptr,
+        unsigned* cluster_assignments, size_t* cluster_assignment_counts,
+		const size_t num_rows, const size_t num_cols, const unsigned k,
+        const size_t MAX_ITERS, const int max_threads,
         const std::string init="kmeanspp", const double tolerance=-1,
         const std::string dist_type="eucl");
 } }

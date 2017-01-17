@@ -103,7 +103,7 @@ void dist_task_coordinator::forgy_init() {
     throw kpmbase::not_implemented_exception();
 }
 
-void dist_task_coordinator::run_kmeans() {
+kpmbase::kmeans_t dist_task_coordinator::run_kmeans() {
     throw kpmbase::not_implemented_exception();
 }
 

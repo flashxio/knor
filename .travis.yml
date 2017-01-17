@@ -1,24 +1,35 @@
 #TODO: Set OMP_NUM_THREADS = 4 via environment variables
 language: cpp
 
+# 14.04
+sudo: required
+dist: trusty
+
 notifications:
       email: false
-
-install:
-    ./install.sh
-
-compiler:
-    - mpicc.mpich2
 
 before_install:
     - test -n $CC  && unset CC
     - test -n $CXX && unset CXX
 
-#env:
-#    - TEST_DIR=utils/test
-#    - TEST_DIR=libcommon/unit-test
-#    - TEST_DIR=libman/unit-test
+install:
+    sudo ./install.sh
 
-#branches:
+compiler:
+    - mpicc.mpich2
+
+env:
+    - TEST_DIR=libcommon/unit-test
+    - TEST_DIR=libman/unit-test
+    - TEST_DIR=utils/test
+    - TEST_DIR=release-test
+
+script:
+    - make clean; make
+    - cd $TEST_DIR && make test
+
+branches:
+    only:
+        dev
 #    except:
 #    - branch-name

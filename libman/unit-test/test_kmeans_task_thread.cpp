@@ -73,8 +73,8 @@ static void test_thread_creation(const unsigned NTHREADS, const unsigned nnodes)
 }
 
 void test_numa_populate_data(const unsigned NTHREADS, const unsigned nnodes,
-    const size_t nrow = 50, const size_t ncol = 5,
-    const std::string fn = "./matrix_r50_c5_rrw.bin") {
+    const size_t nrow=50, const size_t ncol=5,
+    const std::string fn="../../test-data/matrix_r50_c5_rrw.bin") {
 
     printf("\nRunning test_numa_populate_data with "
             "%u threads ...\n", NTHREADS);
@@ -94,7 +94,7 @@ void test_numa_populate_data(const unsigned NTHREADS, const unsigned nnodes,
         threads[i]->start(kpmeans::thread_state_t::WAIT); // Thread puts itself to sleep
     }
 
-    kpmbase::bin_reader<double> br(fn, nrow, ncol);
+    kpmbase::bin_io<double> br(fn, nrow, ncol);
     double* data = new double [nrow*ncol];
     printf("Bin read data\n");
     br.read(data);

@@ -20,13 +20,31 @@
 #ifndef __KPM_TYPES_HPP__
 #define __KPM_TYPES_HPP__
 
+#include <cstddef>
 #include <limits>
+#include <vector>
 
 namespace kpmeans { namespace base {
-    static const unsigned INVALID_CLUSTER_ID =
-        std::numeric_limits<unsigned>::max();
-    enum kms_stage_t { INIT, ESTEP }; // What phase of the algo we're in
-    enum dist_type_t { EUCL, COS }; // Euclidean, Cosine distance
-    enum init_type_t { RANDOM, FORGY, PLUSPLUS, NONE }; // May have to use
+
+static const unsigned INVALID_CLUSTER_ID = std::numeric_limits<unsigned>::max();
+enum kms_stage_t { INIT, ESTEP }; // What phase of the algo we're in
+enum dist_type_t { EUCL, COS }; // Euclidean, Cosine distance
+enum init_type_t { RANDOM, FORGY, PLUSPLUS, NONE }; // May have to use
+
+class kmeans_t {
+public:
+    size_t nrow, ncol, iters;
+    std::vector<unsigned> assignments;
+    std::vector<size_t> assignment_count;
+    std::vector<double> centroids;
+
+    kmeans_t(){ }
+    kmeans_t(const size_t nrow, const size_t ncol, const size_t iters,
+             const size_t k, const unsigned* assignments_buf,
+             const size_t* assignment_count_buf,
+             const std::vector<double>& centroids);
+    const void print() const;
+    bool operator==(const kmeans_t& other);
+};
 } }
 #endif

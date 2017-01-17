@@ -34,11 +34,11 @@ namespace kpmbase = kpmeans::base;
 
 namespace {
 
-static unsigned NUM_COLS;
+static size_t NUM_COLS;
 static size_t K;
-static unsigned NUM_ROWS;
+static size_t NUM_ROWS;
 short OMP_MAX_THREADS;
-static unsigned g_num_changed = 0;
+static size_t g_num_changed = 0;
 static struct timeval start, end;
 static kpmbase::init_type_t g_init_type;
 static kpmbase::dist_type_t g_dist_type;
@@ -52,15 +52,15 @@ static kpmbase::dist_type_t g_dist_type;
 void random_partition_init(unsigned* cluster_assignments,
         const double* matrix,
         std::shared_ptr<kpmbase::clusters> clusters,
-        const unsigned num_rows,
-        const unsigned num_cols, const unsigned k) {
+        const size_t num_rows,
+        const size_t num_cols, const unsigned k) {
     BOOST_LOG_TRIVIAL(info) << "Random init start";
 
     std::default_random_engine generator;
     std::uniform_int_distribution<unsigned> distribution(0, k-1);
 
 //#pragma omp parallel for shared(cluster_assignments)
-    for (unsigned row = 0; row < num_rows; row++) {
+    for (size_t row = 0; row < num_rows; row++) {
         unsigned asgnd_clust = distribution(generator);
 
         clusters->add_member(&matrix[row*num_cols], asgnd_clust);
@@ -83,15 +83,15 @@ void random_partition_init(unsigned* cluster_assignments,
  */
 void forgy_init(const double* matrix,
         std::shared_ptr<kpmbase::clusters> clusters,
-        const unsigned num_rows, const unsigned num_cols, const unsigned k) {
+        const size_t num_rows, const size_t num_cols, const unsigned k) {
 
     std::default_random_engine generator;
-    std::uniform_int_distribution<unsigned> distribution(0, num_rows-1);
+    std::uniform_int_distribution<size_t> distribution(0, num_rows-1);
 
     BOOST_LOG_TRIVIAL(info) << "Forgy init start";
 
     for (unsigned clust_idx = 0; clust_idx < k; clust_idx++) { // 0...K
-        unsigned rand_idx = distribution(generator);
+        size_t rand_idx = distribution(generator);
         clusters->set_mean(&matrix[rand_idx*num_cols], clust_idx);
     }
 
@@ -116,7 +116,7 @@ static void kmeanspp_init(const double* matrix,
         unsigned* cluster_assignments) {
 
     // Choose c1 uniformly at random
-    unsigned selected_idx = random() % NUM_ROWS; // 0...(NUM_ROWS-1)
+    size_t selected_idx = random() % NUM_ROWS; // 0...(NUM_ROWS-1)
     std::vector<double> dist_v;
     dist_v.assign(NUM_ROWS, std::numeric_limits<double>::max());
 
@@ -134,7 +134,7 @@ static void kmeanspp_init(const double* matrix,
     while ((clust_idx + 1) < K) {
         double cum_dist = 0;
 #pragma omp parallel for reduction(+:cum_dist) shared (dist_v, cluster_assignments)
-        for (unsigned row = 0; row < NUM_ROWS; row++) {
+        for (size_t row = 0; row < NUM_ROWS; row++) {
             // Prune in kms++ possible using
             // if (div_v[row] > dm->get(cluster_assignments[row], clust_idx) {
             double dist = dist_comp_raw(&matrix[row*NUM_COLS],
@@ -152,7 +152,7 @@ static void kmeanspp_init(const double* matrix,
         cum_dist = (cum_dist * ((double)random())) / (RAND_MAX - 1.0);
         clust_idx++;
 
-        for (unsigned i = 0; i < NUM_ROWS; i++) {
+        for (size_t i = 0; i < NUM_ROWS; i++) {
             cum_dist -= dist_v[i];
             if (cum_dist <= 0) {
 #if KM_TEST
@@ -179,23 +179,23 @@ static void kmeanspp_init(const double* matrix,
  *	\param cluster_assignments Which cluster each sample falls into.
  */
 static void EM_step(const double* matrix, kpmbase::prune_clusters::ptr cls,
-        unsigned* cluster_assignments, unsigned* cluster_assignment_counts,
+        unsigned* cluster_assignments, size_t* cluster_assignment_counts,
         kpmbase::thd_safe_bool_vector::ptr recalculated_v,
         std::vector<double>& dist_v,
         kpmprune::dist_matrix::ptr dm, const bool prune_init=false) {
 
     std::vector<kpmbase::clusters::ptr> pt_cl(OMP_MAX_THREADS);
     // Per thread changed cluster count. OMP_MAX_THREADS
-    std::vector<unsigned> pt_num_change(OMP_MAX_THREADS);
+    std::vector<size_t> pt_num_change(OMP_MAX_THREADS);
 
     for (int i = 0; i < OMP_MAX_THREADS; i++)
         pt_cl[i] = kpmbase::clusters::create(K, NUM_COLS);
 
 #pragma omp parallel for firstprivate(matrix, pt_cl)\
     shared(cluster_assignments, recalculated_v, dist_v)
-    for (unsigned row = 0; row < NUM_ROWS; row++) {
+    for (size_t row = 0; row < NUM_ROWS; row++) {
         unsigned old_clust = cluster_assignments[row];
-        unsigned offset = row*NUM_COLS;
+        size_t offset = row*NUM_COLS;
 
         if (prune_init) {
             double dist = std::numeric_limits<double>::max();
@@ -285,7 +285,7 @@ static void EM_step(const double* matrix, kpmbase::prune_clusters::ptr cls,
         cls->peq(pt_cl[thd]);
     }
 
-    unsigned chk_nmemb = 0;
+    size_t chk_nmemb = 0;
     for (unsigned clust_idx = 0; clust_idx < K; clust_idx++) {
         cls->finalize(clust_idx);
         cls->set_prev_dist(kpmbase::eucl_dist(
@@ -310,9 +310,9 @@ static void EM_step(const double* matrix, kpmbase::prune_clusters::ptr cls,
 #if KM_TEST
 void get_sampling(std::vector<std::vector<double>>& samples,
         const unsigned* cluster_assignments,
-         const double* data, const unsigned* cluster_assignment_counts) {
+         const double* data, const size_t* cluster_assignment_counts) {
     constexpr unsigned MAX_PLOT_POINTS = 1000;
-    const unsigned samples_per_cluster =
+    const size_t samples_per_cluster =
         NUM_ROWS > MAX_PLOT_POINTS ? MAX_PLOT_POINTS : NUM_ROWS/K;
 
     if (samples_per_cluster < MAX_PLOT_POINTS) { // Just plot everything
@@ -328,10 +328,10 @@ void get_sampling(std::vector<std::vector<double>>& samples,
 
 namespace kpmeans { namespace omp {
 
-unsigned compute_min_kmeans(const double* matrix, double* clusters_ptr,
-        unsigned* cluster_assignments, unsigned* cluster_assignment_counts,
-        const unsigned num_rows, const unsigned num_cols, const unsigned k,
-        const unsigned MAX_ITERS, const int max_threads, const std::string init,
+kpmbase::kmeans_t compute_min_kmeans(const double* matrix, double* clusters_ptr,
+        unsigned* cluster_assignments, size_t* cluster_assignment_counts,
+        const size_t num_rows, const size_t num_cols, const unsigned k,
+        const size_t MAX_ITERS, const int max_threads, const std::string init,
         const double tolerance, const std::string dist_type) {
 #ifdef PROFILER
     ProfilerStart("matrix/min-tri-kmeans.perf");
@@ -428,18 +428,20 @@ unsigned compute_min_kmeans(const double* matrix, double* clusters_ptr,
     BOOST_LOG_TRIVIAL(info) << "Matrix K-means starting ...";
 
     bool converged = false;
-    std::string str_iters = MAX_ITERS == std::numeric_limits<unsigned>::max() ?
+    std::string str_iters = MAX_ITERS == std::numeric_limits<size_t>::max() ?
         "until convergence ...":
         std::to_string(MAX_ITERS) + " iterations ...";
     BOOST_LOG_TRIVIAL(info) << "Computing " << str_iters;
-    unsigned iter = 1;
+    size_t iter = 2;
 
     while (iter < MAX_ITERS) {
         // Hold cluster assignment counter
         BOOST_LOG_TRIVIAL(info) << "E-step Iteration " << iter <<
             ". Computing cluster assignments ...";
 
+#if VERBOSE
         BOOST_LOG_TRIVIAL(info) << "Main: Computing cluster distance matrix ...";
+#endif
         dm->compute_dist(clusters, NUM_COLS);
 #if VERBOSE
         BOOST_LOG_TRIVIAL(info) << "Before: Cluster distance matrix ...";
@@ -487,6 +489,8 @@ unsigned compute_min_kmeans(const double* matrix, double* clusters_ptr,
     kpmbase::print_arr(cluster_assignment_counts, K);
     BOOST_LOG_TRIVIAL(info) << "\n******************************************\n";
 
-    return iter;
+    return kpmbase::kmeans_t (NUM_ROWS, NUM_COLS, iter, K,
+            cluster_assignments, cluster_assignment_counts,
+            clusters->get_means());
 }
 } } // End namespace kpmeans, omp

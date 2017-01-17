@@ -46,7 +46,7 @@ int main(int argc, char* argv[]) {
 
     std::string dist_type = "eucl";
     std::string centersfn = "";
-	unsigned max_iters=std::numeric_limits<unsigned>::max();
+	size_t max_iters=std::numeric_limits<size_t>::max();
 	std::string init = "kmeanspp";
 	unsigned nthread = kpmbase::get_num_omp_threads();
 	int num_opts = 0;
@@ -117,7 +117,7 @@ int main(int argc, char* argv[]) {
 
     if (kpmbase::is_file_exist(centersfn.c_str())) {
         p_centers = new double [k*ncol];
-        kpmbase::bin_reader<double> br2(centersfn, k, ncol);
+        kpmbase::bin_io<double> br2(centersfn, k, ncol);
         br2.read(p_centers);
         printf("Read centers!\n");
     } else
@@ -139,13 +139,13 @@ int main(int argc, char* argv[]) {
         }
 #endif
     } else {
-        kpmbase::bin_reader<double> br(datafn, nrow, ncol);
+        kpmbase::bin_io<double> br(datafn, nrow, ncol);
         double* p_data = new double [nrow*ncol];
         br.read(p_data);
         printf("Read data!\n");
 
         unsigned* p_clust_asgns = new unsigned [nrow];
-        unsigned* p_clust_asgn_cnt = new unsigned [k];
+        size_t* p_clust_asgn_cnt = new size_t [k];
 
         if (NULL == p_centers) // We have no preallocated centers
             p_centers = new double [k*ncol];

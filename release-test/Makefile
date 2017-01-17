@@ -1,4 +1,3 @@
-#!/usr/bin/env bash
 # Copyright 2016 neurodata (http://neurodata.io/)
 # Written by Disa Mhembere (disa@jhu.edu)
 #
@@ -16,26 +15,31 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Ubuntu install script
+include ../Makefile.common
 
-cd $HOME
-# Make sure the package information is up-to-date
-apt-get update
-apt-get sudo apt-get -o Dpkg::Options::="--force-confold" --force-yes -y upgrade
+LDFLAGS := -L../libauto -lauto -L../libman -lman \
+	-L../libcommon -lcommon $(LDFLAGS)
+CXXFLAGS += -I.. -I../libauto -I../libman -I../libdist -I../libcommon
+DIST_FLAGS := -L../libdist -ldist
 
-apt-get -y install build-essential
-# In memory dependencies
-apt-get -y install libboost-all-dev
-# NUMA
-apt-get install -y libnuma-dbg libnuma-dev libnuma1
+TESTFILES := test_auto test_man
 
-# Message Passing Interface
-apt-get install libmpich2-dev;
+all: $(TESTFILES)
 
-#if [ $(dpkg-query -W -f='${Status}' libmpich2-dev 2>/dev/null | grep -c "ok installed")
-#    -eq 0 ]; then
-#    apt-get install libmpich2-dev;
-#fi
+test: all
+	./test_auto
+	./test_man
 
-# Source control
-apt-get install -y git
+test_auto: test_auto.o
+	$(CXX) -o test_auto test_auto.o $(LDFLAGS)
+
+test_man: test_man.o
+	$(CXX) -o test_man test_man.o $(LDFLAGS)
+
+clean:
+	rm -f *.d
+	rm -f *.o
+	rm -f *~
+	rm -f $(TESTFILES)
+
+-include $(DEPS)

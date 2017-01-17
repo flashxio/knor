@@ -48,13 +48,11 @@ kmeans_coordinator::kmeans_coordinator(const std::string fn, const size_t nrow,
 
         cltrs = kpmbase::clusters::create(k, ncol);
         if (centers) {
-            cltrs->set_mean(centers);
-            if (_init_t != kpmbase::init_type_t::NONE) {
-                BOOST_LOG_TRIVIAL(warning) << "[WARNING]: Init method " <<
-                    "ignored because centers provided!";
-            } else {
-                BOOST_LOG_TRIVIAL(info) << "Init-ed centers ...";
-            }
+            if (kpmbase::init_type_t::NONE)
+                cltrs->set_mean(centers);
+            else
+                BOOST_LOG_TRIVIAL(warning) << "[WARNING]: Both init centers" <<
+                    "provided & non-NONE init method specified";
         }
         build_thread_state();
     }
@@ -271,7 +269,7 @@ void kmeans_coordinator::run_init() {
 /**
  * Main driver for kmeans
  */
-void kmeans_coordinator::run_kmeans() {
+kpmbase::kmeans_t kmeans_coordinator::run_kmeans() {
 #ifdef PROFILER
     ProfilerStart("matrix/kmeans_coordinator.perf");
 #endif
@@ -292,8 +290,10 @@ void kmeans_coordinator::run_kmeans() {
 
         update_clusters();
 
+#if VERBOSE
         printf("Cluster assignment counts: ");
         kpmbase::print_arr(cluster_assignment_counts, k);
+#endif
 
         if (num_changed == 0 ||
                 ((num_changed/(double)nrow)) <= tolerance) {
@@ -317,7 +317,14 @@ void kmeans_coordinator::run_kmeans() {
         BOOST_LOG_TRIVIAL(warning) << "[Warning]: K-means failed to converge in "
             << iter << " iterations";
     }
+
+    printf("Final cluster counts: ");
+    kpmbase::print_arr(cluster_assignment_counts, k);
     BOOST_LOG_TRIVIAL(info) << "\n******************************************\n";
+
+    return kpmbase::kmeans_t(this->nrow, this->ncol, iter, this->k,
+            cluster_assignments, cluster_assignment_counts,
+            cltrs->get_means());
 }
 
 kmeans_coordinator::~kmeans_coordinator() {
