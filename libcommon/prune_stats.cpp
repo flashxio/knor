@@ -22,17 +22,17 @@
 
 namespace kpmeans { namespace base {
 
-void prune_stats::pp_lemma1(const unsigned var) { lemma1 += var; }
+void prune_stats::pp_lemma1(const size_t var) { lemma1 += var; }
 void prune_stats::pp_3a() { _3a++; }
 void prune_stats::pp_3b() { _3b++; }
 void prune_stats::pp_3c() { _3c++; }
 void prune_stats::pp_4() { _4++; }
 
-const unsigned prune_stats::get_lemma1() const { return lemma1; }
-const unsigned prune_stats::get_3a() const { return _3a; }
-const unsigned prune_stats::get_3b() const { return _3b; }
-const unsigned prune_stats::get_3c() const { return _3c; }
-const unsigned prune_stats::get_4() const { return _4; }
+const size_t prune_stats::get_lemma1() const { return lemma1; }
+const size_t prune_stats::get_3a() const { return _3a; }
+const size_t prune_stats::get_3b() const { return _3b; }
+const size_t prune_stats::get_3c() const { return _3c; }
+const size_t prune_stats::get_4() const { return _4; }
 
 prune_stats& prune_stats::operator+=(prune_stats& other) {
     lemma1 += other.get_lemma1();
@@ -96,8 +96,8 @@ void activation_counter::active(const unsigned thd) {
 }
 
 void activation_counter::complete() {
-    unsigned tot = 0;
-    for (std::vector<unsigned>::iterator it = active_count.begin();
+    size_t tot = 0;
+    for (std::vector<size_t>::iterator it = active_count.begin();
             it != active_count.end(); ++it)
         tot += *it;
 
@@ -105,7 +105,7 @@ void activation_counter::complete() {
     agg_active_count.push_back(tot);
 }
 
-std::vector<unsigned>& activation_counter::get_active_count_per_iter() {
+std::vector<size_t>& activation_counter::get_active_count_per_iter() {
     return agg_active_count;
 }
 
@@ -138,7 +138,7 @@ void active_counter::write_raw(std::string fn, size_t print_row_cnt) {
 
     std::string out = "";
     for (size_t row = 0; row < print_row_cnt; row++) {
-        for (unsigned iter = 0; iter < active.size(); iter++) {
+        for (size_t iter = 0; iter < active.size(); iter++) {
             if (iter == 0)
                 out += std::to_string(row) + ", ";
 
