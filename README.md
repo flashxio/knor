@@ -26,9 +26,8 @@ multithreading.
 - [FlashGraph](https://github.com/flashxio/FlashX) for a semi-external memory
 vertex-centric interface.
 
-<!--These modules are incarnations of algorithms in
-[our publication](https://arxiv.org/abs/1606.08905). These implementations
-have the ability read from local disk, Amazon S3 and HDFS.-->
+These modules are incarnations of algorithms in
+[our publication](https://arxiv.org/abs/1606.08905).
 
 ## System Requirements
 - Linux
@@ -49,26 +48,32 @@ modern compiler to take advantage of compile time optimizations:
 
 ### Usage
 Assume the following:
-	- `k` is the number of clusters
-	- `dim` is the dimensionality of the features
-	- `nsamples` is the number of samples
-    - `$INSTALL_HOME` is the directory where you clone knor.
+
+- `k` is the number of clusters
+- `dim` is the dimensionality of the features
+- `nsamples` is the number of samples
+- `$INSTALL_HOME` is the directory where you clone knor.
 
 To run modules from the `$INSTALL_HOME/exec` directory, you may do the
 following:
 
-* knori:
-    `./kpmeans datafile nsamples dim k -t random -i 10 -p -m`
+- knori:
+
+    ```./kpmeans datafile nsamples dim k -t random -i 10 -p -m```
 
 *For comparison run our algorithms using [OpenMP](http://www.openmp.org/)*
-    `./kpmeans datafile nsamples dim k -t random -i 10 -m`
 
-* knord:
-    `mpirun.mpich -n nproc ./dist_kmeans -f datafile_cw.dat\`
-   	`-k k -n nsamples -d dim -I random -i 10`
+    ```./kpmeans datafile nsamples dim k -t random -i 10 -m```
 
-* knors:
-    `TODO`
+- knord:
+	```
+    mpirun.mpich -n nproc ./dist_kmeans -f datafile_cw.dat\
+   	-k k -n nsamples -d dim -I random -i 10
+    ```
+
+- knors:
+    
+    ```TODO```
 
 ## Data format
 
