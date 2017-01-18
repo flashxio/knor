@@ -58,22 +58,25 @@ To run modules from the `$INSTALL_HOME/exec` directory, you may do the
 following:
 
 - knori:
+```
+./kpmeans datafile nsamples dim k -t random -i 10 -p -m
+```
 
-    ```./kpmeans datafile nsamples dim k -t random -i 10 -p -m```
-
-*For comparison run our algorithms using [OpenMP](http://www.openmp.org/)*
-
-    ```./kpmeans datafile nsamples dim k -t random -i 10 -m```
+For comparison run our algorithms using [OpenMP](http://www.openmp.org/)
+```
+./kpmeans datafile nsamples dim k -t random -i 10 -m
+```
 
 - knord:
-	```
-    mpirun.mpich -n nproc ./dist_kmeans -f datafile_cw.dat\
-   	-k k -n nsamples -d dim -I random -i 10
-    ```
+```
+mpirun.mpich -n nproc ./dist_kmeans -f datafile_cw.dat\
+-k k -n nsamples -d dim -I random -i 10
+```
 
-- knors:
-    
-    ```TODO```
+- knors:    
+```
+TODO
+```
 
 ## Data format
 
