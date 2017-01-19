@@ -133,7 +133,19 @@ public:
     }
 
     void read(std::vector<T>& data) override {
-        while(this->readline(data));
+        BOOST_ASSERT_MSG(data.size() > 0, "Cannot read with empty container\n");
+
+        std::string line;
+        size_t pos = 0;
+        while (std::getline(this->f, line)) {
+            T number;
+            std::stringstream ss(line);
+
+            while (ss >> number)
+                data[pos++] = number;
+
+            this->nrow++;
+        }
     }
 
     void open() override {
@@ -142,16 +154,16 @@ public:
     }
 
     bool readline(std::vector<T>& data) override {
+        BOOST_ASSERT_MSG(bool(data.size()), "data buffer == 0");
         std::string line;
+        size_t pos = 0;
         if (std::getline(this->f, line)) {
             T number;
             std::stringstream ss(line);
 
             while (ss >> number)
-                data.push_back(number);
+                data[pos++] = number;
 
-            if (!this->ncol)
-                this->ncol = data.size();
             this->nrow++;
             return true;
         }
@@ -180,6 +192,7 @@ public:
                 return true;
             }
         } else {
+            std::cout << "ncol: " << this->ncol << "\n";
             BOOST_ASSERT_MSG(false, "Cannot read a line without `ncol`\n");
         }
         return false;

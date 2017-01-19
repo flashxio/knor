@@ -23,31 +23,42 @@
 namespace kpmbase = kpmeans::base;
 
 void test_text_reader(std::string fn, const size_t NROW, const size_t NCOL) {
+    std::cout << "Text reader test ...\n";
     kpmbase::text_reader<double> rdr(fn);
-    std::vector<double> v;
+    rdr.set_ncol(NCOL);
+    std::vector<double> v(NCOL);
+    std::vector<double> m;
 
-    while (rdr.readline(v));
+    while (rdr.readline(v))
+        m.insert(m.end(), v.begin(), v.end());
+
     std::cout << "Readline: ==>\n";
     std::cout << "nrow: " << rdr.get_nrow() <<
         ", ncol: " << rdr.get_ncol() << std::endl;
-    kpmbase::print_mat<double>(&v[0], rdr.get_nrow(), rdr.get_ncol());
+    kpmbase::print_mat<double>(&m[0], rdr.get_nrow(), rdr.get_ncol());
 
     std::cout << "Read: ==>\n";
-    std::vector<double> v2;
+    std::vector<double> v2(NROW*NCOL);
     kpmbase::text_reader<double> rdr2(fn);
+    rdr2.set_ncol(NCOL);
     rdr2.read(v2);
+    std::cout << "nrow: " << rdr2.get_nrow() <<
+        ", ncol: " << rdr2.get_ncol() << std::endl;
+
     kpmbase::print_mat<double>(&v2[0], rdr2.get_nrow(), rdr2.get_ncol());
 
-    BOOST_VERIFY(v.size() == NROW * NCOL);
-    BOOST_VERIFY(v.size() == v2.size());
-    BOOST_VERIFY(kpmbase::eq_all<double>(&v[0], &v2[0], v.size()));
+    BOOST_VERIFY(m.size() == NROW * NCOL);
+    BOOST_VERIFY(m.size() == v2.size());
+    BOOST_VERIFY(kpmbase::eq_all<double>(&m[0], &v2[0], m.size()));
 }
 
-void test_bin_rmreader(std::string fn, const size_t NROW, const size_t NCOL) {
+void test_bin_rm_reader(std::string fn, const size_t NROW, const size_t NCOL) {
+    std::cout << "\nBinary reader test ...\n";
+
     kpmbase::bin_rm_reader<double> rdr(fn);
     rdr.set_ncol(NCOL);
-
     std::vector<double> v(NCOL);
+
     while (rdr.readline(v)) {
         std::cout << "line: ==> ";
         kpmbase::print_vector<double>(v);
@@ -58,7 +69,7 @@ int main(int argc, char* argv[]) {
     size_t nrow = 5;
     size_t ncol = 3;
     test_text_reader("test.txt", nrow, ncol);
-    test_bin_rmreader("test.dat", nrow, ncol);
+    test_bin_rm_reader("test.dat", nrow, ncol);
 
     return EXIT_SUCCESS;
 }
