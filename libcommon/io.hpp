@@ -27,6 +27,8 @@
 
 #include <vector>
 #include <iostream>
+#include <fstream>
+#include <sstream>
 
 #include <boost/assert.hpp>
 #include <boost/log/trivial.hpp>
@@ -74,7 +76,135 @@ void print_vector(typename std::vector<T> v, unsigned max_print=100) {
     std::cout <<  " ]\n";
 }
 
-// A very C-style binary data reader
+template <typename T>
+class reader {
+private:
+    std::string fn;
+
+protected:
+    std::ifstream f;
+    size_t ncol, nrow;
+
+public:
+    reader(const std::string fn) {
+        this->fn = fn;
+        ncol = 0;
+        nrow = 0;
+    }
+
+    virtual void read(std::vector<T>& data) = 0;
+    virtual bool readline(std::vector<T>& data) = 0;
+    virtual void open() = 0;
+
+    const std::string get_fn() const {
+        return this->fn;
+    }
+
+    void set_fn(const std::string fn) {
+        this->fn = fn;
+    }
+
+    const size_t get_nrow() const {
+        return nrow;
+    }
+
+    const size_t get_ncol() const {
+        return ncol;
+    }
+
+    void set_nrow(const size_t nrow) {
+        this->nrow = nrow;
+    }
+
+    void set_ncol(const size_t ncol) {
+        this->ncol = ncol;
+    }
+
+    ~reader() {
+        f.close();
+    }
+};
+
+template <typename T>
+class text_reader : public reader<T> {
+public:
+    text_reader(const std::string fn) : reader<T>(fn) {
+        this->open();
+    }
+
+    void read(std::vector<T>& data) override {
+        BOOST_ASSERT_MSG(data.size() > 0, "Cannot read with empty container\n");
+
+        std::string line;
+        size_t pos = 0;
+        while (std::getline(this->f, line)) {
+            T number;
+            std::stringstream ss(line);
+
+            while (ss >> number)
+                data[pos++] = number;
+
+            this->nrow++;
+        }
+    }
+
+    void open() override {
+        this->f.open(this->get_fn(), std::ios::in);
+        BOOST_VERIFY(this->f.good());
+    }
+
+    bool readline(std::vector<T>& data) override {
+        BOOST_ASSERT_MSG(bool(data.size()), "data buffer == 0");
+        std::string line;
+        size_t pos = 0;
+        if (std::getline(this->f, line)) {
+            T number;
+            std::stringstream ss(line);
+
+            while (ss >> number)
+                data[pos++] = number;
+
+            this->nrow++;
+            return true;
+        }
+        return false;
+    }
+};
+
+template <typename T>
+class bin_rm_reader : public reader<T> {
+public:
+    bin_rm_reader(const std::string fn) : reader<T>(fn) {
+        this->open();
+    }
+
+    void read(std::vector<T>& data) override {
+        BOOST_ASSERT_MSG(data.size() > 0, "Cannot read with empty container\n");
+        this->f.read(reinterpret_cast<char*>(data.data()),
+                data.size()*sizeof(T));
+    }
+
+    bool readline(std::vector<T>& data) override {
+        if (this->ncol) {
+            if (this->f.read(reinterpret_cast<char*>(data.data()),
+                        data.size()*sizeof(T))) {
+                this->nrow++;
+                return true;
+            }
+        } else {
+            std::cout << "ncol: " << this->ncol << "\n";
+            BOOST_ASSERT_MSG(false, "Cannot read a line without `ncol`\n");
+        }
+        return false;
+    }
+
+    void open() override {
+        this->f.open(this->get_fn(), std::ios::in | std::ios::binary);
+        BOOST_VERIFY(this->f.good());
+    }
+};
+
+// A very C-style binary io module
 template <typename T>
 class bin_io {
     private:
@@ -144,6 +274,10 @@ class bin_io {
 
         void write(const std::vector<T>& data, const size_t numel) {
             write(&(data[0]), numel);
+        }
+
+        operator bool() const {
+            return ftell(f) != nrow*ncol*sizeof(T);
         }
 
         ~bin_io() {

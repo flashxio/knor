@@ -73,7 +73,7 @@ mpirun.mpich -n nproc ./dist_kmeans -f datafile_cw.dat\
 -k k -n nsamples -d dim -I random -i 10
 ```
 
-- knors:    
+- knors:
 ```
 TODO
 ```
@@ -101,6 +101,9 @@ that on disk they would look like:
 1 2 3 4 5 6 7 8
 ```
 
+**NOTE:** The row-major data on disk will be **non-human readable** since it is
+in binary format.
+
 ### *knors*
 
 Semi-external memory (*knors*) data is stored in row-major format with a leading
@@ -113,7 +116,27 @@ Semi-external memory (*knors*) data is stored in row-major format with a leading
 We provide a single threaded data conversion script to convert data from one
 format to the other.
 
-- TODO: coming soon ...
+#### Plain text (space separated values) to row-major binary
+
+We consider a file named `example.txt` in our *knor* root directory,
+`$KNOR_HOME` with the following content:
+
+```
+1 2 3 4
+5 6 7 8
+```
+
+To convert this file from text readable (tsv) format one would do the following:
+
+```
+$ cd $KNOR_HOME
+$ utils/convert_matrix # gives help on how to use the converter
+
+usage: ./convert_matrix in_filename in_format [text/knori/knord/knors]\
+    out_filename out_format[text/knori/knord/knors] nrow ncol
+
+$ utils/convert_matrix example.txt text example.dat knori 2 4
+```
 
 ## Publications
 

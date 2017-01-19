@@ -25,143 +25,85 @@
 namespace kpmbase = kpmeans::base;
 namespace kpmeans { namespace utils {
 
-void to_spark(const std::string fn, std::ofstream& of,
-        const conv_layout lay, const size_t nrow, const size_t ncol) {
-
-    size_t size = nrow*ncol;
-    BOOST_LOG_TRIVIAL(info) << "Malloc-ing matrix with size: " << size;
-
-    double* outmat = new double [size];
-    BOOST_LOG_TRIVIAL(info) << "Reading " << fn << ", with r:" << nrow
-        << ", c: " << ncol;
-    kpmbase::bin_io<double> b(fn, nrow, ncol);
-    b.read(outmat);
-
-    BOOST_LOG_TRIVIAL(info) << "Writing matrix ...";
-    if (lay == RAWCOL) {
-        // Write it
-        for (size_t row=0; row < ncol; row++) {
-            for (size_t col=0; col < nrow; col++) {
-                if (col < nrow-1) {
-                    of << outmat[row*nrow+col] << " ";
-                } else {
-                    of << outmat[row*nrow+col];
-                }
-            }
-            of << "\n";
-        }
-    } else if (lay == RAWROW) {
-        for (size_t row = 0; row < nrow; row++) {
-            for (size_t col = 0; col < ncol; col++) {
-                if (col < ncol-1) {
-                    of << outmat[row*ncol+col] << " ";
-                } else {
-                    of << outmat[row*ncol+col];
-                }
-            }
-            of << "\n";
-        }
-    } else { BOOST_VERIFY(false); }
-    delete [] outmat;
+format_converter::format_converter(const std::string infile,
+        const layout inlayout, size_t nrow, size_t ncol) {
+    this->infile = infile;
+    this->inlayout = inlayout;
+    this->nrow = nrow;
+    this->ncol = ncol;
 }
 
-// KMEANS_PAR
-void to_kmeans_par(const std::string fn, std::ofstream& of,
-        const conv_layout lay, const size_t nrow, const size_t ncol) {
-    size_t size = nrow*ncol;
-    BOOST_LOG_TRIVIAL(info) << "Malloc-ing matrix with size: " << size;
+format_converter::format_converter(double* data,
+        size_t nrow, size_t ncol) {
+    this->data = data;
+    this->nrow = nrow;
+    this->ncol = ncol;
+}
 
-    double* outmat = new double [size];
-    BOOST_LOG_TRIVIAL(info) << "Reading " << fn << ", with r:" << nrow
-        << ", c: " << ncol;
-    kpmbase::bin_io<double> b(fn, nrow, ncol);
-    b.read(outmat);
+void format_converter::write(const std::string outfile,
+        const layout outlayout) {
 
-    BOOST_LOG_TRIVIAL(info) << "Writing matrix ...";
+    std::vector<double> row(this->get_ncol());
+    std::ofstream of;
 
-    if (lay == RAWCOL) {
-        for (size_t row = 0; row < ncol; row++) {
-            of << row+1 << " ";
-            for (size_t col = 0; col < nrow; col++) {
-                if (col < nrow-1) {
-                    of << outmat[row*nrow+col] << " ";
+    switch (inlayout) {
+        case TEXT:
+            {
+                kpmbase::text_reader<double> rdr(infile);
+                rdr.set_ncol(this->get_ncol());
+                if (outlayout == BIN_RM) {
+                    std::cout << "Reading text writing binary" << std::endl;
+
+                    of.open(outfile, std::ios::out | std::ios::binary);
+                    while (rdr.readline(row)) {
+                        of.write(reinterpret_cast<char*>(&row[0]),
+                                row.size()*sizeof(double));
+                    }
+                } else if (outlayout == SEM) {
+                    BOOST_ASSERT_MSG(false, "Not implemented yet!\n");
                 } else {
-                    of << outmat[row*nrow+col];
+                    BOOST_ASSERT_MSG(false, "Not implemented yet!\n");
                 }
             }
-            of << "\n";
-        }
-    } else if (lay == RAWROW) {
-        for (size_t row = 0; row < nrow; row++) {
-            of << row+1 << " ";
-            for (size_t col = 0; col < ncol; col++) {
-                if (col < ncol-1) {
-                    of << outmat[row*ncol+col] << " ";
+            break;
+        case BIN_RM:
+            {
+                kpmbase::bin_rm_reader<double> rdr(infile);
+                rdr.set_ncol(this->get_ncol());
+                if (outlayout == TEXT) {
+                    std::cout << "Reading binary writing text" << std::endl;
+
+                    of.open(outfile, std::ios::out);
+                    while (rdr.readline(row)) {
+                        for (size_t col = 0; col < get_ncol(); col++)
+                            of << row[col] << " ";
+                        of << "\n";
+                    }
+                } else if (outlayout == SEM) {
+                    BOOST_ASSERT_MSG(false, "Not implemented yet!\n");
                 } else {
-                    of << outmat[row*ncol+col];
+                    BOOST_ASSERT_MSG(false, "Not implemented yet!\n");
                 }
             }
-            of << "\n";
-        }
-    } else { BOOST_VERIFY(false); }
-    delete [] outmat;
-}
-
-void to_fg(const std::string fn, std::ofstream& of,
-        const conv_layout lay, const size_t nrow, const size_t ncol) {
-    size_t size = nrow*ncol;
-    BOOST_LOG_TRIVIAL(info) << "Malloc-ing matrix with size: " << size;
-
-    double* outmat = new double [size];
-    BOOST_LOG_TRIVIAL(info) << "Reading " << fn << ", with r:" << nrow
-        << ", c: " << ncol;
-    kpmbase::bin_io<double> b(fn, nrow, ncol);
-    b.read(outmat);
-
-    BOOST_LOG_TRIVIAL(info) << "Writing matrix ...";
-
-    const size_t NUM_ROWS = nrow;
-    const size_t NUM_COLS = ncol;
-    BOOST_LOG_TRIVIAL(info) << "nrow = " << NUM_ROWS << ", ncol = " << NUM_COLS;
-
-    of.write((char*)&NUM_ROWS, sizeof(size_t)); // size_t rows
-    of.write((char*)&NUM_COLS, sizeof(size_t)); // size_t cols
-    of.write((char*)&outmat[0], sizeof(double)*size);
-    delete [] outmat;
-}
-
-void to_h2o(const std::string fn, std::ofstream& of,
-        const conv_layout lay, const size_t nrow, const size_t ncol) {
-
-    size_t size = nrow*ncol;
-    BOOST_LOG_TRIVIAL(info) << "Malloc-ing matrix with size: " << size;
-
-    double* outmat = new double [size];
-    BOOST_LOG_TRIVIAL(info) << "Reading " << fn << ", with r:" << nrow
-        << ", c: " << ncol;
-    kpmbase::bin_io<double> b(fn, nrow, ncol);
-    b.read(outmat);
-
-    BOOST_LOG_TRIVIAL(info) << "Writing matrix ...";
-    if (lay == RAWCOL) {
-        // Write it
-        for (size_t row = 0; row < ncol; row++) {
-            of << row + 1;
-            for (size_t col = 0; col < nrow; col++) {
-                of << "," << outmat[row*nrow+col];
+            break;
+        case SEM:
+            {
+                if (outlayout == BIN_RM) {
+                    BOOST_ASSERT_MSG(false, "Not implemented yet!\n");
+                } else if (outlayout == SEM) {
+                    BOOST_ASSERT_MSG(false, "Not implemented yet!\n");
+                } else {
+                    BOOST_ASSERT_MSG(false, "Not implemented yet!\n");
+                }
             }
-            of << "\n";
-        }
-    } else if (lay == RAWROW) {
-        for (size_t row = 0; row < nrow; row++) {
-            of << row + 1;
-            for (size_t col = 0; col < ncol; col++) {
-                of << "," << outmat[row*ncol+col];
-            }
-            of << "\n";
-        }
-    } else { BOOST_VERIFY(false); }
-    delete [] outmat;
+            break;
+        case BIN_CM:
+            BOOST_ASSERT_MSG(false, "Not implemented yet!\n");
+            break;
+        case INVALID:
+            BOOST_ASSERT_MSG(false, "!\n");
+            break;
+    }
+    of.close();
 }
-
-} }
+} } // End namespace kpmeans::util
