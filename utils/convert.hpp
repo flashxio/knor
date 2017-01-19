@@ -27,16 +27,36 @@
 
 namespace kpmeans { namespace utils {
 
-void to_spark(const std::string fn, std::ofstream& of,
-        const conv_layout lay, const size_t nrow, const size_t ncol);
+class format_converter {
 
-void to_kmeans_par(const std::string fn, std::ofstream& of,
-        const conv_layout lay, const size_t nrow, const size_t ncol);
+private:
+    double* data;
+    std::string infile;
+    layout inlayout;
+    size_t nrow, ncol;
 
-void to_fg(const std::string fn, std::ofstream& of,
-        const conv_layout lay, const size_t nrow, const size_t ncol);
+public:
+    format_converter(const std::string infile, const layout inlayout,
+            size_t nrow=0, size_t ncol=0);
+    format_converter(double* data, size_t nrow=0, size_t ncol=0);
 
-void to_h2o(const std::string fn, std::ofstream& of,
-        const conv_layout lay, const size_t nrow, const size_t ncol);
+    void write(const std::string outfile, const layout outlayout);
+
+    const size_t get_nrow() const {
+        return nrow;
+    }
+
+    const size_t get_ncol() const {
+        return ncol;
+    }
+
+    void set_nrow(const size_t nrow) {
+        this->nrow = nrow;
+    }
+
+    void set_ncol(const size_t col) {
+        this->ncol = ncol;
+    }
+};
 } }
 #endif

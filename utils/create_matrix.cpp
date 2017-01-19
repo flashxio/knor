@@ -39,10 +39,10 @@ int main (int argc, char* argv[]) {
 	std::string outfn = "matrix_r"+ std::to_string(nrow)+"_c"+std::to_string(ncol);
 	std::string argv1 = std::string(argv[3]);
 
-	const kpmutil::conv_layout lay = argv1 == "rrow" ? kpmutil::RAWROW
-		: kpmutil::RAWCOL;
+	const kpmutil::layout lay = argv1 == "rrow" ? kpmutil::BIN_RM
+		: kpmutil::TEXT;
 
-	if (lay == kpmutil::RAWROW || lay == kpmutil::RAWCOL) {
+	if (lay == kpmutil::layout::BIN_RM) {
 		int min = 1; int max = 5;
 
 		double* dmat = new double [nrow*ncol];
@@ -52,29 +52,13 @@ int main (int argc, char* argv[]) {
 
 		BOOST_LOG_TRIVIAL(info) << "Writing the matrix";
 		std::ofstream outfile;
-		if (lay == kpmutil::RAWCOL)
-			outfile.open(outfn+"_rcw.bin", std::ios::binary |
-                    std::ios::trunc | std::ios::out);
-		else
-			outfile.open(outfn+"_rrw.bin", std::ios::binary |
-                    std::ios::trunc | std::ios::out);
+
+        outfile.open(outfn+"_rrw.bin", std::ios::binary |
+                std::ios::trunc | std::ios::out);
 
 		outfile.write((char*)&dmat[0], (sizeof(double)*nrow*ncol));
 		outfile.close();
 		delete [] dmat;
-
-#if 0
-		BOOST_LOG_TRIVIAL(info) << "Test read of matrix";
-		double* read_mat;
-		if (lay == kpmutil::RAWCOL)
-			read_mat = read_fg(outfn+"_cw.bin", kpmutil::RAWCOL, nrow, ncol);
-		else
-			read_mat = read_fg(outfn+"_rrw.bin", kpmutil::RAWROW, nrow, ncol);
-
-		std::cout << "Read matrix: \n";
-		print_mat(read_mat, nrow, ncol, lay);
-		delete [] read_mat;
-#endif
 	} else {
 		fprintf(stderr, "Unknown matrix type '%s'", argv[3]);
 		return EXIT_FAILURE;
