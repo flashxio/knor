@@ -20,13 +20,14 @@ include ../../Makefile.common
 LDFLAGS := -L.. -lcommon $(LDFLAGS)
 CXXFLAGS := -I.. $(CXXFLAGS)
 
-TESTFILES := test_thd_safe_bool_vector test_clusters
+TESTFILES := test_thd_safe_bool_vector test_clusters test_reader
 
 all: $(TESTFILES)
 
 test: all
 	./test_clusters
 	./test_thd_safe_bool_vector 2 500
+	./test_reader
 
 test_thd_safe_bool_vector: test_thd_safe_bool_vector.o ../libcommon.a
 	$(CXX) -o test_thd_safe_bool_vector test_thd_safe_bool_vector.o $(LDFLAGS)
@@ -34,6 +35,8 @@ test_thd_safe_bool_vector: test_thd_safe_bool_vector.o ../libcommon.a
 test_clusters: test_clusters.o ../libcommon.a
 	$(CXX) -o test_clusters test_clusters.o $(LDFLAGS)
 
+test_reader: test_reader.o ../libcommon.a
+	$(CXX) -o test_reader test_reader.o $(LDFLAGS)
 clean:
 	rm -f *.d
 	rm -f *.o
