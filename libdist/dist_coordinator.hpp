@@ -22,7 +22,7 @@
 #include "kmeans_coordinator.hpp"
 #include "exception.hpp"
 
-namespace kpmeans {
+namespace kpmeans { namespace dist {
 
 class dist_coordinator : public kpmeans::kmeans_coordinator {
 private:
@@ -76,5 +76,5 @@ public:
     const size_t local_rid(const size_t global_rid) const;
     void pp_aggregate();
 };
-} // End namespace kpmeans
+} } // End namespace kpmeans::dist
 #endif

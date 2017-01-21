@@ -26,7 +26,7 @@
 #include "clusters.hpp"
 #include "io.hpp"
 
-namespace kpmeans {
+namespace kpmeans { namespace dist {
 
 dist_coordinator::dist_coordinator(
         const std::string fn, const size_t nrow,
@@ -41,10 +41,6 @@ dist_coordinator::dist_coordinator(
         this->mpi_rank = mpi_rank;
         this->nprocs = nprocs;
         this->g_nrow = nrow;
-
-        for (thread_iter it = threads.begin(); it < threads.end(); ++it)
-            (*it)->set_start_rid((*it)->get_start_rid()
-                    + (nrow / nprocs) * mpi_rank);
 }
 
 /**
@@ -72,7 +68,7 @@ void dist_coordinator::random_partition_init() {
 
 #if VERBOSE
     printf("After rand paritions cluster_asgns: ");
-    print_arr<unsigned>(cluster_assignments, nrow);
+    kpmbase::print_arr<unsigned>(cluster_assignments, nrow);
 #endif
 }
 
@@ -117,4 +113,5 @@ void dist_coordinator::pp_aggregate() {
         cltrs->peq((*it)->get_local_clusters());
     }
 }
-}
+
+} } // End namespace kpmeans::dist
