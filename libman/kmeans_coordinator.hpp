@@ -101,6 +101,7 @@ class kmeans_coordinator : public kpmeans::base_kmeans_coordinator {
         // For testing
         void const print_thread_data() override;
         void build_thread_state() override;
+        void const print_thread_start_rids();
 };
 }
 #endif

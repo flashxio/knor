@@ -41,10 +41,10 @@ kmeans_thread::kmeans_thread(const int node_id, const unsigned thd_id,
 
             set_data_size(sizeof(double)*nprocrows*ncol);
 #if VERBOSE
-            printf("Initializing thread. Metadata: thd_id: %u, node_id: %u"
-                    ", start_rid: %lu, nprocrows: %u, ncol: %u\n",
-                    this->thd_id, this->node_id, this->start_rid,
-                    this->nprocrows, this->ncol);
+            BOOST_LOG_TRIVIAL(info) << "Initializing thread. Metadata: thd_id: "
+                << this->thd_id << ", start_rid: " << this->start_rid <<
+                ", node_id: " << this->node_id << ", nprocrows: " <<
+                this->nprocrows << ", ncol: " << this->ncol;
 #endif
         }
 

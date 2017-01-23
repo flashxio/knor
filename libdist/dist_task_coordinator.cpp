@@ -74,7 +74,7 @@ void dist_task_coordinator::random_partition_init() {
 
 #if VERBOSE
     printf("After rand paritions cluster_asgns: ");
-    print_arr<unsigned>(cluster_assignments, nrow);
+    kpmbase::print_arr<unsigned>(cluster_assignments, nrow);
 #endif
 }
 
@@ -92,7 +92,7 @@ const size_t dist_task_coordinator::local_rid(const size_t global_rid) const {
 
 // For testing
 void const dist_task_coordinator::print_thread_data() {
-    std::cout << "\n\nProcess: " << this->mpi_rank;
+    printf("\n\nProcess: %u\n", this->mpi_rank);
     kmeans_task_coordinator::print_thread_data();
 }
 

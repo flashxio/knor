@@ -26,9 +26,6 @@
 #include "clusters.hpp"
 
 namespace kpmeans {
-#if 0
-    double* g_data; // TEST
-#endif
 kmeans_coordinator::kmeans_coordinator(const std::string fn, const size_t nrow,
         const size_t ncol, const unsigned k, const unsigned max_iters,
         const unsigned nnodes, const unsigned nthreads,
@@ -36,15 +33,6 @@ kmeans_coordinator::kmeans_coordinator(const std::string fn, const size_t nrow,
         const double tolerance, const kpmbase::dist_type_t dt) :
     base_kmeans_coordinator(fn, nrow, ncol, k, max_iters,
             nnodes, nthreads, centers, it, tolerance, dt) {
-#if 0
-        // TEST //
-        std:: cout << "Reading " << nrow <<
-            "rows, " << ncol << "cols\n";
-        bin_reader<double> b(fn, nrow, ncol);
-        //g_data.resize(nrow*ncol);
-        g_data = new double[nrow*ncol];
-        b.read(g_data);
-#endif
 
         cltrs = kpmbase::clusters::create(k, ncol);
         if (centers) {
@@ -72,7 +60,8 @@ void kmeans_coordinator::build_thread_state() {
     }
 }
 
-std::pair<unsigned, unsigned> kmeans_coordinator::get_rid_len_tup(const unsigned thd_id) {
+std::pair<unsigned, unsigned>
+kmeans_coordinator::get_rid_len_tup(const unsigned thd_id) {
     unsigned rows_per_thread = nrow / nthreads;
     unsigned start_rid = (thd_id*rows_per_thread);
 
@@ -338,9 +327,6 @@ kmeans_coordinator::~kmeans_coordinator() {
     pthread_cond_destroy(&cond);
     pthread_mutex_destroy(&mutex);
     pthread_mutexattr_destroy(&mutex_attr);
-#if 0
-    delete [] g_data;
-#endif
     destroy_threads();
 }
 
@@ -349,6 +335,15 @@ void const kmeans_coordinator::print_thread_data() {
     for (; it != threads.end(); ++it) {
         std::cout << "\nThd: " << (*it)->get_thd_id() << std::endl;
         (*it)->print_local_data();
+    }
+}
+
+// Testing
+void const kmeans_coordinator::print_thread_start_rids() {
+    thread_iter it = threads.begin();
+    for (; it != threads.end(); ++it) {
+        BOOST_LOG_TRIVIAL(info) << "\nThd: " << (*it)->get_thd_id()
+            << ", start_rid: " << (*it)->get_start_rid() << std::endl;
     }
 }
 }
