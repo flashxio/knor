@@ -34,7 +34,7 @@ namespace kpmeans { namespace prune {
 class driver {
 
 public:
-static void run_kmeans(int argc, char* argv[],
+static kpmbase::kmeans_t run_kmeans(int argc, char* argv[],
         const std::string datafn, const size_t nrow,
         const size_t ncol, const unsigned k, const unsigned max_iters,
         const unsigned nnodes, const unsigned nthread,
@@ -207,6 +207,9 @@ static void run_kmeans(int argc, char* argv[],
     delete [] nmemb_buff;
     if (p_centers) delete [] p_centers;
     MPI_Finalize();
+
+    kpmbase::kmeans_t ret; // TODO: Stub
+    return ret; // TODO: Stub
 }
 };
 } } // namespace kpmeans::prune

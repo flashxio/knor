@@ -54,13 +54,14 @@ int main(int argc, char* argv[]) {
     bool use_min_tri = false;
     bool pthread = false;
     unsigned nnodes = numa_num_task_nodes();
+    std::string outdir = "";
 
     // Increase by 3 -- getopt ignores argv[0]
 	argv += 3;
 	argc -= 3;
 
 	signal(SIGINT, kpmbase::int_handler);
-	while ((opt = getopt(argc, argv, "l:i:t:T:d:C:mpN:")) != -1) {
+	while ((opt = getopt(argc, argv, "l:i:t:T:d:C:mpN:o:")) != -1) {
 		num_opts++;
 		switch (opt) {
 			case 'l':
@@ -102,10 +103,18 @@ int main(int argc, char* argv[]) {
 				nnodes = atoi(optarg);
 				num_opts++;
 				break;
+			case 'o':
+				outdir = std::string(optarg);
+				num_opts++;
+				break;
 			default:
 				print_usage();
 		}
 	}
+
+    if (outdir.empty())
+        fprintf(stderr, "\n\n**[WARNING]**: No output dir specified with '-o' "
+                " flag means no output will be saved!\n\n");
 
     BOOST_ASSERT_MSG(!(init=="none" && centersfn.empty()),
             "Centers file name doesn't exit!");
@@ -114,6 +123,7 @@ int main(int argc, char* argv[]) {
         throw kpmbase::io_exception("File size does not match input size.");
 
     double* p_centers = NULL;
+    kpmbase::kmeans_t ret;
 
     if (kpmbase::is_file_exist(centersfn.c_str())) {
         p_centers = new double [k*ncol];
@@ -128,13 +138,13 @@ int main(int argc, char* argv[]) {
                 kpmprune::kmeans_task_coordinator::create(
                     datafn, nrow, ncol, k, max_iters, nnodes, nthread, p_centers,
                     init, tolerance, dist_type);
-            kc->run_kmeans();
+            ret = kc->run_kmeans();
         } else {
             kpmeans::kmeans_coordinator::ptr kc =
                 kpmeans::kmeans_coordinator::create(datafn,
                     nrow, ncol, k, max_iters, nnodes, nthread, p_centers,
                     init, tolerance, dist_type);
-            kc->run_kmeans();
+            ret = kc->run_kmeans();
         }
     } else {
         kpmbase::bin_io<double> br(datafn, nrow, ncol);
@@ -149,11 +159,11 @@ int main(int argc, char* argv[]) {
             p_centers = new double [k*ncol];
 
         if (use_min_tri) {
-            kpmeans::omp::compute_min_kmeans(p_data, p_centers, p_clust_asgns,
+            ret = kpmeans::omp::compute_min_kmeans(p_data, p_centers, p_clust_asgns,
                     p_clust_asgn_cnt, nrow, ncol, k, max_iters,
                     nthread, init, tolerance, dist_type);
         } else {
-            kpmeans::omp::compute_kmeans(p_data, p_centers, p_clust_asgns,
+            ret = kpmeans::omp::compute_kmeans(p_data, p_centers, p_clust_asgns,
                     p_clust_asgn_cnt, nrow, ncol, k, max_iters,
                     nthread, init, tolerance, dist_type);
         }
@@ -161,6 +171,11 @@ int main(int argc, char* argv[]) {
         delete [] p_clust_asgns;
         delete [] p_clust_asgn_cnt;
         delete [] p_data;
+    }
+
+    if (!outdir.empty()) {
+        printf("\nWriting output to '%s'\n", outdir.c_str());
+        ret.write(outdir);
     }
 
     if (p_centers) delete [] p_centers;
@@ -181,4 +196,6 @@ void print_usage() {
     fprintf(stderr, "-m Use the minimal triangle inequality (~Elkan's alg)\n");
     fprintf(stderr, "-p Use p-threads for ||ization rather than OMP\n");
     fprintf(stderr, "-N No. of numa nodes you want to use\n");
+    fprintf(stderr, "-o Write output to an output directory of this name\n");
+    exit(EXIT_FAILURE);
 }

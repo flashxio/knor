@@ -51,13 +51,14 @@ int main(int argc, char* argv[]) {
 	double tolerance = -1;
     bool use_min_tri = false;
     unsigned nnodes = numa_num_task_nodes();
+    std::string outdir = "";
 
     // Increase by 3 -- getopt ignores argv[0]
 	argv += 3;
 	argc -= 3;
 
 	signal(SIGINT, kpmbase::int_handler);
-	while ((opt = getopt(argc, argv, "l:i:t:T:d:C:mN:")) != -1) {
+	while ((opt = getopt(argc, argv, "l:i:t:T:d:C:mN:o:")) != -1) {
 		num_opts++;
 		switch (opt) {
 			case 'l':
@@ -95,6 +96,10 @@ int main(int argc, char* argv[]) {
 				nnodes = atoi(optarg);
 				num_opts++;
 				break;
+			case 'o':
+				outdir = std::string(optarg);
+				num_opts++;
+				break;
 			default:
 				print_usage();
                 exit(EXIT_FAILURE);
@@ -107,7 +112,12 @@ int main(int argc, char* argv[]) {
     if (kpmbase::filesize(datafn.c_str()) != (sizeof(double)*nrow*ncol))
         throw kpmbase::io_exception("File size does not match input size.");
 
+    if (outdir.empty())
+        fprintf(stderr, "\n\n**[WARNING]**: No output dir specified with '-o' "
+                " flag means no output will be saved!\n\n");
+
     double* p_centers = NULL;
+    kpmbase::kmeans_t ret;
 
     if (kpmbase::is_file_exist(centersfn.c_str())) {
         p_centers = new double [k*ncol];
@@ -117,13 +127,18 @@ int main(int argc, char* argv[]) {
     }
 
     if (use_min_tri) {
-        kpmeans::prune::driver::run_kmeans(argc, argv,
+        ret = kpmeans::prune::driver::run_kmeans(argc, argv,
                 datafn, nrow, ncol, k, max_iters, nnodes, nthread,
                 p_centers, init, tolerance, dist_type);
     } else {
-        kpmeans::dist::driver::run_kmeans(argc, argv,
+        ret = kpmeans::dist::driver::run_kmeans(argc, argv,
                 datafn, nrow, ncol, k, max_iters, nnodes, nthread,
                 p_centers, init, tolerance, dist_type);
+    }
+
+    if (!outdir.empty()) {
+        printf("\nWriting output to '%s'\n", outdir.c_str());
+        ret.write(outdir);
     }
 
     return EXIT_SUCCESS;
@@ -142,4 +157,5 @@ void print_usage() {
     fprintf(stderr, "-d Distance metric [eucl,cos]\n");
     fprintf(stderr, "-m Use the minimal triangle inequality (~Elkan's alg)\n");
     fprintf(stderr, "-N No. of numa nodes you want to use\n");
+    fprintf(stderr, "-o Write output to an output directory of this name\n");
 }
