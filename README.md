@@ -1,3 +1,6 @@
+[![Build
+Status](https://travis-ci.org/disa-mhembere/knor.svg?branch=master)](https://travis-ci.org/disa-mhembere/knor)
+
 ![logo](https://docs.google.com/drawings/d/1wDfKYzNoYk4xmtgFbN2VrQJQemGQip_0BlOGkP9E87U/pub?w=480&amp;h=360)
 # knor
 
@@ -41,11 +44,6 @@ modern compiler to take advantage of compile time optimizations:
 ### Auto-Install
 `./boostrap.sh`
 
-### Python bindings
-
-#### Requirements:
-- Cython 0.21+
-
 ### Usage
 Assume the following:
 
@@ -59,18 +57,19 @@ following:
 
 - knori:
 ```
-./kpmeans datafile nsamples dim k -t random -i 10 -p -m
+cd $KNOR_HOME
+exec/kpmeans datafile nsamples dim k -t random -i 10 -p -m
 ```
 
-For comparison run our algorithms using [OpenMP](http://www.openmp.org/)
+For comparison run our algorithm using [OpenMP](http://www.openmp.org/)
 ```
-./kpmeans datafile nsamples dim k -t random -i 10 -m
+exec/kpmeans datafile nsamples dim k -t random -i 10 -m
 ```
 
 - knord:
 ```
-mpirun.mpich -n nproc ./dist_kmeans -f datafile_cw.dat\
--k k -n nsamples -d dim -I random -i 10
+mpirun.mpich -n nproc exec/dist_kmeans datafile nsamples dim k \
+    -t random -i 10 -m
 ```
 
 - knors:
