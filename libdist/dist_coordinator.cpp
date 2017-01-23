@@ -41,6 +41,10 @@ dist_coordinator::dist_coordinator(
         this->mpi_rank = mpi_rank;
         this->nprocs = nprocs;
         this->g_nrow = nrow;
+
+        for (thread_iter it = threads.begin(); it < threads.end(); ++it)
+            (*it)->set_start_rid((*it)->get_start_rid()
+                    + (nrow / nprocs) * mpi_rank);
 }
 
 /**
@@ -72,8 +76,24 @@ void dist_coordinator::random_partition_init() {
 #endif
 }
 
+/**
+  * We need to shift the `start_rid` to be only local to this process so
+  *     that `EM_step` in the threading class assigns to a global_rid that is
+  *     local to only this process.
+  */
+void dist_coordinator::shift_thread_start_rid() {
+    size_t c = 0;
+    for (thread_iter it = threads.begin(); it != threads.end(); ++it) {
+        size_t shift = (*it)->get_start_rid() - ((g_nrow / nprocs) * mpi_rank);
+#if VERBOSE
+        printf("P: %u, T: %lu, start_rid: %lu\n", mpi_rank, c++, shift);
+#endif
+        (*it)->set_start_rid(shift);
+    }
+}
+
 const size_t dist_coordinator::global_rid(const size_t local_rid) const {
-    return ((g_nrow / nprocs)*mpi_rank) + local_rid;
+    return ((g_nrow / nprocs) * mpi_rank) + local_rid;
 }
 
 const size_t dist_coordinator::local_rid(const size_t global_rid) const {

@@ -24,8 +24,6 @@
 #include "dist_driver.hpp"
 #include "io.hpp"
 
-#define DIST_TEST 1
-
 static int rank;
 static int nprocs;
 static constexpr unsigned root = 0;
@@ -123,7 +121,7 @@ int main(int argc, char* argv[]) {
                 datafn, nrow, ncol, k, max_iters, nnodes, nthread,
                 p_centers, init, tolerance, dist_type);
     } else {
-        kpmeans::mpi::driver::run_kmeans(argc, argv,
+        kpmeans::dist::driver::run_kmeans(argc, argv,
                 datafn, nrow, ncol, k, max_iters, nnodes, nthread,
                 p_centers, init, tolerance, dist_type);
     }

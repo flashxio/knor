@@ -30,9 +30,9 @@
 
 namespace kpmmpi = kpmeans::mpi;
 
-namespace kpmeans { namespace mpi {
-
+namespace kpmeans { namespace dist {
 class driver {
+
 public:
 static void run_kmeans(int argc, char* argv[],
         const std::string datafn, const size_t nrow,
@@ -53,15 +53,16 @@ static void run_kmeans(int argc, char* argv[],
 
     if (rank == root)
         BOOST_LOG_TRIVIAL(info) << "Running FULL kmeans\n";
-
     // The business
-    kpmeans::dist_coordinator::ptr dc =
-        kpmeans::dist_coordinator::create(
+    dist_coordinator::ptr dc =
+        dist_coordinator::create(
                 datafn, nrow, ncol, k, max_iters, nnodes, nthread,
                 rank, nprocs, p_centers, init, tolerance, dist_type);
 
     dc->wake4run(kpmeans::thread_state_t::ALLOC_DATA);
     dc->wait4complete();
+
+    std::static_pointer_cast<dist_coordinator>(dc)->shift_thread_start_rid();
 
     struct timeval start, end;
     gettimeofday(&start , NULL);
@@ -84,9 +85,11 @@ static void run_kmeans(int argc, char* argv[],
 
     // Init
     dc->run_init();
+
     // TODO: Check cost of all the shared_ptr passing
     kpmbase::clusters::ptr cltrs_ptr = std::static_pointer_cast<
-        kpmeans::dist_coordinator>(dc)->get_gcltrs();
+        dist_coordinator>(dc)->get_gcltrs();
+
     // MPI Update clusters
     kpmmpi::mpi::reduce_double(&(cltrs_ptr->get_means()[0]),
             clstr_buff, cltrs_ptr->size());
@@ -98,8 +101,14 @@ static void run_kmeans(int argc, char* argv[],
     cltrs_ptr->finalize_all();
     // End Init
 
+#ifdef VERBOSE
     BOOST_VERIFY((size_t)std::accumulate(cltrs_ptr->get_num_members_v().begin(),
                 cltrs_ptr->get_num_members_v().end(), 0) == nrow);
+    if (rank == root) {
+        printf("New finalized centers for Proc: %d ==> \n", rank);
+        cltrs_ptr->print_means();
+    }
+#endif
 
     // EM-step iterations
     while (iters < max_iters) {
@@ -109,20 +118,21 @@ static void run_kmeans(int argc, char* argv[],
 
         dc->wake4run(kpmeans::thread_state_t::EM);
         dc->wait4complete();
-
         // NOTE: Unfinalized diffs on this proc in cltrs.means
-        std::static_pointer_cast<kpmeans::
+
+        std::static_pointer_cast<
             dist_coordinator>(dc)->pp_aggregate();
 
-        // Aggregate (unfinalized) sums
+        // NOTE: cltrs_ptr has this procs diff (agg of threads from this proc)
+        // NOTE: clstr_buff has agg of all procs diff
         kpmmpi::mpi::reduce_double(&(cltrs_ptr->get_means()[0]),
                 clstr_buff, cltrs_ptr->size());
-        cltrs_ptr->set_mean(clstr_buff);
 
+        // nmemb_buff has agg of all procs diff on membership count
         kpmmpi::mpi::reduce_size_t(&(cltrs_ptr->get_num_members_v()[0]),
                 nmemb_buff, cltrs_ptr->get_num_members_v().size());
-        cltrs_ptr->set_num_members_v(nmemb_buff); // Set new counts
-        cltrs_ptr->finalize_all();
+        cltrs_ptr->set_mean(clstr_buff);
+        cltrs_ptr->set_num_members_v(nmemb_buff);
 
         // NOTE: Now finalized
         size_t pp_num_changed = dc->get_num_changed();
@@ -133,11 +143,9 @@ static void run_kmeans(int argc, char* argv[],
             cltrs_ptr->print_membership_count();
         }
 
-#if 1
         BOOST_VERIFY((size_t)std::accumulate(
                     cltrs_ptr->get_num_members_v().begin(),
                     cltrs_ptr->get_num_members_v().end(), 0) == nrow);
-#endif
 
         perc_changed = (double)nchanged/nrow; // Global perc change
         if (nchanged == 0 || perc_changed <= tolerance) {
@@ -146,6 +154,9 @@ static void run_kmeans(int argc, char* argv[],
                 printf("Algorithm converged in %lu iterations!\n", (iters + 1));
             break;
         }
+
+        nchanged = 0;
+        cltrs_ptr->finalize_all();
         iters++;
     }
 
@@ -164,5 +175,5 @@ static void run_kmeans(int argc, char* argv[],
     MPI_Finalize();
 }
 };
-} } // namespace kpmeans::mpi
+} } // namespace kpmeans::dist
 #endif
