@@ -28,8 +28,8 @@ script:
     - make clean; make
     - cd $TEST_DIR && make test
 
-branches:
-    only:
-        dev
-#    except:
-#    - branch-name
+#branches:
+    #only:
+        #dev
+    #except:
+    #- branch-name
