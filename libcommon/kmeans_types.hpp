@@ -23,6 +23,7 @@
 #include <cstddef>
 #include <limits>
 #include <vector>
+#include <string>
 
 namespace kpmeans { namespace base {
 
@@ -33,7 +34,7 @@ enum init_type_t { RANDOM, FORGY, PLUSPLUS, NONE }; // May have to use
 
 class kmeans_t {
 public:
-    size_t nrow, ncol, iters;
+    size_t nrow, ncol, iters, k;
     std::vector<unsigned> assignments;
     std::vector<size_t> assignment_count;
     std::vector<double> centroids;
@@ -44,6 +45,7 @@ public:
              const size_t* assignment_count_buf,
              const std::vector<double>& centroids);
     const void print() const;
+    const void write(const std::string dirname) const;
     bool operator==(const kmeans_t& other);
 };
 } }
