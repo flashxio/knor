@@ -123,7 +123,6 @@ int main(int argc, char* argv[]) {
     } else
         printf("No centers to read ..\n");
     if (pthread) {
-#if 1
         if (use_min_tri) {
             kpmprune::kmeans_task_coordinator::ptr kc =
                 kpmprune::kmeans_task_coordinator::create(
@@ -137,7 +136,6 @@ int main(int argc, char* argv[]) {
                     init, tolerance, dist_type);
             kc->run_kmeans();
         }
-#endif
     } else {
         kpmbase::bin_io<double> br(datafn, nrow, ncol);
         double* p_data = new double [nrow*ncol];
@@ -181,5 +179,6 @@ void print_usage() {
     fprintf(stderr, "-l tolerance for convergence (1E-6)\n");
     fprintf(stderr, "-d Distance metric [eucl,cos]\n");
     fprintf(stderr, "-m Use the minimal triangle inequality (~Elkan's alg)\n");
+    fprintf(stderr, "-p Use p-threads for ||ization rather than OMP\n");
     fprintf(stderr, "-N No. of numa nodes you want to use\n");
 }
