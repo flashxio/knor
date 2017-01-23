@@ -58,17 +58,17 @@ following:
 - knori:
 ```
 cd $KNOR_HOME
-exec/kpmeans datafile nsamples dim k -t random -i 10 -p -m
+exec/knori datafile nsamples dim k -t random -i 10 -p -m
 ```
 
 For comparison run our algorithm using [OpenMP](http://www.openmp.org/)
 ```
-exec/kpmeans datafile nsamples dim k -t random -i 10 -m
+exec/knori datafile nsamples dim k -t random -i 10 -m
 ```
 
 - knord:
 ```
-mpirun.mpich -n nproc exec/dist_kmeans datafile nsamples dim k \
+mpirun.mpich -n nproc exec/knord datafile nsamples dim k \
     -t random -i 10 -m
 ```
 

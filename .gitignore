@@ -11,10 +11,8 @@ libman/unit-test/test_kmeans_task_thread
 utils/convert_matrix
 utils/create_matrix
 utils/test/read_rrow_data
-exec/kpmeans
-exec/el_kmeans
-exec/dist_kmeans
+exec/knord
+exec/knori
 scratch/
-bin/
 release-test/test_auto
 release-test/test_man

@@ -22,19 +22,19 @@ LDFLAGS := -L../libauto -lauto -L../libman -lman \
 CXXFLAGS += -I.. -I../libauto -I../libman -I../libdist -I../libcommon
 DIST_FLAGS := -L../libdist -ldist
 
-all: kpmeans dist_kmeans
+all: knori knord
 
-kpmeans: kpmeans.o
-	$(CXX) -o kpmeans kpmeans.o $(LDFLAGS)
+knori: knori.o
+	$(CXX) -o knori knori.o $(LDFLAGS)
 
-dist_kmeans: dist_kmeans.o
-	$(CXX) -o dist_kmeans dist_kmeans.o $(LDFLAGS) $(DIST_FLAGS)
+knord: knord.o
+	$(CXX) -o knord knord.o $(LDFLAGS) $(DIST_FLAGS)
 
 clean:
 	rm -f *.d
 	rm -f *.o
 	rm -f *~
-	rm -f kpmeans
-	rm -f dist_kmeans
+	rm -f knori
+	rm -f knord
 
 -include $(DEPS)
