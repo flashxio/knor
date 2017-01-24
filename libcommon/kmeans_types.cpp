@@ -55,7 +55,7 @@ const void kmeans_t::print() const {
   */
 const void kmeans_t::write(const std::string dirname) const {
 
-    std::string fn = "kmeans_t.txt";
+    std::string fn = "kmeans_t.yml";
     int ret =
         std::system((std::string("python exec/python/util.py ")
                     + dirname).c_str());
@@ -69,41 +69,47 @@ const void kmeans_t::write(const std::string dirname) const {
     BOOST_ASSERT_MSG(f.is_open(), "Error opening file for writing!");
     f << "k: " << k << std::endl;
     f << "niter: " << iters << std::endl;
-    f << "nrow: " << nrow << std::endl;
-    f << "ncol: " << ncol << std::endl;
+    f << "nsample: " << nrow << std::endl;
+    f << "dim: " << ncol << std::endl;
 
     /** Do it all here so we can stream the output **/
     // Sizes of each cluster
-    f << "size:\n";
+    f << "size: [";
     for (size_t _k = 0; _k < k; _k++) {
         if (_k == 0)
             f << assignment_count[_k];
         else
-            f << " " << assignment_count[_k];
+            f << "," << assignment_count[_k];
     }
+    f << "]";
 
     // Centroid assignemnt
-    f << "\ncluster:\n";
+    f << "\ncluster: [";
     for (size_t row = 0; row < nrow; row++) {
         if (row == 0)
             f << assignments[row];
         else
-            f << " " << assignments[row];
+            f << "," << assignments[row];
     }
+    f << "]";
 
     // Centroids
-    f << "\ncentroids:";
+    f << "\ncentroids: [";
     for (size_t row = 0; row < k; row++) {
+        if (row == 0)
+            f << "[";
+        else
+            f << ",[";
         for (size_t col = 0; col < ncol; col++) {
             if (col == 0)
-                f << "\n" << centroids[row*ncol+col];
+                f << centroids[row*ncol+col];
             else
-                f << " " << centroids[row*ncol+col];
+                f << "," << centroids[row*ncol+col];
         }
+        f << "]";
     }
 
-    f << std::endl;
-
+    f << "]\n";
     f.close();
 }
 
