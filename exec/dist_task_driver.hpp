@@ -34,12 +34,13 @@ namespace kpmeans { namespace prune {
 class driver {
 
 public:
-static kpmbase::kmeans_t run_kmeans(int argc, char* argv[],
+static void run_kmeans(int argc, char* argv[],
         const std::string datafn, const size_t nrow,
         const size_t ncol, const unsigned k, const unsigned max_iters,
         const unsigned nnodes, const unsigned nthread,
         const double* p_centers=NULL, const std::string init="kmeanspp",
-        const double tolerance=-1, const std::string dist_type="eucl") {
+        const double tolerance=-1, const std::string dist_type="eucl",
+        std::string outdir="") {
 
     int rank;
     int nprocs;
@@ -51,8 +52,13 @@ static kpmbase::kmeans_t run_kmeans(int argc, char* argv[],
     MPI_Comm_size(MPI_COMM_WORLD, &nprocs); // Set the num_procs
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-    if (rank == root)
+    if (rank == root) {
+        if (outdir.empty())
+            fprintf(stderr, "\n**[WARNING]**: No output dir specified with "
+                    "'-o' flag means no output will be saved!\n");
         BOOST_LOG_TRIVIAL(info) << "Running PRUNED kmeans\n";
+    }
+
     // The business
     kpmprune::dist_task_coordinator::ptr dc =
         kpmprune::dist_task_coordinator::create(
@@ -202,14 +208,42 @@ static kpmbase::kmeans_t run_kmeans(int argc, char* argv[],
         printf("\nAlgorithmic time taken = %.5f sec\n",
                 kpmbase::time_diff(start, end));
 
+    if (!outdir.empty()) {
+        // Collect cluster assignments
+        const unsigned* local_assignments = dc->get_cluster_assignments();
+
+        if (rank != root) {
+            MPI_Request req;
+            int ret = MPI_Isend(local_assignments, dc->get_nrow(),
+                    MPI::UNSIGNED, root, 0, MPI_COMM_WORLD, &req);
+            BOOST_ASSERT_MSG(!ret, "Failure to send local assignments to root");
+            MPI_Request_free(&req);
+        } else {
+            std::vector<unsigned> assignments(nrow);
+            std::copy(local_assignments, local_assignments+dc->get_nrow(),
+                    assignments.begin());
+
+            MPI_Request req;
+            for (int pid = 1; pid < int(nprocs); pid++)
+                MPI_Irecv(&assignments[pid*(nrow/nprocs)], dc->get_nrow(),
+                        MPI::UNSIGNED, pid, 0, MPI_COMM_WORLD, &req);
+            MPI_Request_free(&req);
+
+            kpmbase::kmeans_t ret(nrow, ncol, iters, k, &assignments[0],
+                    &(cltrs_ptr->get_num_members_v()[0]), cltrs_ptr->get_means());
+
+            if (!outdir.empty()) {
+                printf("\nWriting output to '%s'\n", outdir.c_str());
+                ret.write(outdir);
+            }
+        }
+    }
+
     // MPI cleanup and graceful exit
     delete [] clstr_buff;
     delete [] nmemb_buff;
     if (p_centers) delete [] p_centers;
     MPI_Finalize();
-
-    kpmbase::kmeans_t ret; // TODO: Stub
-    return ret; // TODO: Stub
 }
 };
 } } // namespace kpmeans::prune

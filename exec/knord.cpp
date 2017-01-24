@@ -112,12 +112,7 @@ int main(int argc, char* argv[]) {
     if (kpmbase::filesize(datafn.c_str()) != (sizeof(double)*nrow*ncol))
         throw kpmbase::io_exception("File size does not match input size.");
 
-    if (outdir.empty())
-        fprintf(stderr, "\n\n**[WARNING]**: No output dir specified with '-o' "
-                " flag means no output will be saved!\n\n");
-
     double* p_centers = NULL;
-    kpmbase::kmeans_t ret;
 
     if (kpmbase::is_file_exist(centersfn.c_str())) {
         p_centers = new double [k*ncol];
@@ -127,18 +122,13 @@ int main(int argc, char* argv[]) {
     }
 
     if (use_min_tri) {
-        ret = kpmeans::prune::driver::run_kmeans(argc, argv,
+        kpmeans::prune::driver::run_kmeans(argc, argv,
                 datafn, nrow, ncol, k, max_iters, nnodes, nthread,
-                p_centers, init, tolerance, dist_type);
+                p_centers, init, tolerance, dist_type, outdir);
     } else {
-        ret = kpmeans::dist::driver::run_kmeans(argc, argv,
+        kpmeans::dist::driver::run_kmeans(argc, argv,
                 datafn, nrow, ncol, k, max_iters, nnodes, nthread,
-                p_centers, init, tolerance, dist_type);
-    }
-
-    if (!outdir.empty()) {
-        printf("\nWriting output to '%s'\n", outdir.c_str());
-        ret.write(outdir);
+                p_centers, init, tolerance, dist_type, outdir);
     }
 
     return EXIT_SUCCESS;

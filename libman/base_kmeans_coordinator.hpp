@@ -97,6 +97,11 @@ public:
         throw kpmbase::abstract_exception();
     };
     virtual void build_thread_state() { throw kpmbase::abstract_exception(); };
+    const unsigned* get_cluster_assignments() const {
+        return cluster_assignments;
+    }
+    const size_t get_nrow() { return nrow; }
+    const size_t get_ncol() { return ncol; }
 };
 } // namespace kpmeans
 #endif
