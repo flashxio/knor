@@ -5,23 +5,28 @@ Status](https://travis-ci.org/disa-mhembere/knor.svg?branch=master)](https://tra
 # knor
 
 The K-means NUMA Optimized Routine library or **knor** is a
-library for computing k-means in parallel with accelerations for
-Non-Uniform Memory Access (NUMA) architectures in the following settings.
+highly optimized and fast library for computing k-means in 
+parallel with accelerations for Non-Uniform Memory Access (NUMA) architectures.
 
-*knor* can perform at 10-100X the speed of popular packages like Spark's MLlib, Dato (GraphLab) and H<sup>2</sup>O.
+*knor* can perform at **10-100 times** the speed of popular packages like Spark's MLlib, Dato (GraphLab) and H<sup>2</sup>O.
 
-1. On a single machine with all data In-memory, *knori*.
-2. In a cluster in distributed memory *knord*.
-3. On a single machine with some data in-memory and the rest on SSDs i.e.,
-Semi-External Memory, *knors*.
+*knor* can operate:
 
-knor can use a **scalable** adaption of
+1. On a single machine with all data in-memory -- **knori**.
+2. In a cluster in distributed memory -- **knord**.
+3. On a single machine with some data in-memory and the rest on disk
+(Semi-External Memory) -- **knors**.
+
+These modules are incarnations of algorithms in
+[our publication](https://arxiv.org/abs/1606.08905).
+
+By default *knor* can use a **scalable** adaption of
 [Elkan's](http://users.cecs.anu.edu.au/~daa/courses/GSAC6017/kmeansicml03.pdf)
 algorithm that *can* drastically reduce the number of distance computations
 required for k-means without the memory bloat traditionally associated with
 Elkan's algorithm.
 
-## knor backbone
+## knor's backbone
 
 **knor** relies on the following:
 
@@ -31,9 +36,6 @@ multithreading.
 [hwloc](https://linux.die.net/man/7/hwloc) for NUMA optimization.
 - [FlashGraph](https://github.com/flashxio/FlashX) for a semi-external memory
 vertex-centric interface.
-
-These modules are incarnations of algorithms in
-[our publication](https://arxiv.org/abs/1606.08905).
 
 ## System Requirements
 - Linux
@@ -47,7 +49,7 @@ modern compiler to take advantage of compile time optimizations:
 ### Auto-Install
 `./boostrap.sh`
 
-### Usage
+### Usage (Running *knor*)
 Assume the following:
 
 - `k` is the number of clusters
@@ -107,8 +109,35 @@ correctly across a cluster. Flags of note are:
 
 #### knors:
 ```
-TODO
+TODO: Under migration ...
 ```
+
+### Output file from *knor*
+
+The output file obtained by using the `-o` flag within *knor* produces a
+[YAML](http://yaml.org/) file that is easily readable by any YAML reader.
+
+For instance, within Python we can use [PyYAML](https://pypi.python.org/pypi/PyYAML/) which is installable via by `pip install pyyaml` to read the file as follows:
+
+```
+from yaml import load
+f = open("kmeans_t.yml", "r")
+kms = load(f) # Returns a python dictionary
+kms.keys()
+> ['niter', 'ncol', 'nrow', 'cluster', 'k', 'centroids', 'size'
+```
+
+The fields are as follows:
+
+- `niter`: The number of iterations performed.
+- `dim`: The number of attributes within the dataset.
+- `nsamples`: The number of samples within the dataset.
+- `cluster`: To which cluster, [0-k), each sample is assigned.
+- `k`: The number of clusters requested.
+- `centroids`: The `k x dim` centroids matrix with each row
+    representing a cluster's centroid.
+- `size`: The number of samples placed within each cluster.
+
 
 ## Data format
 
