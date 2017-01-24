@@ -49,7 +49,7 @@ int main(int argc, char* argv[]) {
 	unsigned nthread = kpmbase::get_num_omp_threads();
 	int num_opts = 0;
 	double tolerance = -1;
-    bool use_min_tri = false;
+    bool no_prune = false;
     unsigned nnodes = numa_num_task_nodes();
     std::string outdir = "";
 
@@ -58,7 +58,7 @@ int main(int argc, char* argv[]) {
 	argc -= 3;
 
 	signal(SIGINT, kpmbase::int_handler);
-	while ((opt = getopt(argc, argv, "l:i:t:T:d:C:mN:o:")) != -1) {
+	while ((opt = getopt(argc, argv, "l:i:t:T:d:C:PN:o:")) != -1) {
 		num_opts++;
 		switch (opt) {
 			case 'l':
@@ -88,8 +88,8 @@ int main(int argc, char* argv[]) {
                 init = "none"; // Ignore whatever you pass in
 				num_opts++;
 				break;
-			case 'm':
-				use_min_tri = true;
+			case 'P':
+				no_prune = true;
 				num_opts++;
 				break;
 			case 'N':
@@ -121,15 +121,14 @@ int main(int argc, char* argv[]) {
         printf("Read centers!\n");
     }
 
-    if (use_min_tri) {
-        kpmeans::prune::driver::run_kmeans(argc, argv,
-                datafn, nrow, ncol, k, max_iters, nnodes, nthread,
-                p_centers, init, tolerance, dist_type, outdir);
-    } else {
+    if (no_prune)
         kpmeans::dist::driver::run_kmeans(argc, argv,
                 datafn, nrow, ncol, k, max_iters, nnodes, nthread,
                 p_centers, init, tolerance, dist_type, outdir);
-    }
+    else
+        kpmeans::prune::driver::run_kmeans(argc, argv,
+                datafn, nrow, ncol, k, max_iters, nnodes, nthread,
+                p_centers, init, tolerance, dist_type, outdir);
 
     return EXIT_SUCCESS;
 }
@@ -145,7 +144,7 @@ void print_usage() {
     fprintf(stderr, "-C File with initial clusters in same format as data\n");
     fprintf(stderr, "-l tolerance for convergence (1E-6)\n");
     fprintf(stderr, "-d Distance metric [eucl,cos]\n");
-    fprintf(stderr, "-m Use the minimal triangle inequality (~Elkan's alg)\n");
+    fprintf(stderr, "-P DO NOT use the minimal triangle inequality (~Elkan's alg)\n");
     fprintf(stderr, "-N No. of numa nodes you want to use\n");
     fprintf(stderr, "-o Write output to an output directory of this name\n");
 }
