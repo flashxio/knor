@@ -5,7 +5,7 @@ Status](https://travis-ci.org/disa-mhembere/knor.svg?branch=master)](https://tra
 # knor
 
 The K-means NUMA Optimized Routine library or **knor** is a
-highly optimized and fast library for computing k-means in 
+highly optimized and fast library for computing k-means in
 parallel with accelerations for Non-Uniform Memory Access (NUMA) architectures.
 
 *knor* can perform at **10-100 times** the speed of popular packages like Spark's MLlib, Dato (GraphLab) and H<sup>2</sup>O.
@@ -117,12 +117,14 @@ TODO: Under migration ...
 The output file obtained by using the `-o` flag within *knor* produces a
 [YAML](http://yaml.org/) file that is easily readable by any YAML reader.
 
-For instance, within Python we can use [PyYAML](https://pypi.python.org/pypi/PyYAML/) which is installable via by `pip install pyyaml` to read the file as follows:
+For instance, within Python we can use
+[PyYAML](https://pypi.python.org/pypi/PyYAML/) which is installable via
+by `pip install pyyaml` to read the file as follows:
 
-```
+```python
 from yaml import load
-f = open("kmeans_t.yml", "r")
-kms = load(f) # Returns a python dictionary
+with open("kmeans_t.yml", "r") as f:
+    kms = load(f) # Returns a python dictionary
 kms.keys()
 > ['niter', 'ncol', 'nrow', 'cluster', 'k', 'centroids', 'size'
 ```
