@@ -213,24 +213,31 @@ static void run_kmeans(int argc, char* argv[],
         const unsigned* local_assignments = dc->get_cluster_assignments();
 
         if (rank != root) {
-            MPI_Request req;
-            int ret = MPI_Isend(local_assignments, dc->get_nrow(),
-                    MPI::UNSIGNED, root, 0, MPI_COMM_WORLD, &req);
-            BOOST_ASSERT_MSG(!ret, "Failure to send local assignments to root");
-            MPI_Request_free(&req);
+            int rc = MPI_Ssend(local_assignments, dc->get_nrow(),
+                    MPI::UNSIGNED, root, 0, MPI_COMM_WORLD);
+            BOOST_ASSERT_MSG(!rc, "Failure to send local assignments to root");
         } else {
             std::vector<unsigned> assignments(nrow);
             std::copy(local_assignments, local_assignments+dc->get_nrow(),
                     assignments.begin());
 
-            MPI_Request req;
-            for (int pid = 1; pid < int(nprocs); pid++)
-                MPI_Irecv(&assignments[pid*(nrow/nprocs)], dc->get_nrow(),
-                        MPI::UNSIGNED, pid, 0, MPI_COMM_WORLD, &req);
-            MPI_Request_free(&req);
+            for (int pid = 1; pid < int(nprocs); pid++) {
+                // Account for an uneven # of rows per process
+                unsigned count;
+                if (pid == (nprocs - 1))
+                    count = dc->get_nrow() + (nrow % nprocs);
+                else
+                    count = dc->get_nrow();
+
+                int rc = MPI_Recv(&assignments[pid*(nrow/nprocs)],
+                        count, MPI::UNSIGNED, pid,
+                        0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+                BOOST_ASSERT_MSG(!rc, "Root Failure receive local assignments");
+            }
 
             kpmbase::kmeans_t ret(nrow, ncol, iters, k, &assignments[0],
-                    &(cltrs_ptr->get_num_members_v()[0]), cltrs_ptr->get_means());
+                    &(cltrs_ptr->get_num_members_v()[0]),
+                    cltrs_ptr->get_means());
 
             if (!outdir.empty()) {
                 printf("\nWriting output to '%s'\n", outdir.c_str());
