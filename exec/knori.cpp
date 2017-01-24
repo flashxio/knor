@@ -51,8 +51,8 @@ int main(int argc, char* argv[]) {
 	unsigned nthread = kpmbase::get_num_omp_threads();
 	int num_opts = 0;
 	double tolerance = -1;
-    bool use_min_tri = false;
-    bool pthread = false;
+    bool no_prune = false;
+    bool omp = false;
     unsigned nnodes = numa_num_task_nodes();
     std::string outdir = "";
 
@@ -61,7 +61,7 @@ int main(int argc, char* argv[]) {
 	argc -= 3;
 
 	signal(SIGINT, kpmbase::int_handler);
-	while ((opt = getopt(argc, argv, "l:i:t:T:d:C:mpN:o:")) != -1) {
+	while ((opt = getopt(argc, argv, "l:i:t:T:d:C:PON:o:")) != -1) {
 		num_opts++;
 		switch (opt) {
 			case 'l':
@@ -91,12 +91,12 @@ int main(int argc, char* argv[]) {
                 init = "none"; // Ignore whatever you pass in
 				num_opts++;
 				break;
-			case 'm':
-				use_min_tri = true;
+			case 'P':
+				no_prune = true;
 				num_opts++;
 				break;
-			case 'p':
-				pthread = true;
+			case 'O':
+				omp = true;
 				num_opts++;
 				break;
 			case 'N':
@@ -132,21 +132,7 @@ int main(int argc, char* argv[]) {
         printf("Read centers!\n");
     } else
         printf("No centers to read ..\n");
-    if (pthread) {
-        if (use_min_tri) {
-            kpmprune::kmeans_task_coordinator::ptr kc =
-                kpmprune::kmeans_task_coordinator::create(
-                    datafn, nrow, ncol, k, max_iters, nnodes, nthread, p_centers,
-                    init, tolerance, dist_type);
-            ret = kc->run_kmeans();
-        } else {
-            kpmeans::kmeans_coordinator::ptr kc =
-                kpmeans::kmeans_coordinator::create(datafn,
-                    nrow, ncol, k, max_iters, nnodes, nthread, p_centers,
-                    init, tolerance, dist_type);
-            ret = kc->run_kmeans();
-        }
-    } else {
+    if (omp) {
         kpmbase::bin_io<double> br(datafn, nrow, ncol);
         double* p_data = new double [nrow*ncol];
         br.read(p_data);
@@ -158,12 +144,12 @@ int main(int argc, char* argv[]) {
         if (NULL == p_centers) // We have no preallocated centers
             p_centers = new double [k*ncol];
 
-        if (use_min_tri) {
-            ret = kpmeans::omp::compute_min_kmeans(p_data, p_centers, p_clust_asgns,
+        if (no_prune) {
+            ret = kpmeans::omp::compute_kmeans(p_data, p_centers, p_clust_asgns,
                     p_clust_asgn_cnt, nrow, ncol, k, max_iters,
                     nthread, init, tolerance, dist_type);
         } else {
-            ret = kpmeans::omp::compute_kmeans(p_data, p_centers, p_clust_asgns,
+            ret = kpmeans::omp::compute_min_kmeans(p_data, p_centers, p_clust_asgns,
                     p_clust_asgn_cnt, nrow, ncol, k, max_iters,
                     nthread, init, tolerance, dist_type);
         }
@@ -171,6 +157,20 @@ int main(int argc, char* argv[]) {
         delete [] p_clust_asgns;
         delete [] p_clust_asgn_cnt;
         delete [] p_data;
+    } else {
+        if (no_prune) {
+            kpmeans::kmeans_coordinator::ptr kc =
+                kpmeans::kmeans_coordinator::create(datafn,
+                    nrow, ncol, k, max_iters, nnodes, nthread, p_centers,
+                    init, tolerance, dist_type);
+            ret = kc->run_kmeans();
+        } else {
+            kpmprune::kmeans_task_coordinator::ptr kc =
+                kpmprune::kmeans_task_coordinator::create(
+                    datafn, nrow, ncol, k, max_iters, nnodes, nthread, p_centers,
+                    init, tolerance, dist_type);
+            ret = kc->run_kmeans();
+        }
     }
 
     if (!outdir.empty()) {
@@ -193,8 +193,8 @@ void print_usage() {
     fprintf(stderr, "-C File with initial clusters in same format as data\n");
     fprintf(stderr, "-l tolerance for convergence (1E-6)\n");
     fprintf(stderr, "-d Distance metric [eucl,cos]\n");
-    fprintf(stderr, "-m Use the minimal triangle inequality (~Elkan's alg)\n");
-    fprintf(stderr, "-p Use p-threads for ||ization rather than OMP\n");
+    fprintf(stderr, "-P DO NOT use the minimal triangle inequality (~Elkan's alg)\n");
+    fprintf(stderr, "-O Use OpenMP for ||ization rather than fast pthreads\n");
     fprintf(stderr, "-N No. of numa nodes you want to use\n");
     fprintf(stderr, "-o Write output to an output directory of this name\n");
     exit(EXIT_FAILURE);
