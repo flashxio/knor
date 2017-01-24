@@ -8,6 +8,8 @@ The K-means NUMA Optimized Routine library or **knor** is a
 library for computing k-means in parallel with accelerations for
 Non-Uniform Memory Access (NUMA) architectures in the following settings.
 
+*knor* can perform at 10-100X the speed of popular packages like Spark's MLlib, Dato (GraphLab) and H<sup>2</sup>O.
+
 1. On a single machine with all data In-memory, *knori*.
 2. In a cluster in distributed memory *knord*.
 3. On a single machine with some data in-memory and the rest on SSDs i.e.,
@@ -22,6 +24,7 @@ Elkan's algorithm.
 ## knor backbone
 
 **knor** relies on the following:
+
 - [p-threads](https://computing.llnl.gov/tutorials/pthreads/) for
 multithreading.
 - [numa](https://linux.die.net/man/3/numa) and
@@ -50,29 +53,59 @@ Assume the following:
 - `k` is the number of clusters
 - `dim` is the dimensionality of the features
 - `nsamples` is the number of samples
-- `$INSTALL_HOME` is the directory where you clone knor.
+- `$KNOR_HOME` is the directory created when *knor* was cloned from Github.
+- `nproc` is the number of MPI processes to use for *knord*.
+- `nthread` is the number of thread per process. For *knori* this is the total
+number of threads of execution. **NOTE:** For *knord* the total number of threads of
+executions is `nproc * nthread`.
 
-To run modules from the `$INSTALL_HOME/exec` directory, you may do the
-following:
+To run modules from the `$KNOR_HOME` directory, you may do the following:
 
-- knori:
-```
-cd $KNOR_HOME
-exec/knori datafile nsamples dim k -t random -i 10 -p -m
-```
+#### knori
 
-For comparison run our algorithm using [OpenMP](http://www.openmp.org/)
+For a help message and to see valid flags:
+
 ```
-exec/knori datafile nsamples dim k -t random -i 10 -m
+exec/knori
 ```
 
-- knord:
+An example of how to process with file `datafile.bin`:
+
+```
+exec/knori datafile.bin nsamples dim k -t random -T 2 -i 10 -o outdir
+```
+
+For comparison (slower speed) run our algorithm using
+[OpenMP](http://www.openmp.org/) as follows:
+
+```
+exec/knori datafile.bin nsamples dim k -t random -T nthread -i 10 -o outdirOMP -O
+```
+
+It is also possible to **disable** computataion pruning i.e., using *Minimal*
+triangle inequality algorithm by using the `-P` flag.
+
+#### knord
+
+For a help message and to see valid flags:
+
+```
+exec/knord
+```
+
+An example of how to process with file `datafile.bin`:
 ```
 mpirun.mpich -n nproc exec/knord datafile nsamples dim k \
-    -t random -i 10 -m
+    -t random -i 10 -T nthread -o outdir
 ```
 
-- knors:
+See the [mpirun](https://www.open-mpi.org/doc/v2.0/man1/mpirun.1.php) list of
+flags like to allow your processes to distribute
+correctly across a cluster. Flags of note are:
+- `--map-by ppr:n:node`, determining how many processes are mapped to a node.
+- `--map-by ppr:n:socket`, determining how processes per socket.
+
+#### knors:
 ```
 TODO
 ```
@@ -105,8 +138,9 @@ in binary format.
 
 ### *knors*
 
-Semi-external memory (*knors*) data is stored in row-major format with a leading
-4KB FlashGraph header. You can convert binary data to *knors* format using:
+Semi-external memory (*knors*) data is stored in row-major format with
+a leading 4KB FlashGraph header. You can convert binary data to *knors*
+format using:
 
 - TODO: coming soon ...
 
@@ -136,6 +170,13 @@ usage: ./convert_matrix in_filename in_format [text/knori/knord/knors]\
 
 $ utils/convert_matrix example.txt text example.dat knori 2 4
 ```
+
+### Points of note
+
+- Different *knor* routines **may** not produce the same result
+dependent upon which initialization routine is used, **but** every routine
+will give the same answer over multiple runs.
+- Found a bug? Please [create an issue](https://github.com/disa-mhembere/knor/issues/new) on Github.
 
 ## Publications
 
