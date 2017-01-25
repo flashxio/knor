@@ -29,5 +29,12 @@ script:
 - cd ../../$TEST_RELEASE && make test && cd ..
 
 after_success:
-- chmod +x push_docker.sh
-- ./push_docker.sh
+- if [ "$TRAVIS_BRANCH" == "master" ]; then
+  docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PWD
+  export REPO=disamhembere/knor
+  export TAG=latest
+  docker build -f Dockerfile -t $REPO:$COMMIT .
+  docker tag $REPO:$COMMIT $REPO:$TAG
+  #docker tag $REPO:$COMMIT $REPO:travis-$TRAVIS_BUILD_NUMBER
+  docker push $REPO
+fi
