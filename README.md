@@ -38,18 +38,40 @@ multithreading.
 vertex-centric interface.
 
 ## System Requirements
+
 - Linux
 - At least **4 (GB) of RAM**
 - Administrative privileges
 
 ## Installation
+
 The following is Tested on **Ubuntu 14.04 - 16.04**. We require a fairly
 modern compiler to take advantage of compile time optimizations:
 
-### Auto-Install
-`./boostrap.sh`
+### Native Auto-Install
+
+We assume users have [`git`](https://git-scm.com/) already installed.
+
+```
+git clone git clone https://github.com/disa-mhembere/knor.git
+cd knor
+./boostrap.sh
+```
+
+### Docker -- Run in a Container
+
+Users can also choose to use a Docker container to run *knor*. We assume your
+native system has [`curl`](https://linux.die.net/man/1/curl) and
+[`docker`](https://docs.docker.com/engine/installation/) already installed.
+
+```
+curl -O https://raw.githubusercontent.com/disa-mhembere/knor/master/Dockerfile
+docker build -t knor .
+docker run -i -t knor
+```
 
 ### Usage (Running *knor*)
+
 Assume the following:
 
 - `k` is the number of clusters
@@ -57,11 +79,24 @@ Assume the following:
 - `nsamples` is the number of samples
 - `$KNOR_HOME` is the directory created when *knor* was cloned from Github.
 - `nproc` is the number of MPI processes to use for *knord*.
-- `nthread` is the number of thread per process. For *knori* this is the total
+- `nthread` is the number of threads per process. For *knori* this is the total
 number of threads of execution. **NOTE:** For *knord* the total number of threads of
 executions is `nproc * nthread`.
 
 To run modules from the `$KNOR_HOME` directory, you may do the following:
+
+### Test Data
+
+We maintain a very small dataset for testing:
+[`$KNOR_HOME/test-data/matrix_r50_c5_rrw.bin`](https://github.com/disa-mhembere/knor/blob/master/test-data/matrix_r50_c5_rrw.bin?raw=true).
+
+This dataset has:
+
+- `nsamples` = `50`
+- `dim` = `5`
+
+**NOTE: knor will fail if you provide more units of parallelism than the
+`nsamples` in the dataset. So use small `-t` and `-T` values like `2`**
 
 #### knori
 
@@ -74,14 +109,22 @@ exec/knori
 An example of how to process with file `datafile.bin`:
 
 ```
-exec/knori datafile.bin nsamples dim k -t random -T 2 -i 10 -o outdir
+exec/knori datafile.bin nsamples dim k \
+    -t random \
+    -T 2 \
+    -i 10 \
+    -o outdir
 ```
 
-For comparison (slower speed) run our algorithm using
+**For comparison (slower speed)** run our algorithm using
 [OpenMP](http://www.openmp.org/) as follows:
 
 ```
-exec/knori datafile.bin nsamples dim k -t random -T nthread -i 10 -o outdirOMP -O
+exec/knori datafile.bin nsamples dim k \
+    -t random \
+    -T nthread \
+    -i 10 \
+    -o outdirOMP -O
 ```
 
 It is also possible to **disable** computataion pruning i.e., using *Minimal*
@@ -125,8 +168,9 @@ by `pip install pyyaml` to read the file as follows:
 from yaml import load
 with open("kmeans_t.yml", "r") as f:
     kms = load(f) # Returns a python dictionary
+
 kms.keys()
-> ['niter', 'ncol', 'nrow', 'cluster', 'k', 'centroids', 'size'
+> ['niter', 'dim', 'nsamples', 'cluster', 'k', 'centroids', 'size'
 ```
 
 The fields are as follows:
@@ -193,13 +237,27 @@ We consider a file named `example.txt` in our *knor* root directory,
 To convert this file from text readable (tsv) format one would do the following:
 
 ```
-$ cd $KNOR_HOME
-$ utils/convert_matrix # gives help on how to use the converter
+cd $KNOR_HOME
+utils/convert_matrix # gives help on how to use the converter
 
-usage: ./convert_matrix in_filename in_format [text/knori/knord/knors]\
-    out_filename out_format[text/knori/knord/knors] nrow ncol
+> usage: ./convert_matrix in_filename in_format [text/knori/knord/knors]\
+    out_filename out_format[text/knori/knord/knors] nsamples dim
 
-$ utils/convert_matrix example.txt text example.dat knori 2 4
+utils/convert_matrix example.txt \
+    text \
+    example.dat\
+    knori\
+    2 4
+```
+
+### Updating *knor*
+
+To update *knor* simply run the update script which pulls directly from
+Github:
+
+```
+cd $KNOR_HOME
+./update.sh
 ```
 
 ### Points of note
