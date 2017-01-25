@@ -16,26 +16,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Ubuntu install script
-
-cd $HOME
-# Make sure the package information is up-to-date
-apt-get update
-apt-get -o Dpkg::Options::="--force-confold" --force-yes -y upgrade
-
-apt-get -y install build-essential
-# In memory dependencies
-apt-get -y install libboost-all-dev
-# NUMA
-apt-get install -y libnuma-dbg libnuma-dev libnuma1
-
-# Message Passing Interface
-apt-get install libmpich2-dev
-
-#if [ $(dpkg-query -W -f='${Status}' libmpich2-dev 2>/dev/null | grep -c "ok installed")
-#    -eq 0 ]; then
-#    apt-get install libmpich2-dev;
-#fi
-
-# Source control
-apt-get install -y git
+# Simple updater
+git pull origin master
