@@ -60,8 +60,28 @@ cd knor
 
 ### Docker -- Run in a Container
 
-Users can also choose to use a Docker container to run *knor*. We assume your
-native system has [`curl`](https://linux.die.net/man/1/curl) and
+Users can also choose to use a Docker container to run *knor*.
+
+#### Quick docker image (Stable release)
+
+Users can get a version that is stable, but possibly not up to date as follows:
+
+```
+docker run -i -t disamhembere/knor
+```
+
+If you already have the *knor* docker image then updating to the newest stable
+release can be done as follows:
+
+```
+docker pull disamhembere/knor
+```
+
+#### Manual build (Bleeding edge release)
+
+Users may also obtain a bleeding-edge up to date stable docker image by
+building the image themselves. We assume your
+OS has [`curl`](https://linux.die.net/man/1/curl) and
 [`docker`](https://docs.docker.com/engine/installation/) already installed.
 
 ```
