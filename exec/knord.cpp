@@ -135,8 +135,8 @@ int main(int argc, char* argv[]) {
 
 void print_usage() {
 	fprintf(stderr,
-            "mpirun.mpich -n NUM_PROCS dist_kmeans data-file num-rows"
-            " num-cols k [alg-options]\n");
+            "mpirun.mpich -n NUM_PROCS knord data-file nsamples"
+            " dim k [alg-options]\n");
     fprintf(stderr, "-t type: type of initialization for kmeans"
            " ['random', 'forgy', 'kmeanspp', 'none']\n");
     fprintf(stderr, "-T num_thread: The number of threads per process\n");

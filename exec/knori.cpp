@@ -185,7 +185,7 @@ int main(int argc, char* argv[]) {
 
 void print_usage() {
 	fprintf(stderr,
-        "kpmeans data-file num-rows num-cols k [alg-options]\n");
+        "knori data-file nsamples dim k [alg-options]\n");
     fprintf(stderr, "-t type: type of initialization for kmeans"
            " ['random', 'forgy', 'kmeanspp', 'none']\n");
     fprintf(stderr, "-T num_thread: The number of threads to run\n");

@@ -27,7 +27,7 @@ int main(int argc, char* argv[]) {
         fprintf(stderr, "usage: ./convert_matrix in_filename"
                 " in_format [text/knori/knord/knors]\\\n"
                 " \tout_filename out_format[text/knori/knord/knors]"
-                " nrow ncol\n");
+                " nsamples dim\n");
         exit(-1);
     }
 

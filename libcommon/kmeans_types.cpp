@@ -69,7 +69,7 @@ const void kmeans_t::write(const std::string dirname) const {
     BOOST_ASSERT_MSG(f.is_open(), "Error opening file for writing!");
     f << "k: " << k << std::endl;
     f << "niter: " << iters << std::endl;
-    f << "nsample: " << nrow << std::endl;
+    f << "nsamples: " << nrow << std::endl;
     f << "dim: " << ncol << std::endl;
 
     /** Do it all here so we can stream the output **/
