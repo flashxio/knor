@@ -25,9 +25,9 @@ script:
 
 after_success:
 - if [ "$TRAVIS_BRANCH" == "master" ]; then
-  docker login -u="$DOCKER_USER" -p="$DOCKER_PWD";
-  export REPO=disamhembere/knor;
-  docker build -f Dockerfile -t $REPO:${TRAVIS_COMMIT::8} .;
-  docker tag $REPO:${TRAVIS_COMMIT::8} $REPO:"latest";
-  docker push disamhembere/knor:"latest";
+  docker login -u="$DOCKER_USER" -p="$DOCKER_PWD" -e="$DOCKER_EMAIL" https://index.docker.io &&
+  export REPO=disamhembere/knor &&
+  docker build -f Dockerfile -t $REPO:${TRAVIS_COMMIT::8} . &&
+  docker tag $REPO:${TRAVIS_COMMIT::8} $REPO:"latest" &&
+  docker push $REPO:"latest";
   fi
