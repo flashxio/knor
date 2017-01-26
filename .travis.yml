@@ -25,11 +25,11 @@ script:
 - cd release-test && make test && cd ..
 
 after_success:
-- if [ "$TRAVIS_BRANCH" == "master" ]; then \
-  docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PWD && \
-  export REPO=disamhembere/knor && \
-  export TAG=latest && \
-  docker build -f Dockerfile -t $REPO:{TRAVIS_COMMIT::8} . && \
-  docker tag $REPO:{TRAVIS_COMMIT::8} $REPO:$TAG && \
-  docker push $REPO && \
+- if [ "$TRAVIS_BRANCH" == "master" ]; then
+  docker login -e "$DOCKER_EMAIL" -u "$DOCKER_USER" -p "$DOCKER_PWD";
+  export REPO=disamhembere/knor;
+  export TAG=latest;
+  docker build -f Dockerfile -t $REPO:${TRAVIS_COMMIT::8} .;
+  docker tag $REPO:${TRAVIS_COMMIT::8} $REPO:$TAG;
+  docker push $REPO;
   fi
