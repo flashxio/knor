@@ -29,5 +29,5 @@ after_success:
   export REPO=disamhembere/knor;
   docker build -f Dockerfile -t $REPO:${TRAVIS_COMMIT::8} .;
   docker tag $REPO:${TRAVIS_COMMIT::8} $REPO:"latest";
-  docker push disamhembere/knor;
+  docker push disamhembere/knor:"latest";
   fi
