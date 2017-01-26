@@ -16,7 +16,6 @@ global:
   - secure: p0bBcy0xB1MVXZSZ0uq/95ZVI6Prtl64WzqjhL6pDHioFEfzh5BMaNJDMgVLJFtC346yGvzBQ6AUyv0yjQRDB21LIcggMCjz9hZUoSqPLFpaQDSYE+NZj/L2/osef/mYFJCzAHDkJk+iqXGP7ahQeghJXGXL66MbONMdkaV7SyMJhci8cZmwu6RghxLmAUqcL7qX9s1j7AZoxPQBUISzYI3wj4+AtzyIZN0QsC17+3fO+++r8aoSsR8zl9FjFDlSU0f66ywObAPRNIMxtBN2YQV+nb5ohkBrTbIfR8P9I/lEjoq6UWAKybf9Zz9K98x4AfvpYm7zTtKdb7dNKQ0rvLF1uGbzm72Ko6TFq9Yj+X0fUgwEFqrm6gn4fWtPvpJryYalsMCF3nS/111HbG4nq5NfKVy51I2k6uzciLLnVNgrTOR9Ifkw+xTp0XAnhCtODE4+xY4E/7X9fqWYpe+I2SAZskPnZNGr5razC8Kgst3Ij9xqh2+B+RFIuufr9YP31orBU9rXMfZrEgra9K+Jan4QGtsTOdF63SUD9FGoQBhM2Bu7pXHPcQRqRibZ2x/kKl4MBu8cCYxC18KqizU7UyPeyzjlzMb7b/LOrLY8G2L26lInrqfdLb+Y+b51hmTbV6H2kqmFn4TM98hwkqnPR7IPeXqsult1bHnGU9pC7b4=
   - secure: SFETrg6Hj6Tl1n8/KgYCnTC56koAT9K+uewIyFv23D/BfGjx6aBXWfVXl2VJtNdN37JOAraKAD1Zw5qUHT/NoW1a4bRbAC5bFrqDITXoWsnqX8y49V5mLI0eA4lvgZoGBEEmA6B+TjCXF/fGsGnf6c/ab9ZDFDT4/mlG/4/Vo4J11akZkcBEq1KwPU3zxjpgMXRteZj4ZSfqhbc7tqaEWy9YeTcRYDR6Su05CsMQebsiowpVzCr2RBPCsPcy8JjIrHP2lXj8HkRMvJRvhZIpuEKigZcPWq3hvPxBD1bJ21Wdg0L8PToMjvXUzRQubCZ1F5Ko7sbpt3LPP7M7INLlcOkeSiC7jXDV78XkqsIgcFwt97oP0lF5tcry1Z3ELJujjjm29qU/e8n1rGeq5q4A6KG9jIhjANS8H+MVEJhYSbS8GOZJ41bKt1mkAl2WcHU9hSCyVd6xcqxAL5GvvUjW5BAxbkEhS5LUphd+1Z5kjUGQkHgKUM1jww45rUKwTTNiZyx6W1iNU3h0DDjiicct/ZlrL+nHGnajRukbHuHcUYJeYDqtxBB3izz5ukoJI4Rn66QYQYDot6+7xP9Yqvd7dXNXsYzOmt52Rzw8ZEbcM1iR3MimyeGtshEKyZM2w50kVgeCGFjbsenZf+dvSm9tGHfa+hB7gbeWRl02LC6UD4I=
   - secure: CwNCtR6LAXhfcMz93tVokvDi7NeA4hny5SK9ICfdyhxCcBV+nmoQVIQ/X2Rdo/VDqDqatO03J30Wj18ZBIiUg2nOjySxNjsT9fcIT+nqLOlkY9N4lUfxRzxJDabby5KNKLw3xM8YLb7m/c+ViSYeglAs6vYUFl/8czNDF7ChxZM/UvfEK0rUIbw2TRGRABRfj1SrqPtQPGo03Z0UzwQZxLdY5WBI6M8eEwaYBQs3c2NMMn4vb9E/QIgmhMj3sMJT1B2HYd8ecruld2UTNxaU2JmGqhIeOwTFPE4IgfiuC0yJEkNRWKt351E78POJYC3dgvRjN2ImN1owOjR94c36tH06upqkhch5qaZauW1vpiDW6/duTSNzOjrQvK9ikb8O+Y0HNCIKgRpiThx3jc9URq3zVcidragqHyI1cOa9Vm+iYTxQS0zluRcnHlmiDJhro46XHKLqsYkkoW8bt0cL30WlWgSh7naenyvF9w4XbOFSXzshOxQlBFp8PNuIv8CurOUxntQ2K08xnOx5tmcgVqu6nbwFYtpjfLSonYL+5Bebt5Sb9G8K30vH/JklIdcb2LU9RrITqfx3IAikBv9p29PEJMB5VQFO/zPKAh9rr+/Ua3febzrSzfyBwPjT8xWVaZDNZNWAnhMNocIL1dEptLtvin/sbb7UvsAuhUaHOTY=
-  - COMMIT={TRAVIS_COMMIT::8}
 script:
 - make clean; make
 - cd libcommon/unit-test && make test && cd ../..
@@ -26,10 +25,9 @@ script:
 
 after_success:
 - if [ "$TRAVIS_BRANCH" == "master" ]; then
-  docker login -e "$DOCKER_EMAIL" -u "$DOCKER_USER" -p "$DOCKER_PWD";
+  docker login -u="$DOCKER_USER" -p="$DOCKER_PWD";
   export REPO=disamhembere/knor;
-  export TAG=latest;
   docker build -f Dockerfile -t $REPO:${TRAVIS_COMMIT::8} .;
-  docker tag $REPO:${TRAVIS_COMMIT::8} $REPO:$TAG;
+  docker tag $REPO:${TRAVIS_COMMIT::8} $REPO:"latest";
   docker push $REPO;
   fi
