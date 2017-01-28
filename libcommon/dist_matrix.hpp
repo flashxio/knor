@@ -28,11 +28,13 @@
 
 namespace kpmbase = kpmeans::base;
 
-namespace kpmeans { namespace prune {
-    class prune_clusters;
-} } // End namespace kpmeans, prune
+namespace kpmeans {
 
-namespace kpmeans { namespace prune {
+    namespace base {
+    class prune_clusters;
+    }
+
+    namespace prune {
 // NOTE: Creates a matrix like this e.g for K = 5
 /* - Don't store full matrix, don't store dist to myself -> space: (k*k-1)/2
    0 ==> 1 2 3 4
