@@ -26,6 +26,7 @@ build_libs: build_common
 	$(MAKE) -C libauto # OMP
 	$(MAKE) -C libman # pthreads
 	$(MAKE) -C libdist # MPI
+	$(MAKE) -C libsem # MPI
 
 utils: build_common
 	$(MAKE) -C utils
@@ -44,6 +45,7 @@ clean:
 	make --ignore-errors -C utils clean
 	make --ignore-errors -C libauto clean
 	make --ignore-errors -C libman clean
+	make --ignore-errors -C libsem clean
 	make --ignore-errors -C exec clean
 	make --ignore-errors -C libdist clean
 	make --ignore-errors -C release-test clean

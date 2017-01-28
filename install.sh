@@ -32,6 +32,11 @@ apt-get install -y libnuma-dbg libnuma-dev libnuma1
 # Message Passing Interface
 apt-get install libmpich2-dev
 
+# SEM
+apt-get install libaio-dev
+apt-get install libatlas-base-dev
+apt-get install libgoogle-perftools-dev
+
 #if [ $(dpkg-query -W -f='${Status}' libmpich2-dev 2>/dev/null | grep -c "ok installed")
 #    -eq 0 ]; then
 #    apt-get install libmpich2-dev;

@@ -1,0 +1,4 @@
+[submodule "libsem"]
+	path = libsem/FlashX
+	url = git@github.com:flashxio/FlashX.git
+	branch = knors
