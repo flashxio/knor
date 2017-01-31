@@ -24,14 +24,12 @@
 #include <stdio.h>
 #include <math.h>
 #include <omp.h>
+#include <assert.h>
 
 #include <vector>
 #include <iostream>
 #include <fstream>
 #include <sstream>
-
-#include <boost/assert.hpp>
-#include <boost/log/trivial.hpp>
 
 namespace kpmeans { namespace base {
 
@@ -133,7 +131,7 @@ public:
     }
 
     void read(std::vector<T>& data) override {
-        BOOST_ASSERT_MSG(data.size() > 0, "Cannot read with empty container\n");
+        assert(data.size() > 0);
 
         std::string line;
         size_t pos = 0;
@@ -150,11 +148,11 @@ public:
 
     void open() override {
         this->f.open(this->get_fn(), std::ios::in);
-        BOOST_VERIFY(this->f.good());
+        assert(this->f.good());
     }
 
     bool readline(std::vector<T>& data) override {
-        BOOST_ASSERT_MSG(bool(data.size()), "data buffer == 0");
+        assert(bool(data.size()));
         std::string line;
         size_t pos = 0;
         if (std::getline(this->f, line)) {
@@ -179,7 +177,7 @@ public:
     }
 
     void read(std::vector<T>& data) override {
-        BOOST_ASSERT_MSG(data.size() > 0, "Cannot read with empty container\n");
+        assert(data.size() > 0);
         this->f.read(reinterpret_cast<char*>(data.data()),
                 data.size()*sizeof(T));
     }
@@ -193,14 +191,15 @@ public:
             }
         } else {
             std::cout << "ncol: " << this->ncol << "\n";
-            BOOST_ASSERT_MSG(false, "Cannot read a line without `ncol`\n");
+            fprintf(stderr, "Cannot read a line without `ncol`\n");
+            assert(false);
         }
         return false;
     }
 
     void open() override {
         this->f.open(this->get_fn(), std::ios::in | std::ios::binary);
-        BOOST_VERIFY(this->f.good());
+        assert(this->f.good());
     }
 };
 
@@ -222,7 +221,7 @@ class bin_io {
     public:
         bin_io(const std::string fn, const std::string mode) {
             f = fopen(fn.c_str(), mode.c_str());
-            BOOST_VERIFY(NULL != f);
+            assert(NULL != f);
         }
 
         bin_io(const std::string fn, const size_t nrow,
@@ -237,7 +236,7 @@ class bin_io {
             T arr [ncol];
             for (size_t i = 0; i < nrow; i++) {
                 size_t num_read = fread(&arr[0], sizeof(T)*ncol, 1, f);
-                BOOST_ASSERT_MSG(num_read == 1, "Error reading file!\n");
+                assert(num_read == 1);
                 cat(arr);
             }
         }
@@ -246,30 +245,30 @@ class bin_io {
             std::vector<T> v;
             v.resize(ncol);
             size_t num_read = fread(&v[0], sizeof(T)*ncol, 1, f);
-            BOOST_ASSERT_MSG(num_read == 1, "Error reading file!\n");
+            assert(num_read == 1);
             return v;
         }
 
         void readline(T* v) {
             size_t num_read = fread(&v[0], sizeof(T)*ncol, 1, f);
-            BOOST_ASSERT_MSG(num_read == 1, "Error reading file!\n");
+            assert(num_read == 1);
         }
 
         // Read all the data!
         void read(std::vector<T>* v) {
             size_t num_read = fread(&((*v)[0]), sizeof(T)*ncol*nrow, 1, f);
-            BOOST_ASSERT_MSG(num_read == 1, "Error reading file!\n");
+            assert(num_read == 1);
         }
 
         // Read all the data!
         void read(T* v) {
             size_t num_read = fread(&v[0], sizeof(T)*ncol*nrow, 1, f);
-            BOOST_ASSERT_MSG(num_read == 1, "Error reading file!\n");
+            assert(num_read == 1);
         }
 
         void write(const T* data, const size_t numel) {
             size_t num_put = fwrite(data, sizeof(T)*numel, 1, f);
-            BOOST_ASSERT_MSG(num_put == 1, "Error writing file!\n");
+            assert(num_put == 1);
         }
 
         void write(const std::vector<T>& data, const size_t numel) {

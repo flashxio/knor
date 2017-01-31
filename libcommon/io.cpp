@@ -27,26 +27,25 @@ namespace kpmeans { namespace base {
 void store_cluster(const unsigned id, const double* data,
         const unsigned numel, const unsigned* cluster_assignments,
         const size_t nrow, const size_t ncol, const std::string dir) {
-    BOOST_LOG_TRIVIAL(info) <<
-        "Storing cluster " << id;
+    std::cout << "Storing cluster " << id << std::endl;
 
     FILE* f;
     std::string fn = dir+"cluster_"+std::to_string(id)+
         "_r"+std::to_string(numel)+"_c"+std::to_string(ncol)+".bin";
-    BOOST_VERIFY(f = fopen(fn.c_str(), "wb"));
-    BOOST_LOG_TRIVIAL(info) << "[Warning]: Writing cluster file '" <<
-        fn << "'";
+    assert(f = fopen(fn.c_str(), "wb"));
+    std::cout << "[Warning]: Writing cluster file '" <<
+        fn << "'\n";
     unsigned count = 0;
 
     for(unsigned i = 0; i < nrow; i++) {
         if (count == numel) { break; }
         if (cluster_assignments[i] == id) {
-            BOOST_VERIFY(fwrite(&data[i*ncol],
+            assert(fwrite(&data[i*ncol],
                         (ncol*sizeof(double)), 1, f));
             count++;
         }
     }
-    BOOST_VERIFY(count == numel);
+    assert(count == numel);
     fclose(f);
 }
 } } // End namespace kpmeans, base
