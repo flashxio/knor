@@ -13,6 +13,7 @@ utils/create_matrix
 utils/test/read_rrow_data
 exec/knord
 exec/knori
+exec/knors
 scratch/
 release-test/test_auto
 release-test/test_man
