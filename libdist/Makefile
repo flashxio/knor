@@ -15,7 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-include ../Makefile.common
+include ../Makefile.dist.common
 
 LDFLAGS += -L../libman -lman -L../libcommon -lcommon
 CXXFLAGS += -I.. -I../libman -I../libcommon
