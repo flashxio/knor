@@ -15,17 +15,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-all: im dist
+include ../Makefile.dist.common
 
-im:
-	make -f Makefile.im
+LDFLAGS := -L../libauto -lauto -L../libman -lman \
+	-L../libcommon -lcommon $(LDFLAGS)
+CXXFLAGS += -I.. -I../libauto -I../libman -I../libdist -I../libcommon
+DIST_FLAGS := -L../libdist -ldist
 
-dist:
-	make -f Makefile.dist
+all: knord
 
-clean:
-	rm -f *.d
-	rm -f *.o
-	rm -f *~
-	rm -f knori
-	rm -f knord
+knord: knord.o
+	$(CXX) -o knord knord.o $(LDFLAGS) $(DIST_FLAGS)
+
+-include $(DEPS)
