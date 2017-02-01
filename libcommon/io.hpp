@@ -176,6 +176,10 @@ public:
         this->open();
     }
 
+    void seek(const size_t nbytes) {
+        this->f.seekg(nbytes);
+    }
+
     void read(std::vector<T>& data) override {
         assert(data.size() > 0);
         this->f.read(reinterpret_cast<char*>(data.data()),
