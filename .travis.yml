@@ -13,7 +13,7 @@ script:
 - make clean; make
 - cd libcommon/unit-test && make test && cd ../..
 - cd libman/unit-test && make test && cd ../..
-- cd utils/test && make test && cd ../..
+- cd libsem/FlashX/flash-graph/utils/test/ && make test && cd ../../../../..
 - cd release-test && make test && cd ..
 env:
   global:
