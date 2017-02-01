@@ -272,6 +272,12 @@ utils/convert_matrix example.txt \
 
 ## Formatting data directly from other languages
 
+For *knori* and *knord* the format can
+be produced by any binary writing utility in any language. **NOTE: ** *knors*
+is a custom format that should be generated using the `convert_matrix` utility.
+Below are a couple examples of writing *knori* and *knord* format from some
+higher-level languages.
+
 ### `R`
 
 The following is an example of how to take an R data frame
