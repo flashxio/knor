@@ -270,6 +270,40 @@ utils/convert_matrix example.txt \
     2 4
 ```
 
+## Formatting data directly from other languages
+
+### `R`
+
+The following is an example of how to take an R data frame
+and write out to raw binary row-major format:
+
+```R
+# `mtcars` is a data frame loaded by default into R
+
+mtcars # Take a look at the data
+
+nbytes.per.elem = 8 # NOTE: Always true
+mtvec <- as.vector(t(mtcars)) # Turn dataframe into matrix (`t`) then vector
+writeBin(mtvec, "yourfilename.bin", size=nbytes.per.elem)
+```
+
+### `Python`
+
+The following is an example of how to take a numpy ndarray
+and write it out to raw binary row-major format:
+
+```python
+import numpy as np
+np.random.seed(1) # For consistency
+dat = np.random.rand(16, 8)
+dat.shape # We have a 16 x 8 matrix
+
+type(dat[0][0]) # Check type is double i.e. 8 bytes = 64 bits
+# dat = dat.astype(np.float64) # if data type is wrong
+
+dat.tofile("yourfilename.bin")
+```
+
 ### Updating *knor*
 
 To update *knor* simply run the update script which pulls directly from
