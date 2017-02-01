@@ -19,11 +19,11 @@ include ../Makefile.common
 
 LDFLAGS := -L../libauto -lauto -L../libman -lman \
 	-L../libcommon -lcommon $(LDFLAGS)
-CXXFLAGS += -I.. -I../libauto -I../libman -I../libdist -I../libcommon
+CXXFLAGS += -I.. -I../libauto -I../libman -I../libcommon
 
 all: knori
 
 knori: knori.o
 	$(CXX) -o knori knori.o $(LDFLAGS)
 
--include $(DEPS)
+#-include $(DEPS)

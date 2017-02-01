@@ -17,7 +17,7 @@
 
 include Makefile.common
 
-all: build_common build_libs utils exec release-test
+all: build_common build_libs exec release-test
 
 build_common:
 	$(MAKE) -C libcommon
@@ -28,13 +28,10 @@ build_libs: build_common
 	$(MAKE) -C libdist # MPI
 	$(MAKE) -C libsem # MPI
 
-utils: build_common
-	$(MAKE) -C utils
-
-exec: build_common build_libs
+exec: build_libs
 	$(MAKE) -C exec
 
-release-test: build_common build_libs
+release-test: build_libs
 	$(MAKE) -C release-test
 
 clean:
@@ -42,7 +39,6 @@ clean:
 	rm -f *.o
 	rm -f *~
 	make --ignore-errors -C libcommon clean
-	make --ignore-errors -C utils clean
 	make --ignore-errors -C libauto clean
 	make --ignore-errors -C libman clean
 	make --ignore-errors -C libsem clean

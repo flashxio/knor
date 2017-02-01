@@ -17,9 +17,8 @@
 
 include ../Makefile.dist.common
 
-LDFLAGS := -L../libauto -lauto -L../libman -lman \
-	-L../libcommon -lcommon $(LDFLAGS)
-CXXFLAGS += -I.. -I../libauto -I../libman -I../libdist -I../libcommon
+LDFLAGS :=-L../libman -lman -L../libcommon -lcommon $(LDFLAGS)
+CXXFLAGS += -I.. -I../libman -I../libdist -I../libcommon
 DIST_FLAGS := -L../libdist -ldist
 
 all: knord
@@ -27,4 +26,4 @@ all: knord
 knord: knord.o
 	$(CXX) -o knord knord.o $(LDFLAGS) $(DIST_FLAGS)
 
--include $(DEPS)
+#-include $(DEPS)

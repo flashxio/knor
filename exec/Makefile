@@ -18,10 +18,10 @@
 all: im dist
 
 im:
-	make -f Makefile.im
+	$(MAKE) -f Makefile.im
 
 dist:
-	make -f Makefile.dist
+	$(MAKE) -f Makefile.dist
 
 clean:
 	rm -f *.d
