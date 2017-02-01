@@ -37,10 +37,10 @@ public:
 static void run_kmeans(int argc, char* argv[],
         const std::string datafn, const size_t nrow,
         const size_t ncol, const unsigned k, const unsigned max_iters,
-        const unsigned nnodes, const unsigned nthread,
+        const unsigned nnodes, const unsigned nthread, kpmbase::kmeans_t& ret,
         const double* p_centers=NULL, const std::string init="kmeanspp",
         const double tolerance=-1, const std::string dist_type="eucl",
-        std::string outdir="") {
+        const std::string outdir="") {
 
     int rank;
     int nprocs;
@@ -202,7 +202,7 @@ static void run_kmeans(int argc, char* argv[],
                 BOOST_ASSERT_MSG(!rc, "Root Failure receive local assignments");
             }
 
-            kpmbase::kmeans_t ret(nrow, ncol, iters, k, &assignments[0],
+            ret = kpmbase::kmeans_t(nrow, ncol, iters, k, &assignments[0],
                     &(cltrs_ptr->get_num_members_v()[0]),
                     cltrs_ptr->get_means());
 

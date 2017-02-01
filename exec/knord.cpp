@@ -121,15 +121,18 @@ int main(int argc, char* argv[]) {
         printf("Read centers!\n");
     }
 
+    kpmbase::kmeans_t ret; // Only root fills this
+
     if (no_prune)
         kpmeans::dist::driver::run_kmeans(argc, argv,
-                datafn, nrow, ncol, k, max_iters, nnodes, nthread,
+                datafn, nrow, ncol, k, max_iters, nnodes, nthread, ret,
                 p_centers, init, tolerance, dist_type, outdir);
     else
         kpmeans::prune::driver::run_kmeans(argc, argv,
-                datafn, nrow, ncol, k, max_iters, nnodes, nthread,
+                datafn, nrow, ncol, k, max_iters, nnodes, nthread, ret,
                 p_centers, init, tolerance, dist_type, outdir);
 
+    ret.print();
     return EXIT_SUCCESS;
 }
 

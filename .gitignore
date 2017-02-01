@@ -8,8 +8,7 @@ libcommon/unit-test/test_reader
 libman/unit-test/test_kmeans_thread
 libman/unit-test/test_task_queue
 libman/unit-test/test_kmeans_task_thread
-utils/convert_matrix
-utils/create_matrix
+utils/
 utils/test/read_rrow_data
 exec/knord
 exec/knori
