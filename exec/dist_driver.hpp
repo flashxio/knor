@@ -84,38 +84,36 @@ static void run_kmeans(int argc, char* argv[],
     //      - Many messages passed
     //      - Changing order will cut some computation e.g nchanged first ..
     //////////////////////////// Algorithm /////////////////////////////////////
-    if (init != "random")
-        throw kpmbase::not_implemented_exception();
-
     double* clstr_buff = new double[k*ncol];
     size_t* nmemb_buff = new size_t[k];
 
     // Init
     dc->run_init();
 
-    // TODO: Check cost of all the shared_ptr passing
     kpmbase::clusters::ptr cltrs_ptr = std::static_pointer_cast<
         dist_coordinator>(dc)->get_gcltrs();
 
-    // MPI Update clusters
-    kpmmpi::mpi::reduce_double(&(cltrs_ptr->get_means()[0]),
-            clstr_buff, cltrs_ptr->size());
-    cltrs_ptr->set_mean(clstr_buff);
+    if (init == "random") {
+        // MPI Update clusters
+        kpmmpi::mpi::reduce_double(&(cltrs_ptr->get_means()[0]),
+                clstr_buff, cltrs_ptr->size());
+        cltrs_ptr->set_mean(clstr_buff);
 
-    kpmmpi::mpi::reduce_size_t(&(cltrs_ptr->get_num_members_v()[0]),
-            nmemb_buff, cltrs_ptr->get_num_members_v().size());
-    cltrs_ptr->set_num_members_v(nmemb_buff); // Set new counts
-    cltrs_ptr->finalize_all();
-    // End Init
+        kpmmpi::mpi::reduce_size_t(&(cltrs_ptr->get_num_members_v()[0]),
+                nmemb_buff, cltrs_ptr->get_num_members_v().size());
+        cltrs_ptr->set_num_members_v(nmemb_buff); // Set new counts
+        cltrs_ptr->finalize_all();
+        // End Init
 
 #ifdef VERBOSE
-    BOOST_VERIFY((size_t)std::accumulate(cltrs_ptr->get_num_members_v().begin(),
-                cltrs_ptr->get_num_members_v().end(), 0) == nrow);
-    if (rank == root) {
-        printf("New finalized centers for Proc: %d ==> \n", rank);
-        cltrs_ptr->print_means();
-    }
+        BOOST_VERIFY((size_t)std::accumulate(cltrs_ptr->get_num_members_v().begin(),
+                    cltrs_ptr->get_num_members_v().end(), 0) == nrow);
+        if (rank == root) {
+            printf("New finalized centers for Proc: %d ==> \n", rank);
+            cltrs_ptr->print_means();
+        }
 #endif
+    }
 
     // EM-step iterations
     while (iters < max_iters) {
@@ -155,15 +153,16 @@ static void run_kmeans(int argc, char* argv[],
                     cltrs_ptr->get_num_members_v().end(), 0) == nrow);
 
         perc_changed = (double)nchanged/nrow; // Global perc change
+        cltrs_ptr->finalize_all();
+
         if (nchanged == 0 || perc_changed <= tolerance) {
             converged = true;
             if (rank == root)
-                printf("Algorithm converged in %lu iterations!\n", (iters + 1));
+                printf("Algorithm converged in %lu iterations!\n", (++iters));
             break;
         }
 
         nchanged = 0;
-        cltrs_ptr->finalize_all();
         iters++;
     }
 

@@ -132,7 +132,6 @@ int main(int argc, char* argv[]) {
                 datafn, nrow, ncol, k, max_iters, nnodes, nthread, ret,
                 p_centers, init, tolerance, dist_type, outdir);
 
-    ret.print();
     return EXIT_SUCCESS;
 }
 
