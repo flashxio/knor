@@ -31,7 +31,7 @@ build_libs: build_common
 exec: build_libs
 	$(MAKE) -C exec
 
-release-test: build_libs
+release-test: exec
 	$(MAKE) -C release-test
 
 clean:
