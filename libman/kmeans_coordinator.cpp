@@ -250,7 +250,7 @@ void kmeans_coordinator::run_init() {
         case kpmbase::init_type_t::NONE:
             break;
         default:
-            fprintf(stderr, "[FATAL]: Unknow initialization type\n");
+            fprintf(stderr, "[FATAL]: Unknown initialization type\n");
             exit(EXIT_FAILURE);
     }
 }

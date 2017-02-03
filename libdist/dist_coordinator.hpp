@@ -53,9 +53,6 @@ public:
             const double tolerance=-1, const std::string dist_type="eucl") {
 
         kpmbase::init_type_t _init_t = kpmbase::get_init_type(init);
-        if (_init_t != kpmbase::init_type_t::RANDOM)
-            throw kpmbase::not_implemented_exception();
-
         kpmbase::dist_type_t _dist_t = kpmbase::get_dist_type(dist_type);
 
         return base_kmeans_coordinator::ptr(
