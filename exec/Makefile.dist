@@ -25,5 +25,3 @@ all: knord
 
 knord: knord.o
 	$(CXX) -o knord knord.o $(LDFLAGS) $(DIST_FLAGS)
-
-#-include $(DEPS)

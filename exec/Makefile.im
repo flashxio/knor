@@ -25,5 +25,3 @@ all: knori
 
 knori: knori.o
 	$(CXX) -o knori knori.o $(LDFLAGS)
-
-#-include $(DEPS)
