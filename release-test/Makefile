@@ -18,8 +18,8 @@
 include ../Makefile.common
 
 LDFLAGS := -L../libauto -lauto -L../libman -lman \
-	-L../libcommon -lcommon $(LDFLAGS)
-CXXFLAGS += -I.. -I../libauto -I../libman -I../libdist -I../libcommon
+	-L../libkcommon -lkcommon $(LDFLAGS)
+CXXFLAGS += -I.. -I../libauto -I../libman -I../libdist -I../libkcommon
 DIST_FLAGS := -L../libdist -ldist
 
 TESTFILES := test_auto test_man

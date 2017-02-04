@@ -17,8 +17,8 @@
 
 include ../../Makefile.common
 
-LDFLAGS := -L.. -lman -L../../libcommon -lcommon $(LDFLAGS)
-CXXFLAGS := -I.. -I../../libcommon $(CXXFLAGS)
+LDFLAGS := -L.. -lman -L../../libkcommon -lkcommon $(LDFLAGS)
+CXXFLAGS := -I.. -I../../libkcommon $(CXXFLAGS)
 
 TESTFILES := test_kmeans_thread test_task_queue test_kmeans_task_thread
 

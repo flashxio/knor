@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-#include "common.hpp"
+#include "kcommon.hpp"
 
 namespace kpmeans { namespace prune {
 

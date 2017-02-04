@@ -2,9 +2,9 @@
 *.d
 *.o
 *.a
-libcommon/unit-test/test_clusters
-libcommon/unit-test/test_thd_safe_bool_vector
-libcommon/unit-test/test_reader
+libkcommon/unit-test/test_clusters
+libkcommon/unit-test/test_thd_safe_bool_vector
+libkcommon/unit-test/test_reader
 libman/unit-test/test_kmeans_thread
 libman/unit-test/test_task_queue
 libman/unit-test/test_kmeans_task_thread

@@ -20,7 +20,7 @@
 #include <boost/assert.hpp>
 #include <boost/log/trivial.hpp>
 
-#include "common.hpp"
+#include "kcommon.hpp"
 #include "base_kmeans_coordinator.hpp"
 
 namespace kpmeans {

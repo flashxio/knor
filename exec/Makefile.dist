@@ -17,8 +17,8 @@
 
 include ../Makefile.dist.common
 
-LDFLAGS :=-L../libman -lman -L../libcommon -lcommon $(LDFLAGS)
-CXXFLAGS += -I.. -I../libman -I../libdist -I../libcommon
+LDFLAGS :=-L../libman -lman -L../libkcommon -lkcommon $(LDFLAGS)
+CXXFLAGS += -I.. -I../libman -I../libdist -I../libkcommon
 DIST_FLAGS := -L../libdist -ldist
 
 all: knord

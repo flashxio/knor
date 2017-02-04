@@ -21,7 +21,7 @@
 #include <pthread.h>
 #include <atomic>
 
-#include "common.hpp"
+#include "kcommon.hpp"
 #include "kmeans_task_thread.hpp"
 #include "thread_state.hpp"
 

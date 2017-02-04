@@ -24,7 +24,7 @@
 #include <random>
 #include "kmeans_task_coordinator.hpp"
 #include "kmeans_task_thread.hpp"
-#include "common.hpp"
+#include "kcommon.hpp"
 #include "task_queue.hpp"
 
 namespace kpmeans { namespace prune {

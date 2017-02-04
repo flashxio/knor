@@ -17,8 +17,8 @@
 
 include ../Makefile.common
 
-LDFLAGS += -L../libcommon -lcommon
-CXXFLAGS += -I../libcommon -I..
+LDFLAGS += -L../libkcommon -lkcommon
+CXXFLAGS += -I../libkcommon -I..
 
 all: libman unit-test
 

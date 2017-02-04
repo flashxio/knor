@@ -20,7 +20,7 @@
 #include "kmeans_task_thread.hpp"
 #include "task_queue.hpp"
 #include "kmeans_task_coordinator.hpp"
-#include "common.hpp"
+#include "kcommon.hpp"
 
 namespace kpmeans { namespace prune {
 

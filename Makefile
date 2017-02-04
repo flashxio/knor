@@ -20,7 +20,7 @@ include Makefile.common
 all: build_common build_libs exec release-test
 
 build_common:
-	$(MAKE) -C libcommon
+	$(MAKE) -C libkcommon
 
 build_libs: build_common
 	$(MAKE) -C libauto # OMP
@@ -38,7 +38,7 @@ clean:
 	rm -f *.d
 	rm -f *.o
 	rm -f *~
-	make --ignore-errors -C libcommon clean
+	make --ignore-errors -C libkcommon clean
 	make --ignore-errors -C libauto clean
 	make --ignore-errors -C libman clean
 	make --ignore-errors -C libsem clean

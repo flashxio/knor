@@ -17,8 +17,8 @@
 
 include ../Makefile.common
 
-LDFLAGS += -L../libcommon -lcommon
-CXXFLAGS += -I../libcommon -I..
+LDFLAGS += -L../libkcommon -lcommon
+CXXFLAGS += -I../libkcommon -I..
 
 all: libauto
 

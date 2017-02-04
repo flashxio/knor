@@ -15,22 +15,32 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-include ../Makefile.common
+include ../../Makefile.common
 
-all: libcommon unit_test
+LDFLAGS := -L.. -lkcommon $(LDFLAGS)
+CXXFLAGS := -I.. $(CXXFLAGS)
 
-libcommon: $(OBJS)
-	rm -f libcommon.a
-	ar -cvq libcommon.a $(OBJS)
+TESTFILES := test_thd_safe_bool_vector test_clusters test_reader
 
-unit_test: libcommon
-	$(MAKE) -C unit-test
+all: $(TESTFILES)
 
+test: all
+	./test_clusters
+	./test_thd_safe_bool_vector 2 500
+	./test_reader
+
+test_thd_safe_bool_vector: test_thd_safe_bool_vector.o ../libkcommon.a
+	$(CXX) -o test_thd_safe_bool_vector test_thd_safe_bool_vector.o $(LDFLAGS)
+
+test_clusters: test_clusters.o ../libkcommon.a
+	$(CXX) -o test_clusters test_clusters.o $(LDFLAGS)
+
+test_reader: test_reader.o ../libkcommon.a
+	$(CXX) -o test_reader test_reader.o $(LDFLAGS)
 clean:
 	rm -f *.d
 	rm -f *.o
 	rm -f *~
-	rm -f libcommon.a
-	$(MAKE) --ignore-errors clean -C unit-test
+	rm -f $(TESTFILES)
 
 -include $(DEPS)

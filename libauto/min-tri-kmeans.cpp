@@ -24,7 +24,7 @@
 #include <omp.h>
 
 #include "kmeans.hpp"
-#include "common.hpp"
+#include "kcommon.hpp"
 
 #define KM_TEST 0
 #define VERBOSE 0

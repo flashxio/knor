@@ -23,7 +23,7 @@
 
 #include "kmeans_thread.hpp"
 #include "thread_state.hpp"
-#include "common.hpp"
+#include "kcommon.hpp"
 
 namespace kpmbase = kpmeans::base;
 
