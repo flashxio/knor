@@ -15,8 +15,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-CC = mpicc.mpich2
-CXX = mpicxx.mpich2
+CC = mpicc.mpich
+CXX = mpicxx.mpich
 #PROF=1
 #RELEASE=1
 CFLAGS = -g -O3 -fno-inline-functions -DSTATISTICS -DPROFILER $(LIB_PATHS)

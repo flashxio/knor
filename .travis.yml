@@ -15,12 +15,12 @@ script:
 - cd libman/unit-test && make test && cd ../..
 - cd libsem/FlashX/flash-graph/utils/test/ && make test && cd ../../../../..
 - cd release-test && make test && cd ..
-env:
-  global:
-    DOCKER_USER:
-      secure: K5qGupEFKilEP27jHx/FW7Q5tlWqKIoxMkEHIuwIn5VJPNUGSBCzw5X0WN+0oKDw56aAX+R5q5+kAY+Dy6DNS2IP882abQam2A8x89nUNO+rDZLotusqFhkc+cof/s7m/R0UH+MX3eb6ZsjAqhlMXOEsLEw7DELgZ+n1I5FeIrWZ5xk3VKGv7dqsqkyhREZYo/gDe+tjQvmqBCsFdd/8/mEG0TwuhS3CUAC9c4958Fbthi7EaLi+HgF1Et1AqUx/9Vrd4mIwxYxbXAF9XSu3BraIDJkAeHWAeAttWmZ+PqNKm90iz/Bv+r3kn4T0yEqKsLLOHf3wlk666lvky+GGopC9wOR/x6qfmI6iJy6Ili92iA22IXhR/fiK32ZLlpk+Y10GvWtiOMw5w6gtFwENksTb8zUqTc0XSsHZjxacA54cj026E3C/XsQjnjY9bbBI+mYfbE2tTkTqoDt4Yo2OKIQM2KXLtdJvVP2tPjtKuRMCtmiVqBo/qmSdGZSAnR940b/LJMx2LbzBNUU444aBc3cMFr/90uiVfot2sGCPO5KIw/r3rXR86QGBgXScHsLjGGwMLIF1GMXPvm2M8LSxPawBXDgnKmV/gY3J686ORv+CSb5jQwk62uhLZAg/vRmwyT9rfBnCFH1oxH04XGkrjWzgCRalfQCBo0xrcAXLL3w=
-    DOCKER_PWD:
-      secure: NbpRbNBIU/ZmuinjnPR1KPbw+bzWKL3HumyLzp5dL3btJFz21bgaCk+baKchc9E3fQL2JcrEbWYOaI3W1AdhdpzykQCM7UiiH9hsJsNO8O6CgxdCIcBDZzS6ATOutkQyIdWbbcfjtmxGMNzgvK3u+CEN9A6ow3iH9D5DiVCtgJfCOssmaKy1XdStuMB+tHot08Sa0h1Y5ITjiU0XxmmQ4Quelub2AXSUhK2Lqjbu2a8r/R9+P3kkkx6gVvPeW1sbNAZDcOcCaBL0pi3qgN/AT8EM9oSijpvWEuAWVTgG7CcPpce+hTy67CKcA6mOuWxqsDjRkwOkjrAlJnXII5YmR2RtiL524uRM2gFPOAN7IriRc13XJbYp2ZmcL0wnEI6WBT65O08D+Zihd+yCKVkytLMrFbatJYx5n0bKxNreykwI5p7Lf+nM8LOWaCklCuSfOdk7fFNi/4SKkre0xKNbDIFZLIK+jYAwe8uGzcyooiWPJ+sf8WTpsfU2JrPciU2gbREF2ZF9qYMeOea8wZOQAQdOhMinNfC1AQRHOUy3sXkdT9nqYopMIAA62nR7dPI2b/rJy48/aRnpwlkNlgvkqnfDoNoaM/oLXTywD/uvkcQz8KgPbeYOL87I0fk5xYonZaOnYmhRrljmi9DwxKob2IglWtV4aOrh7iLdaMC49t8=
+#env:
+  #global:
+    #DOCKER_USER:
+      #secure: K5qGupEFKilEP27jHx/FW7Q5tlWqKIoxMkEHIuwIn5VJPNUGSBCzw5X0WN+0oKDw56aAX+R5q5+kAY+Dy6DNS2IP882abQam2A8x89nUNO+rDZLotusqFhkc+cof/s7m/R0UH+MX3eb6ZsjAqhlMXOEsLEw7DELgZ+n1I5FeIrWZ5xk3VKGv7dqsqkyhREZYo/gDe+tjQvmqBCsFdd/8/mEG0TwuhS3CUAC9c4958Fbthi7EaLi+HgF1Et1AqUx/9Vrd4mIwxYxbXAF9XSu3BraIDJkAeHWAeAttWmZ+PqNKm90iz/Bv+r3kn4T0yEqKsLLOHf3wlk666lvky+GGopC9wOR/x6qfmI6iJy6Ili92iA22IXhR/fiK32ZLlpk+Y10GvWtiOMw5w6gtFwENksTb8zUqTc0XSsHZjxacA54cj026E3C/XsQjnjY9bbBI+mYfbE2tTkTqoDt4Yo2OKIQM2KXLtdJvVP2tPjtKuRMCtmiVqBo/qmSdGZSAnR940b/LJMx2LbzBNUU444aBc3cMFr/90uiVfot2sGCPO5KIw/r3rXR86QGBgXScHsLjGGwMLIF1GMXPvm2M8LSxPawBXDgnKmV/gY3J686ORv+CSb5jQwk62uhLZAg/vRmwyT9rfBnCFH1oxH04XGkrjWzgCRalfQCBo0xrcAXLL3w=
+    #DOCKER_PWD:
+      #secure: NbpRbNBIU/ZmuinjnPR1KPbw+bzWKL3HumyLzp5dL3btJFz21bgaCk+baKchc9E3fQL2JcrEbWYOaI3W1AdhdpzykQCM7UiiH9hsJsNO8O6CgxdCIcBDZzS6ATOutkQyIdWbbcfjtmxGMNzgvK3u+CEN9A6ow3iH9D5DiVCtgJfCOssmaKy1XdStuMB+tHot08Sa0h1Y5ITjiU0XxmmQ4Quelub2AXSUhK2Lqjbu2a8r/R9+P3kkkx6gVvPeW1sbNAZDcOcCaBL0pi3qgN/AT8EM9oSijpvWEuAWVTgG7CcPpce+hTy67CKcA6mOuWxqsDjRkwOkjrAlJnXII5YmR2RtiL524uRM2gFPOAN7IriRc13XJbYp2ZmcL0wnEI6WBT65O08D+Zihd+yCKVkytLMrFbatJYx5n0bKxNreykwI5p7Lf+nM8LOWaCklCuSfOdk7fFNi/4SKkre0xKNbDIFZLIK+jYAwe8uGzcyooiWPJ+sf8WTpsfU2JrPciU2gbREF2ZF9qYMeOea8wZOQAQdOhMinNfC1AQRHOUy3sXkdT9nqYopMIAA62nR7dPI2b/rJy48/aRnpwlkNlgvkqnfDoNoaM/oLXTywD/uvkcQz8KgPbeYOL87I0fk5xYonZaOnYmhRrljmi9DwxKob2IglWtV4aOrh7iLdaMC49t8=
 #after_success:
 #- if [ "$TRAVIS_BRANCH" == "master" ]; then
   #docker login -u $DOCKER_USER -p $DOCKER_PWD &&

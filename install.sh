@@ -30,7 +30,7 @@ apt-get -y install libboost-all-dev
 apt-get install -y libnuma-dbg libnuma-dev libnuma1
 
 # Message Passing Interface
-apt-get install libmpich2-dev
+apt-get install libmpich-dev
 
 # SEM
 apt-get install libaio-dev
