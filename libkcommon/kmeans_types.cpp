@@ -29,13 +29,19 @@ kmeans_t::kmeans_t(const size_t nrow, const size_t ncol, const size_t iters,
          const size_t k, const unsigned* assignments_buf,
          const size_t* assignment_count_buf,
          const std::vector<double>& centroids) {
-    this->nrow = nrow;
-    this->ncol = ncol;
-    this->iters = iters;
-    this->k = k;
 
-    assignment_count.resize(k);
-    assignments.resize(nrow);
+    set_params(nrow, ncol, iters, k);
+    set_computed(assignments_buf, assignment_count_buf, centroids);
+}
+
+void kmeans_t::set_computed(const unsigned* assignments_buf,
+        const size_t* assignment_count_buf,
+        const std::vector<double> centroids) {
+
+    assert(this->k);
+    assert(this->nrow);
+    assignment_count.resize(this->k);
+    assignments.resize(this->nrow);
 
     std::copy(assignments_buf, assignments_buf + nrow, assignments.begin());
     std::copy(assignment_count_buf, assignment_count_buf + k,

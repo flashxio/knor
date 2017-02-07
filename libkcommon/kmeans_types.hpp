@@ -47,6 +47,18 @@ public:
     const void print() const;
     const void write(const std::string dirname) const;
     bool operator==(const kmeans_t& other);
+
+    void set_params(const size_t nrow, const size_t ncol, const size_t iters,
+             const size_t k) {
+        this->nrow = nrow;
+        this->ncol = ncol;
+        this->iters = iters;
+        this->k = k;
+    };
+
+    void set_computed(const unsigned* assignments_buf,
+             const size_t* assignment_count_buf,
+             const std::vector<double> centroids);
 };
 } }
 #endif
