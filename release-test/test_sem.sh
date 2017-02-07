@@ -19,12 +19,14 @@ OUTDIR_IM=outdir-IM
 OUTDIR_SEM=outdir-SEM
 OUTDIR_FSEM=outdir-FSEM
 
-cd .. &&
-    echo "root_conf=$(pwd)/libsem/FlashX/flash-graph/conf/data_files.txt" >> \
-    libsem/FlashX/flash-graph/conf/run_graph.txt &&
-    echo "0:$(pwd)/release-test" >> \
-    libsem/FlashX/flash-graph/conf/data_files.txt
+set -e
 
+cd .. &&
+    # TODO: Do an SEM test
+    #echo "root_conf=$(pwd)/libsem/FlashX/flash-graph/conf/data_files.txt" >> \
+    #libsem/FlashX/flash-graph/conf/run_graph.txt &&
+    #echo "0:$(pwd)/release-test" >> \
+    #libsem/FlashX/flash-graph/conf/data_files.txt
     exec/knori test-data/matrix_r50_c5_rrw.bin 50 5 8 \
     -t none -C test-data/init_clusters_k8_c5.bin -T 2 -o $OUTDIR_IM &&
     exec/knors libsem/FlashX/flash-graph/conf/run_graph.txt\

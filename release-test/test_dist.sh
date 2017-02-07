@@ -19,6 +19,8 @@ OUTDIR_IM=outdir-IM
 OUTDIR_DM=outdir-DM
 OUTDIR_FDM=outdir-FDM
 
+set -e
+
 cd .. &&
     exec/knori test-data/matrix_r50_c5_rrw.bin 50 5 8 \
      -t none -C test-data/init_clusters_k8_c5.bin -T 2 -o $OUTDIR_IM &&
