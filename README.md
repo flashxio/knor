@@ -171,9 +171,33 @@ correctly across a cluster. Flags of note are:
 - `--map-by ppr:n:socket`, determining how processes per socket.
 
 #### knors:
+
+For semi-external memory use, users must configure the underlying user-space filesystem SAFS as described [here](https://github.com/flashxio/FlashX/wiki/FlashX-Quick-Start-Guide)
+
+For a help message:
+
 ```
-TODO: Under migration ...
+exec/knors
 ```
+
+An example of how to process with file
+`matrix_r50_c5_rrw.adj `:
+
+```
+exec/knors libsem/FlashX/flash-graph/conf/run_graph.txt test-data/matrix_r50_c5_rrw.adj 50 5 8
+```
+
+The following flags can further aid to accelerate *knors* performance.
+
+```
+-r: size of the row cache in gb
+```
+Specifies another layer within the memory hierarchy to allow for caching at the granularity of rows of data rather than a page like traditional caches. In practice a small cache of 0.5GB-1GB can accelerate the performance of 10 Million+ samples.
+
+```
+-I: row cache update interval
+```
+ The row cache lazily updates users must specify how often to refresh the cache in iterations of the algorithm. Note that as iterations proceed the cache will automatically update less frequently as computation stabilizes.
 
 ### Output file from *knor*
 
@@ -234,10 +258,8 @@ in binary format.
 ### *knors*
 
 Semi-external memory (*knors*) data is stored in row-major format with
-a leading 4KB FlashGraph header. You can convert binary data to *knors*
-format using:
-
-- TODO: coming soon ...
+a leading 4KB FlashGraph header. You can convert binary or text data to *knors* format using the `convert_matrix`
+utility.
 
 ### Data Conversion
 
