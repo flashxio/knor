@@ -53,7 +53,7 @@ modern compiler to take advantage of compile time optimizations:
 We assume users have [`git`](https://git-scm.com/) already installed.
 
 ```
-git clone git clone https://github.com/disa-mhembere/knor.git
+git clone --recursive https://github.com/disa-mhembere/knor.git
 cd knor
 ./boostrap.sh
 ```
