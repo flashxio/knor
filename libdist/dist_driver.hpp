@@ -53,6 +53,7 @@ static void run_kmeans(int argc, char* argv[],
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
     if (rank == root) {
+        printf("Init is :%s\n", init.c_str());
         if (outdir.empty())
             fprintf(stderr, "\n**[WARNING]**: No output dir specified with "
                     "'-o' flag means no output will be saved!\n");
@@ -93,26 +94,28 @@ static void run_kmeans(int argc, char* argv[],
     kpmbase::clusters::ptr cltrs_ptr = std::static_pointer_cast<
         dist_coordinator>(dc)->get_gcltrs();
 
-    if (init == "random") {
+    if (init == "random" || init == "forgy") {
         // MPI Update clusters
         kpmmpi::mpi::reduce_double(&(cltrs_ptr->get_means()[0]),
                 clstr_buff, cltrs_ptr->size());
         cltrs_ptr->set_mean(clstr_buff);
 
-        kpmmpi::mpi::reduce_size_t(&(cltrs_ptr->get_num_members_v()[0]),
-                nmemb_buff, cltrs_ptr->get_num_members_v().size());
-        cltrs_ptr->set_num_members_v(nmemb_buff); // Set new counts
-        cltrs_ptr->finalize_all();
-        // End Init
+        if (init == "random") {
+            kpmmpi::mpi::reduce_size_t(&(cltrs_ptr->get_num_members_v()[0]),
+                    nmemb_buff, cltrs_ptr->get_num_members_v().size());
+            cltrs_ptr->set_num_members_v(nmemb_buff); // Set new counts
+            cltrs_ptr->finalize_all();
+            // End Init
 
 #ifdef VERBOSE
-        BOOST_VERIFY((size_t)std::accumulate(cltrs_ptr->get_num_members_v().begin(),
-                    cltrs_ptr->get_num_members_v().end(), 0) == nrow);
-        if (rank == root) {
-            printf("New finalized centers for Proc: %d ==> \n", rank);
-            cltrs_ptr->print_means();
-        }
+            BOOST_VERIFY((size_t)std::accumulate(cltrs_ptr->get_num_members_v().begin(),
+                        cltrs_ptr->get_num_members_v().end(), 0) == nrow);
+            if (rank == root) {
+                printf("New finalized centers for Proc: %d ==> \n", rank);
+                cltrs_ptr->print_means();
+            }
 #endif
+        }
     }
 
     // EM-step iterations

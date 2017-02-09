@@ -76,6 +76,7 @@ public:
     void forgy_init() override;
     kpmbase::kmeans_t run_kmeans() override; /*Run a single iteration*/
 
+    const bool is_local(const size_t global_rid) const;
     const size_t global_rid(const size_t local_rid) const;
     const size_t local_rid(const size_t global_rid) const;
     void pp_aggregate();

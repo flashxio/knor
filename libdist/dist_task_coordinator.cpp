@@ -90,6 +90,13 @@ const size_t dist_task_coordinator::local_rid(const size_t global_rid) const {
     return rid;
 }
 
+const bool dist_task_coordinator::is_local(const size_t global_rid) const {
+    size_t rid = global_rid - (mpi_rank * (g_nrow / nprocs));
+    if (rid > this->nrow)
+        return false;
+    return true;
+}
+
 // For testing
 void const dist_task_coordinator::print_thread_data() {
     printf("\n\nProcess: %u\n", this->mpi_rank);
@@ -99,8 +106,16 @@ void const dist_task_coordinator::print_thread_data() {
 void dist_task_coordinator::kmeanspp_init() {
     throw kpmbase::not_implemented_exception();
 }
+
 void dist_task_coordinator::forgy_init() {
-    throw kpmbase::not_implemented_exception();
+    std::default_random_engine generator;
+    std::uniform_int_distribution<size_t> distribution(0, g_nrow-1);
+
+    for (unsigned clust_idx = 0; clust_idx < k; clust_idx++) { // 0...k
+        size_t gid = distribution(generator);
+        if (is_local(gid))
+            cltrs->set_mean(get_thd_data(local_rid(gid)), clust_idx);
+    }
 }
 
 kpmbase::kmeans_t dist_task_coordinator::run_kmeans() {

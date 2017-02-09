@@ -67,6 +67,7 @@ public:
     void kmeanspp_init() override;
     void random_partition_init() override;
     void forgy_init() override;
+    const bool is_local(const size_t global_rid) const;
     kpmbase::kmeans_t run_kmeans() override; /*Run a single iteration*/
 
     const size_t global_rid(const size_t local_rid) const;
