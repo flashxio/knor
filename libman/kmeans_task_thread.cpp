@@ -210,6 +210,7 @@ void kmeans_task_thread::run() {
             lock_sleep();
             break;
         case KMSPP_INIT:
+            cuml_dist = 0;
             kmspp_dist();
             request_task();
             break;
@@ -254,7 +255,10 @@ void kmeans_task_thread::wake(thread_state_t state) {
         curr_task = tasks->get_task();
         BOOST_VERIFY(curr_task->get_nrow() <= tasks->get_nrow());
 
-        meta.num_changed = 0; // Always reset at the beginning of an EM-step
+        // TODO: This is an exception to the rule & therefore not good
+        if (state == thread_state_t::EM)
+                meta.num_changed = 0; // Always reset at the beginning of an EM-step
+
         local_clusters->clear();
 
         //printf("wake: Thd: %u, Task ==> ", get_thd_id()); curr_task.print();
@@ -386,29 +390,26 @@ void kmeans_task_thread::EM_step() {
     }
 }
 
-
-
 /** Method for a distance computation vs a single cluster.
  * Used in kmeans++ init
  */
 void kmeans_task_thread::kmspp_dist() {
-    BOOST_ASSERT_MSG(false, "Unimplemented!\n");
-#if 0
-    cuml_dist = 0;
     unsigned clust_idx = meta.clust_idx;
-    for (unsigned row = 0; row < nlocal_rows; row++) {
-        unsigned true_row_id = get_global_data_id(row);
+    for (unsigned row = 0; row < curr_task->get_nrow(); row++) {
+        unsigned true_row_id = get_global_data_id(row); // TODO: Check this!!!
 
-        double dist = dist_comp_raw(&local_data[row*ncol],
-                &((g_clusters->get_means())[clust_idx*ncol]), ncol);
+        double dist = kpmbase::dist_comp_raw<double>(
+                &(curr_task->get_data_ptr()[row*ncol]),
+                &((g_clusters->get_means())[clust_idx*ncol]), ncol,
+                kpmbase::dist_type_t::EUCL);
 
         if (dist < dist_v[true_row_id]) { // Found a closer cluster than before
             dist_v[true_row_id] = dist;
             cluster_assignments[true_row_id] = clust_idx;
         }
+
         cuml_dist += dist_v[true_row_id];
     }
-#endif
 }
 
 const void kmeans_task_thread::print_local_data() const {

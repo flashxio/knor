@@ -172,7 +172,7 @@ void kmeans_task_coordinator::update_clusters(const bool prune_init) {
 double kmeans_task_coordinator::reduction_on_cuml_sum() {
     double tot = 0;
     for (thread_iter it = threads.begin(); it != threads.end(); ++it)
-        tot += (*it)->get_culm_dist();
+        tot += (*it)->get_cuml_dist();
     return tot;
 }
 
@@ -205,9 +205,11 @@ void kmeans_task_coordinator::kmeanspp_init() {
 
     cltrs->set_mean(get_thd_data(selected_idx), 0);
     dist_v[selected_idx] = 0.0;
+    cluster_assignments[selected_idx] = 0;
+
 #if KM_TEST
-    BOOST_LOG_TRIVIAL(info) << "\nChoosing "
-        << selected_idx << " as center K = 0";
+    BOOST_LOG_TRIVIAL(info) << "Choosing "
+        << selected_idx << " as center k = 0\n";
 #endif
     unsigned clust_idx = 0; // The number of clusters assigned
 
@@ -226,9 +228,10 @@ void kmeans_task_coordinator::kmeanspp_init() {
             if (cuml_dist <= 0) {
 #if KM_TEST
                 BOOST_LOG_TRIVIAL(info) << "Choosing "
-                    << row << " as center k = " << clust_idx;
+                    << row << " as center k = " << clust_idx << "\n";
 #endif
                 cltrs->set_mean(get_thd_data(row), clust_idx);
+                cluster_assignments[row] = clust_idx;
                 break;
             }
         }
@@ -237,10 +240,10 @@ void kmeans_task_coordinator::kmeanspp_init() {
 
 #if VERBOSE
     BOOST_LOG_TRIVIAL(info) << "\nCluster centers after kmeans++";
-    clusters->print_means();
+    cltrs->print_means();
 #endif
     gettimeofday(&end, NULL);
-    BOOST_LOG_TRIVIAL(info) << "\n\nInitialization time: " <<
+    BOOST_LOG_TRIVIAL(info) << "Initialization time: " <<
         kpmbase::time_diff(start, end) << " sec\n";
 }
 
@@ -338,7 +341,9 @@ kpmbase::kmeans_t kmeans_task_coordinator::run_kmeans() {
     while (iter <= max_iters) {
         BOOST_LOG_TRIVIAL(info) << "E-step Iteration: " << iter;
 
+#if KM_TEST
         BOOST_LOG_TRIVIAL(info) << "Main: Computing cluster distance matrix ...";
+#endif
         dm->compute_dist(cltrs, ncol);
 
         wake4run(EM);

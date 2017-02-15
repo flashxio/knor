@@ -181,7 +181,7 @@ public:
         meta.clust_idx = idx;
     }
 
-    const double get_culm_dist() const {
+    const double get_cuml_dist() const {
         return cuml_dist;
     }
 
