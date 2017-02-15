@@ -20,7 +20,7 @@
 
 NPROC=`nproc`
 ./install.sh
-git clone https://github.com/disa-mhembere/knor.git
+git clone --recursive https://github.com/disa-mhembere/knor.git
 cd k-par-means
 git checkout master
 make -j$NPROC
