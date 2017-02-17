@@ -106,7 +106,7 @@ const size_t dist_coordinator::local_rid(const size_t global_rid) const {
 
 const bool dist_coordinator::is_local(const size_t global_rid) const {
     size_t rid = global_rid - (mpi_rank * (g_nrow / nprocs));
-    if (rid > this->nrow)
+    if (rid >= this->nrow)
         return false;
     return true;
 }
@@ -118,7 +118,7 @@ void const dist_coordinator::print_thread_data() {
 }
 
 void dist_coordinator::kmeanspp_init() {
-    throw kpmbase::not_implemented_exception();
+    throw kpmbase::abstract_exception();
 }
 
 void dist_coordinator::forgy_init() {

@@ -74,6 +74,9 @@ public:
     const size_t local_rid(const size_t global_rid) const;
     void pp_aggregate();
     void shift_thread_start_rid();
+
+    const unsigned get_nprocs() const { return nprocs; }
+
 };
 } } // End namespace kpmeans::dist
 #endif
