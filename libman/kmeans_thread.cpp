@@ -72,6 +72,7 @@ void kmeans_thread::run() {
             numa_alloc_mem();
             break;
         case KMSPP_INIT:
+            cuml_dist = 0;
             kmspp_dist();
             break;
         case EM: /*E step of kmeans*/
@@ -184,7 +185,6 @@ void kmeans_thread::EM_step() {
  * Used in kmeans++ init
  */
 void kmeans_thread::kmspp_dist() {
-    cuml_dist = 0;
     unsigned clust_idx = meta.clust_idx;
     for (unsigned row = 0; row < nprocrows; row++) {
         unsigned true_row_id = get_global_data_id(row);
