@@ -86,17 +86,14 @@ static void run_kmeans(int argc, char* argv[],
     //      - Many messages passed
     //      - Changing order will cut some computation e.g nchanged first ..
     //////////////////////////// Algorithm /////////////////////////////////////
-    double* clstr_buff = new double[k*ncol];
-    size_t* nmemb_buff = new size_t[k];
-
     kpmbase::clusters::ptr cltrs_ptr = std::static_pointer_cast<
         dist_coordinator>(dc)->get_gcltrs();
 
     // Init
-    if (init == "kmeanspp")
-        kmeanspp(dc, nrow, cltrs_ptr, clstr_buff, k, nprocs, rank);
-    else
-        dc->run_init();
+    dc->run_init();
+
+    double* clstr_buff = new double[k*ncol];
+    size_t* nmemb_buff = new size_t[k];
 
     if (init == "random" || init == "forgy") {
         // MPI Update clusters
@@ -224,107 +221,6 @@ static void run_kmeans(int argc, char* argv[],
     delete [] nmemb_buff;
     if (p_centers) delete [] p_centers;
     MPI_Finalize();
-}
-
-static void kmeanspp(dist_coordinator::ptr dc, const size_t g_nrow,
-        kpmbase::clusters::ptr cltrs_ptr, double* buff, const size_t k,
-        const int nprocs, const int rank) {
-    struct timeval start, end;
-
-    std::vector<double> dist_v;
-    std::vector<double> g_dist_v(g_nrow);
-    dist_v.assign(dc->get_nrow(), std::numeric_limits<double>::max()); // local nrow
-    dc->set_thd_dist_v_ptr(&dist_v[0]);
-
-    // Choose c1 uniformly at random
-    unsigned selected_idx = random() % g_nrow; // 0...(g_nrow-1)
-
-    // If proc owns the row -- get it ...
-    if (std::static_pointer_cast<dist_coordinator>(dc)->is_local(selected_idx)) {
-        cltrs_ptr->set_mean(dc->get_thd_data(
-                    std::static_pointer_cast<dist_coordinator>(dc)->local_rid(
-                        selected_idx)), 0);
-        dist_v[std::static_pointer_cast<dist_coordinator>(dc)->local_rid(
-                selected_idx)] = 0.0;
-    }
-
-    kpmmpi::mpi::reduce_double(&(cltrs_ptr->get_means()[0]),
-            buff, cltrs_ptr->size());
-    cltrs_ptr->set_mean(buff);
-
-#if VERBOSE
-    BOOST_LOG_TRIVIAL(info) << "Choosing "
-        << selected_idx << " as center k = 0";
-#endif
-    unsigned clust_idx = 0; // The number of clusters assigned
-
-    // Choose next center c_i with weighted prob
-    while ((clust_idx + 1) < k) {
-        dc->set_thread_clust_idx(clust_idx); // Set the current cluster index
-        dc->wake4run(KMSPP_INIT); // Run || distance comp to clust_idx
-        dc->wait4complete();
-        double local_cuml_dist = dc->reduction_on_cuml_sum(); // Per proc cuml dists
-
-        double cuml_dist; // Recepticle
-        kpmmpi::mpi::reduce_double(&local_cuml_dist, &cuml_dist);
-
-        // All procs do this ...
-        cuml_dist = (cuml_dist * ((double)random())) / (RAND_MAX - 1.0);
-        clust_idx++;
-
-        // Gather the g_dist_v
-        kpmmpi::mpi::allgather_double(&dist_v[0],
-                &g_dist_v[0], g_nrow/nprocs);
-
-        // Gather the remaining entries from the last proc which *may* have more
-        if (g_nrow % nprocs) {
-            const size_t tail_idx = (g_nrow/nprocs);
-            const size_t numel = (g_nrow % nprocs);
-
-            if (rank == nprocs - 1)
-                std::copy(&dist_v[tail_idx], &dist_v[tail_idx+numel],
-                        &g_dist_v[g_nrow-numel]);
-
-            kpmmpi::mpi::bcast_double(&g_dist_v[g_nrow-numel], nprocs-1, numel);
-        }
-
-        for (size_t row = 0; row < g_nrow; row++) {
-            cuml_dist -= g_dist_v[row];
-            if (cuml_dist <= 0) {
-#if VERBOSE
-                if (rank == 0)
-                    BOOST_LOG_TRIVIAL(info) << "Choosing "
-                        << row << " as center k = " << clust_idx;
-#endif
-
-                if (std::static_pointer_cast<dist_coordinator>(dc)->is_local(row)) {
-                    cltrs_ptr->set_mean(dc->get_thd_data(
-                                std::static_pointer_cast<dist_coordinator>(
-                                    dc)->local_rid(row)), clust_idx);
-                } else {
-                    cltrs_ptr->clear();
-                }
-                break;
-            }
-        }
-
-        kpmmpi::mpi::reduce_double(&(cltrs_ptr->get_means()[0]),
-                buff, cltrs_ptr->size());
-        cltrs_ptr->set_mean(buff);
-        BOOST_VERIFY(cuml_dist <= 0);
-
-    }
-
-#if VERBOSE
-    if (rank == 0) {
-        BOOST_LOG_TRIVIAL(info) << "\nCluster centers after kmeans++";
-        cltrs_ptr->print_means();
-    }
-#endif
-    gettimeofday(&end, NULL);
-    if (rank == 0)
-        BOOST_LOG_TRIVIAL(info) << "Initialization time: " <<
-            kpmbase::time_diff(start, end) << " sec\n";
 }
 };
 } } // namespace kpmeans::dist

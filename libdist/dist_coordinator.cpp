@@ -25,6 +25,9 @@
 #include "kmeans_thread.hpp"
 #include "clusters.hpp"
 #include "io.hpp"
+#include "mpi.hpp"
+
+namespace kpmmpi = kpmeans::mpi;
 
 namespace kpmeans { namespace dist {
 
@@ -118,7 +121,98 @@ void const dist_coordinator::print_thread_data() {
 }
 
 void dist_coordinator::kmeanspp_init() {
-    throw kpmbase::abstract_exception();
+    struct timeval start, end;
+
+    std::vector<double> buff(k*ncol);
+    std::vector<double> dist_v;
+    std::vector<double> g_dist_v(g_nrow);
+    dist_v.assign(get_nrow(), std::numeric_limits<double>::max()); // local nrow
+    set_thd_dist_v_ptr(&dist_v[0]);
+
+    // Choose c1 uniformly at random
+    unsigned selected_idx = random() % g_nrow; // 0...(g_nrow-1)
+
+    // If proc owns the row -- get it ...
+    if (is_local(selected_idx)) {
+        cltrs->set_mean(get_thd_data(local_rid(selected_idx)), 0);
+        dist_v[local_rid(selected_idx)] = 0.0;
+    }
+
+    kpmmpi::mpi::reduce_double(&(cltrs->get_means()[0]),
+            &buff[0], cltrs->size());
+    cltrs->set_mean(&buff[0]);
+
+#if VERBOSE
+    BOOST_LOG_TRIVIAL(info) << "Choosing "
+        << selected_idx << " as center k = 0";
+#endif
+    unsigned clust_idx = 0; // The number of clusters assigned
+
+    // Choose next center c_i with weighted prob
+    while ((clust_idx + 1) < k) {
+        set_thread_clust_idx(clust_idx); // Set the current cluster index
+        wake4run(KMSPP_INIT); // Run || distance comp to clust_idx
+        wait4complete();
+        double local_cuml_dist = reduction_on_cuml_sum(); // Per proc cuml dists
+
+        double cuml_dist; // Recepticle
+        kpmmpi::mpi::reduce_double(&local_cuml_dist, &cuml_dist);
+
+        // All procs do this ...
+        cuml_dist = (cuml_dist * ((double)random())) / (RAND_MAX - 1.0);
+        clust_idx++;
+
+        // Gather the g_dist_v
+        kpmmpi::mpi::allgather_double(&dist_v[0],
+                &g_dist_v[0], g_nrow/nprocs);
+
+        // Gather the remaining entries from the last proc which *may* have more
+        if (g_nrow % nprocs) {
+            const size_t tail_idx = (g_nrow/nprocs);
+            const size_t numel = (g_nrow % nprocs);
+
+            if (mpi_rank == nprocs - 1)
+                std::copy(&dist_v[tail_idx], &dist_v[tail_idx+numel],
+                        &g_dist_v[g_nrow-numel]);
+
+            kpmmpi::mpi::bcast_double(&g_dist_v[g_nrow-numel], nprocs-1, numel);
+        }
+
+        for (size_t row = 0; row < g_nrow; row++) {
+            cuml_dist -= g_dist_v[row];
+            if (cuml_dist <= 0) {
+#if VERBOSE
+                if (mpi_rank == 0)
+                    BOOST_LOG_TRIVIAL(info) << "Choosing "
+                        << row << " as center k = " << clust_idx;
+#endif
+
+                if (is_local(row))
+                    cltrs->set_mean(get_thd_data(local_rid(row)), clust_idx);
+                else
+                    cltrs->clear();
+
+                break;
+            }
+        }
+
+        kpmmpi::mpi::reduce_double(&(cltrs->get_means()[0]),
+                &buff[0], cltrs->size());
+        cltrs->set_mean(&buff[0]);
+        BOOST_VERIFY(cuml_dist <= 0);
+
+    }
+
+#if VERBOSE
+    if (mpi_rank == 0) {
+        BOOST_LOG_TRIVIAL(info) << "\nCluster centers after kmeans++";
+        cltrs->print_means();
+    }
+#endif
+    gettimeofday(&end, NULL);
+    if (mpi_rank == 0)
+        BOOST_LOG_TRIVIAL(info) << "Initialization time: " <<
+            kpmbase::time_diff(start, end) << " sec\n";
 }
 
 void dist_coordinator::forgy_init() {
