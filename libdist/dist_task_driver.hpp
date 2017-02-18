@@ -79,6 +79,9 @@ static void run_kmeans(int argc, char* argv[],
     size_t iters = 0;
     size_t nchanged = 0;
 
+    // Init
+    dc->run_init();
+
     // TODO: - Many pointer casts
     //      - Many messages passed
     //      - Changing order will cut some computation e.g nchanged first ..
@@ -86,8 +89,6 @@ static void run_kmeans(int argc, char* argv[],
     double* clstr_buff = new double[k*ncol];
     size_t* nmemb_buff = new size_t[k];
 
-    // Init
-    dc->run_init();
     // TODO: Check cost of all the shared_ptr passing
     kpmbase::prune_clusters::ptr cltrs_ptr = std::static_pointer_cast<
         kpmprune::dist_task_coordinator>(dc)->get_gcltrs();
