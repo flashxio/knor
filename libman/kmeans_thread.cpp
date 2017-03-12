@@ -72,7 +72,6 @@ void kmeans_thread::run() {
             numa_alloc_mem();
             break;
         case KMSPP_INIT:
-            cuml_dist = 0;
             kmspp_dist();
             break;
         case EM: /*E step of kmeans*/
@@ -108,6 +107,8 @@ void kmeans_thread::wake(thread_state_t state) {
     rc = pthread_mutex_lock(&mutex);
     if (rc) perror("pthread_mutex_lock");
     set_thread_state(state);
+    if (state == thread_state_t::KMSPP_INIT)
+        cuml_dist = 0;
     rc = pthread_mutex_unlock(&mutex);
     if (rc) perror("pthread_mutex_unlock");
 
