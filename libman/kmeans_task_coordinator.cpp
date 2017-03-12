@@ -209,7 +209,7 @@ void kmeans_task_coordinator::kmeanspp_init() {
 
 #if KM_TEST
     BOOST_LOG_TRIVIAL(info) << "Choosing "
-        << selected_idx << " as center k = 0\n";
+        << selected_idx << " as center k = 0";
 #endif
     unsigned clust_idx = 0; // The number of clusters assigned
 
@@ -228,7 +228,7 @@ void kmeans_task_coordinator::kmeanspp_init() {
             if (cuml_dist <= 0) {
 #if KM_TEST
                 BOOST_LOG_TRIVIAL(info) << "Choosing "
-                    << row << " as center k = " << clust_idx << "\n";
+                    << row << " as center k = " << clust_idx;
 #endif
                 cltrs->set_mean(get_thd_data(row), clust_idx);
                 cluster_assignments[row] = clust_idx;
