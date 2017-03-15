@@ -53,8 +53,6 @@ void clusters::set_mean(const double* mean, const int idx) {
 
 void clusters::finalize(const unsigned idx) {
     if (is_complete(idx)) {
-        BOOST_LOG_TRIVIAL(info) << "WARNING: Calling finalize() on a"
-            " finalized object";
         return;
     }
 
@@ -68,8 +66,6 @@ void clusters::finalize(const unsigned idx) {
 
 void clusters::unfinalize(const unsigned idx) {
     if (!is_complete(idx)) {
-        BOOST_LOG_TRIVIAL(info) << "WARNING: Calling unfinalize() on an"
-            " UNfinalized object";
         return;
     }
     complete_v[idx] = false;

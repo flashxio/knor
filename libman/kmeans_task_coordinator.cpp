@@ -202,7 +202,6 @@ void kmeans_task_coordinator::kmeanspp_init() {
 
     // Choose c1 uniformly at random
     unsigned selected_idx = random() % nrow; // 0...(nrow-1)
-
     cltrs->set_mean(get_thd_data(selected_idx), 0);
     dist_v[selected_idx] = 0.0;
     cluster_assignments[selected_idx] = 0;
@@ -327,18 +326,24 @@ kpmbase::kmeans_t kmeans_task_coordinator::run_kmeans() {
     cltrs->print_means();
 #endif
 
-    // Init Engine
-    printf("Running init engine:\n");
-    wake4run(EM);
-    wait4complete();
-    update_clusters(true);
-    set_prune_init(false);
+    size_t iter = 0;
+
+    if (max_iters > 0) {
+        // Init Engine
+        printf("Running init engine:\n");
+        wake4run(EM);
+        wait4complete();
+        update_clusters(true);
+        set_prune_init(false);
+
+        // Run kmeans loop
+        iter = 2;
+    }
 
     num_changed = 0;
-    // Run kmeans loop
-    size_t iter = 2;
+
     bool converged = false;
-    while (iter <= max_iters) {
+    while (iter <= max_iters && max_iters > 0) {
         BOOST_LOG_TRIVIAL(info) << "E-step Iteration: " << iter;
 
 #if KM_TEST
