@@ -109,6 +109,7 @@ static void kmeanspp_init(const double* matrix, kpmbase::clusters::ptr clusters,
 
     clusters->set_mean(&matrix[selected_idx*NUM_COLS], 0);
     dist_v[selected_idx] = 0.0;
+    cluster_assignments[selected_idx] = 0;
 
 #if KM_TEST
     BOOST_LOG_TRIVIAL(info) << "\nChoosing "
@@ -143,6 +144,7 @@ static void kmeanspp_init(const double* matrix, kpmbase::clusters::ptr clusters,
                 BOOST_LOG_TRIVIAL(info) << "Choosing "
                     << i << " as center K = " << clust_idx;
 #endif
+                cluster_assignments[i] = clust_idx;
                 clusters->set_mean(&(matrix[i*NUM_COLS]), clust_idx);
                 break;
             }
@@ -335,7 +337,10 @@ kpmbase::kmeans_t compute_kmeans(const double* matrix, double* clusters_ptr,
         "until convergence ...":
         std::to_string(MAX_ITERS) + " iterations ...";
     BOOST_LOG_TRIVIAL(info) << "Computing " << str_iters;
-    size_t iter = 1;
+
+    size_t iter = 0;
+    if (MAX_ITERS > 0)
+        iter++;
 
     while (iter < MAX_ITERS) {
         // Hold cluster assignment counter

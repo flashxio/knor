@@ -122,6 +122,7 @@ static void kmeanspp_init(const double* matrix,
 
     clusters->set_mean(&matrix[selected_idx*NUM_COLS], 0);
     dist_v[selected_idx] = 0.0;
+    cluster_assignments[selected_idx] = 0;
 
 #if KM_TEST
     BOOST_LOG_TRIVIAL(info) << "\nChoosing "
@@ -136,7 +137,6 @@ static void kmeanspp_init(const double* matrix,
 #pragma omp parallel for reduction(+:cum_dist) shared (dist_v, cluster_assignments)
         for (size_t row = 0; row < NUM_ROWS; row++) {
             // Prune in kms++ possible using
-            // if (div_v[row] > dm->get(cluster_assignments[row], clust_idx) {
             double dist = dist_comp_raw(&matrix[row*NUM_COLS],
                     &((clusters->get_means())[clust_idx*NUM_COLS]),
                     NUM_COLS, g_dist_type);
@@ -145,7 +145,6 @@ static void kmeanspp_init(const double* matrix,
                 dist_v[row] = dist;
                 cluster_assignments[row] = clust_idx;
             }
-            //}
             cum_dist += dist_v[row];
         }
 
@@ -159,6 +158,7 @@ static void kmeanspp_init(const double* matrix,
                 BOOST_LOG_TRIVIAL(info) << "Choosing "
                     << i << " as center K = " << clust_idx;
 #endif
+                cluster_assignments[i] = clust_idx;
                 clusters->set_mean(&(matrix[i*NUM_COLS]), clust_idx);
                 break;
             }
@@ -415,10 +415,12 @@ kpmbase::kmeans_t compute_min_kmeans(const double* matrix, double* clusters_ptr,
 
     BOOST_LOG_TRIVIAL(info) << "Init is '" << init << "'";
 
-    BOOST_LOG_TRIVIAL(info) << "Running INIT engine:";
-    EM_step(matrix, clusters, cluster_assignments,
-            cluster_assignment_counts, recalculated_v,
-            dist_v, dm, true);
+    if (MAX_ITERS > 0) {
+        BOOST_LOG_TRIVIAL(info) << "Running INIT engine:";
+        EM_step(matrix, clusters, cluster_assignments,
+                cluster_assignment_counts, recalculated_v,
+                dist_v, dm, true);
+    }
 #if KM_TEST
         printf("Cluster assignment counts: ");
         print_arr(cluster_assignment_counts, K);
@@ -432,7 +434,10 @@ kpmbase::kmeans_t compute_min_kmeans(const double* matrix, double* clusters_ptr,
         "until convergence ...":
         std::to_string(MAX_ITERS) + " iterations ...";
     BOOST_LOG_TRIVIAL(info) << "Computing " << str_iters;
-    size_t iter = 2;
+
+    size_t iter = 0;
+    if (MAX_ITERS > 0)
+        iter = 2;
 
     while (iter < MAX_ITERS) {
         // Hold cluster assignment counter
