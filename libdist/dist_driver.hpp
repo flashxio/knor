@@ -120,7 +120,7 @@ static void run_kmeans(int argc, char* argv[],
     }
 
     // EM-step iterations
-    while (iters < max_iters) {
+    while (iters < max_iters && max_iters > 0) {
         // Init iteration
         if (rank == root)
             printf("Running iteration %lu ...\n", iters);

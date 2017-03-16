@@ -118,7 +118,7 @@ static void run_kmeans(int argc, char* argv[],
     }
 
     // EM-step iterations
-    while (iters < max_iters) {
+    while (iters < max_iters && max_iters > 0) {
         if (iters == 1)
             std::static_pointer_cast<kpmprune::
                 dist_task_coordinator>(dc)->set_prune_init(false);

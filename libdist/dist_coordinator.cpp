@@ -136,6 +136,7 @@ void dist_coordinator::kmeanspp_init() {
     if (is_local(selected_idx)) {
         cltrs->set_mean(get_thd_data(local_rid(selected_idx)), 0);
         dist_v[local_rid(selected_idx)] = 0.0;
+        cluster_assignments[local_rid(selected_idx)] = 0;
     }
 
     kpmmpi::mpi::reduce_double(&(cltrs->get_means()[0]),
@@ -187,10 +188,12 @@ void dist_coordinator::kmeanspp_init() {
                         << row << " as center k = " << clust_idx;
 #endif
 
-                if (is_local(row))
+                if (is_local(row)) {
                     cltrs->set_mean(get_thd_data(local_rid(row)), clust_idx);
-                else
+                    cluster_assignments[local_rid(row)] = clust_idx;
+                } else {
                     cltrs->clear();
+                }
 
                 break;
             }
@@ -200,7 +203,6 @@ void dist_coordinator::kmeanspp_init() {
                 &buff[0], cltrs->size());
         cltrs->set_mean(&buff[0]);
         BOOST_VERIFY(cuml_dist <= 0);
-
     }
 
 #if VERBOSE
