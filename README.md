@@ -62,6 +62,13 @@ cd knor
 
 Users can also choose to use a Docker container to run *knor*.
 
+**Mac Docker Users NOTE:**
+
+* You must use the `-O` flag for *knori* and *knord* to use
+OpenMP due to a lack of hardware support for our optimizations.
+* *knors* for Mac is unsupported due to the lack of support for low-level
+interfaces.
+
 #### Quick docker image (Stable release)
 
 Users can get a version that is stable, but possibly not up to date as follows:
