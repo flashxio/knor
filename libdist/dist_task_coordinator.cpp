@@ -119,7 +119,7 @@ void dist_task_coordinator::kmeanspp_init() {
     // If proc owns the row -- get it ...
     if (is_local(selected_idx)) {
         cltrs->set_mean(get_thd_data(local_rid(selected_idx)), 0);
-        dist_v[local_rid(selected_idx)] = 0.0;
+        dist_v[local_rid(selected_idx)] = 0;
         cluster_assignments[local_rid(selected_idx)] = 0;
     }
 
@@ -135,7 +135,7 @@ void dist_task_coordinator::kmeanspp_init() {
     unsigned clust_idx = 0; // The number of clusters assigned
 
     // Choose next center c_i with weighted prob
-    while ((clust_idx + 1) < k) {
+    while (true) {
         set_thread_clust_idx(clust_idx); // Set the current cluster index
         wake4run(KMSPP_INIT); // Run || distance comp to clust_idx
         wait4complete();
@@ -146,7 +146,8 @@ void dist_task_coordinator::kmeanspp_init() {
 
         // All procs do this ...
         cuml_dist = (cuml_dist * ((double)random())) / (RAND_MAX - 1.0);
-        clust_idx++;
+        if (++clust_idx >= k)  // No more centers needed
+            break;
 
         // Gather the g_dist_v
         kpmmpi::mpi::allgather_double(&dist_v[0],
@@ -176,6 +177,7 @@ void dist_task_coordinator::kmeanspp_init() {
                 if (is_local(row)) {
                     cltrs->set_mean(get_thd_data(local_rid(row)), clust_idx);
                     cluster_assignments[local_rid(row)] = clust_idx;
+                    dist_v[local_rid(row)] = 0;
                 } else {
                     cltrs->clear();
                 }

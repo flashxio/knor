@@ -121,6 +121,9 @@ static void run_kmeans(int argc, char* argv[],
 
     // EM-step iterations
     while (iters < max_iters && max_iters > 0) {
+        if (iters == 0)
+            dc->clear_cluster_assignments();
+
         // Init iteration
         if (rank == root)
             printf("Running iteration %lu ...\n", iters);

@@ -150,7 +150,7 @@ void dist_coordinator::kmeanspp_init() {
     unsigned clust_idx = 0; // The number of clusters assigned
 
     // Choose next center c_i with weighted prob
-    while ((clust_idx + 1) < k) {
+    while (true) {
         set_thread_clust_idx(clust_idx); // Set the current cluster index
         wake4run(KMSPP_INIT); // Run || distance comp to clust_idx
         wait4complete();
@@ -161,7 +161,8 @@ void dist_coordinator::kmeanspp_init() {
 
         // All procs do this ...
         cuml_dist = (cuml_dist * ((double)random())) / (RAND_MAX - 1.0);
-        clust_idx++;
+        if (++clust_idx >= k)  // No more centers needed
+            break;
 
         // Gather the g_dist_v
         kpmmpi::mpi::allgather_double(&dist_v[0],
