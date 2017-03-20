@@ -21,7 +21,6 @@
 #define __KPM_KMEANS_THREAD_HPP__
 
 #include "base_kmeans_thread.hpp"
-#include "thread_state.hpp"
 
 namespace kpmeans { namespace base {
     class clusters;

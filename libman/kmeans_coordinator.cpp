@@ -19,6 +19,8 @@
 
 #include <random>
 
+#include <boost/log/trivial.hpp>
+
 #include "kmeans_coordinator.hpp"
 #include "kmeans_thread.hpp"
 #include "util.hpp"
@@ -173,14 +175,15 @@ void kmeans_coordinator::kmeanspp_init() {
     unsigned clust_idx = 0; // The number of clusters assigned
 
     // Choose next center c_i with weighted prob
-    while ((clust_idx + 1) < k) {
+    while (true) {
         set_thread_clust_idx(clust_idx); // Set the current cluster index
         wake4run(KMSPP_INIT); // Run || distance comp to clust_idx
         wait4complete();
         double cuml_dist = reduction_on_cuml_sum(); // Sum the per thread cumulative dists
 
         cuml_dist = (cuml_dist * ((double)random())) / (RAND_MAX - 1.0);
-        clust_idx++;
+        if (++clust_idx >= k)  // No more centers needed
+            break;
 
         for (size_t row = 0; row < nrow; row++) {
             cuml_dist -= dist_v[row];
@@ -279,6 +282,9 @@ kpmbase::kmeans_t kmeans_coordinator::run_kmeans() {
         iter++;
 
     while (iter <= max_iters && max_iters > 0) {
+        if (iter == 1)
+            clear_cluster_assignments();
+
         BOOST_LOG_TRIVIAL(info) << "E-step Iteration: " << iter;
         wake4run(EM);
         wait4complete();

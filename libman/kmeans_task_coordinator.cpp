@@ -21,6 +21,8 @@
 #include <gperftools/profiler.h>
 #endif
 
+#include <boost/log/trivial.hpp>
+
 #include <random>
 #include "kmeans_task_coordinator.hpp"
 #include "kmeans_task_thread.hpp"
@@ -49,7 +51,7 @@ kmeans_task_coordinator::kmeans_task_coordinator(const std::string fn, const siz
         // For pruning
         recalculated_v = kpmbase::thd_safe_bool_vector::create(nrow, false);
         dist_v = new double[nrow];
-        std::fill(&dist_v[0], &dist_v[nrow], std::numeric_limits<double>::max());
+        std::fill(dist_v, dist_v+nrow, std::numeric_limits<double>::max());
         dm = prune::dist_matrix::create(k);
         build_thread_state();
 }
@@ -213,14 +215,15 @@ void kmeans_task_coordinator::kmeanspp_init() {
     unsigned clust_idx = 0; // The number of clusters assigned
 
     // Choose next center c_i with weighted prob
-    while ((clust_idx + 1) < k) {
+    while (true) {
         set_thread_clust_idx(clust_idx); // Set the current cluster index
         wake4run(KMSPP_INIT); // Run || distance comp to clust_idx
         wait4complete();
         double cuml_dist = reduction_on_cuml_sum(); // Sum the per thread cumulative dists
 
         cuml_dist = (cuml_dist * ((double)random())) / (RAND_MAX - 1.0);
-        clust_idx++;
+        if (++clust_idx >= k)  // No more centers needed
+            break;
 
         for (size_t row = 0; row < nrow; row++) {
             cuml_dist -= dist_v[row];
