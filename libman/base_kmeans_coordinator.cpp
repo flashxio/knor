@@ -52,10 +52,9 @@ base_kmeans_coordinator::base_kmeans_coordinator(const std::string fn,
     BOOST_VERIFY(cluster_assignments = new unsigned [nrow]);
     BOOST_VERIFY(cluster_assignment_counts = new size_t [k]);
 
-    std::fill(&cluster_assignments[0],
-            (&cluster_assignments[0])+nrow, -1);
-    std::fill(&cluster_assignment_counts[0],
-            (&cluster_assignment_counts[0])+k, 0);
+    clear_cluster_assignments();
+    std::fill(cluster_assignment_counts,
+            cluster_assignment_counts+k, 0);
 
     // Threading
     pending_threads = 0; // NOTE: This must be initialized

@@ -100,6 +100,11 @@ public:
     const unsigned* get_cluster_assignments() const {
         return cluster_assignments;
     }
+
+    void clear_cluster_assignments() {
+        std::fill(cluster_assignments,
+                cluster_assignments+nrow, kpmbase::INVALID_CLUSTER_ID);
+    }
     const size_t get_nrow() { return nrow; }
     const size_t get_ncol() { return ncol; }
 };
