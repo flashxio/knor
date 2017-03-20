@@ -132,7 +132,7 @@ static void kmeanspp_init(const double* matrix,
     unsigned clust_idx = 0; // The number of clusters assigned
 
     // Choose next center c_i with weighted prob
-    while ((clust_idx + 1) < K) {
+    while (true) {
         double cum_dist = 0;
 #pragma omp parallel for reduction(+:cum_dist) shared (dist_v, cluster_assignments)
         for (size_t row = 0; row < NUM_ROWS; row++) {
@@ -149,7 +149,8 @@ static void kmeanspp_init(const double* matrix,
         }
 
         cum_dist = (cum_dist * ((double)random())) / (RAND_MAX - 1.0);
-        clust_idx++;
+        if (++clust_idx >= K)  // No more centers needed
+            break;
 
         for (size_t i = 0; i < NUM_ROWS; i++) {
             cum_dist -= dist_v[i];
@@ -355,8 +356,9 @@ kpmbase::kmeans_t compute_min_kmeans(const double* matrix, double* clusters_ptr,
 
     gettimeofday(&start , NULL);
     /*** Begin VarInit of data structures ***/
-    std::fill(&cluster_assignments[0], (&cluster_assignments[0])+NUM_ROWS, -1);
-    std::fill(&cluster_assignment_counts[0], (&cluster_assignment_counts[0])+K, 0);
+    std::fill(cluster_assignments, cluster_assignments+NUM_ROWS,
+            kpmbase::INVALID_CLUSTER_ID);
+    std::fill(cluster_assignment_counts, cluster_assignment_counts+K, 0);
 
     kpmbase::prune_clusters::ptr clusters =
         kpmbase::prune_clusters::create(K, NUM_COLS);
