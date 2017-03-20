@@ -19,22 +19,12 @@
 #ifndef __KPM_KMEANS_COORDINATOR_HPP__
 #define __KPM_KMEANS_COORDINATOR_HPP__
 
-#include <vector>
-#include <unordered_map>
-#include <memory>
-
-#include <boost/log/trivial.hpp>
-
 #include "base_kmeans_coordinator.hpp"
-#include "kmeans_types.hpp"
-#include "thread_state.hpp"
 #include "util.hpp"
 
 #ifdef PROFILER
 #include <gperftools/profiler.h>
 #endif
-
-namespace kpmbase = kpmeans::base;
 
 namespace kpmeans {
 class base_kmeans_thread;

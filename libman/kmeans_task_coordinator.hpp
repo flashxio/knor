@@ -19,13 +19,7 @@
 #ifndef __KPM_KMEANS_TASK_COORDINATOR_HPP__
 #define __KPM_KMEANS_TASK_COORDINATOR_HPP__
 
-#include <vector>
-#include <unordered_map>
-#include <memory>
-
-#include <boost/log/trivial.hpp>
 #include "base_kmeans_coordinator.hpp"
-#include "kmeans_types.hpp"
 #include "util.hpp"
 
 namespace kpmeans {
