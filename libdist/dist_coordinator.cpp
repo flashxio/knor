@@ -26,23 +26,22 @@
 #include "clusters.hpp"
 #include "io.hpp"
 #include "mpi.hpp"
+#include "kmeans_types.hpp"
 
 namespace kpmmpi = kpmeans::mpi;
 
 namespace kpmeans { namespace dist {
 
 dist_coordinator::dist_coordinator(
+        int argc, char* argv[],
         const std::string fn, const size_t nrow,
         const size_t ncol, const unsigned k, const unsigned max_iters,
         const unsigned nnodes, const unsigned nthreads,
-        const unsigned mpi_rank, const unsigned nprocs,
         const double* centers, const kpmbase::init_type_t it,
         const double tolerance, const kpmbase::dist_type_t dt) :
-    kmeans_coordinator(fn, get_proc_rows(nrow, nprocs, mpi_rank),
-            ncol, k, max_iters, nnodes, nthreads, centers, it, tolerance, dt) {
+    kmeans_coordinator(fn, this->init(argc, argv, nrow), ncol, k, max_iters, nnodes,
+            nthreads, centers, it, tolerance, dt) {
 
-        this->mpi_rank = mpi_rank;
-        this->nprocs = nprocs;
         this->g_nrow = nrow;
 
         for (thread_iter it = threads.begin(); it < threads.end(); ++it)
@@ -51,11 +50,20 @@ dist_coordinator::dist_coordinator(
 }
 
 /**
+  * A method called prior to calling the superclass constructor.
   * This takes the global number of samples in the *entire* dataset, `g_nrow'
-  *     and gives the coordinator it's partion.
+  *     and gives the coordinator it's partition.
+  * \param g_nrow: the global number of rows
+  * \return the local number of rows for this process
   */
-size_t const dist_coordinator::get_proc_rows(const size_t g_nrow,
-        const unsigned nprocs, const unsigned mpi_rank) const {
+const size_t dist_coordinator::init(int argc, char* argv[],
+        const size_t g_nrow) {
+    if (MPI_Init(&argc, &argv) != MPI_SUCCESS)
+        throw std::runtime_error("MPI_Init error\n");
+
+    MPI_Comm_size(MPI_COMM_WORLD, &nprocs); // Set the num_procs
+    MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
+
     if (mpi_rank == (nprocs - 1)) // The last proc always has more
         return (g_nrow / nprocs) + (g_nrow % nprocs);
     else
@@ -229,8 +237,170 @@ void dist_coordinator::forgy_init() {
     }
 }
 
-kpmbase::kmeans_t dist_coordinator::run_kmeans() {
-    throw kpmbase::not_implemented_exception();
+void dist_coordinator::run_kmeans(kpmbase::kmeans_t& ret,
+        const std::string outdir) {
+    if (mpi_rank == root) {
+        if (outdir.empty())
+            fprintf(stderr, "\n**[WARNING]**: No output dir specified with "
+                    "'-o' flag means no output will be saved!\n");
+
+        BOOST_LOG_TRIVIAL(info) << "Running FULL kmeans\n";
+    }
+
+    // Give processes their data
+    wake4run(kpmeans::thread_state_t::ALLOC_DATA);
+    wait4complete();
+
+    shift_thread_start_rid();
+
+    struct timeval start, end;
+    gettimeofday(&start , NULL);
+
+    // Var init
+    double perc_changed = std::numeric_limits<double>::max();
+    bool converged = false;
+    size_t iters = 0;
+    size_t nchanged = 0;
+
+    kpmbase::clusters::ptr cltrs_ptr = get_gcltrs();
+
+    // Init
+    run_init();
+
+    double* clstr_buff = new double[k*ncol];
+    size_t* nmemb_buff = new size_t[k];
+
+    if (_init_t == kpmbase::init_type_t::RANDOM ||
+            _init_t == kpmbase::init_type_t::FORGY) {
+        // MPI Update clusters
+        kpmmpi::mpi::reduce_double(&(cltrs_ptr->get_means()[0]),
+                clstr_buff, cltrs_ptr->size());
+        cltrs_ptr->set_mean(clstr_buff);
+
+        if (_init_t == kpmbase::init_type_t::RANDOM) {
+            kpmmpi::mpi::reduce_size_t(&(cltrs_ptr->get_num_members_v()[0]),
+                    nmemb_buff, cltrs_ptr->get_num_members_v().size());
+            cltrs_ptr->set_num_members_v(nmemb_buff); // Set new counts
+            cltrs_ptr->finalize_all();
+            // End Init
+
+#ifdef VERBOSE
+            BOOST_VERIFY((size_t)std::accumulate(cltrs_ptr->get_num_members_v().begin(),
+                        cltrs_ptr->get_num_members_v().end(), 0) == g_nrow);
+            if (mpi_rank == root) {
+                printf("New finalized centers for Proc: %d ==> \n", mpi_rank);
+                cltrs_ptr->print_means();
+            }
+#endif
+        }
+    }
+
+    // EM-step iterations
+    while (iters < max_iters && max_iters > 0) {
+        if (iters == 0)
+            clear_cluster_assignments();
+
+        // Init iteration
+        if (mpi_rank == root)
+            printf("Running iteration %lu ...\n", iters);
+
+        wake4run(kpmeans::thread_state_t::EM);
+        wait4complete();
+        // NOTE: Unfinalized diffs on this proc
+
+        pp_aggregate();
+
+        // NOTE: cltrs_ptr has this procs diff (agg of threads from this proc)
+        // NOTE: clstr_buff has agg of all procs diff
+        kpmmpi::mpi::reduce_double(&(cltrs_ptr->get_means()[0]),
+                clstr_buff, cltrs_ptr->size());
+
+        // nmemb_buff has agg of all procs diff on membership count
+        kpmmpi::mpi::reduce_size_t(&(cltrs_ptr->get_num_members_v()[0]),
+                nmemb_buff, cltrs_ptr->get_num_members_v().size());
+        cltrs_ptr->set_mean(clstr_buff);
+        cltrs_ptr->set_num_members_v(nmemb_buff);
+
+        // NOTE: Now finalized
+        size_t pp_num_changed = get_num_changed();
+        kpmmpi::mpi::reduce_size_t(&pp_num_changed, &nchanged);
+
+        if (mpi_rank == root) {
+            printf("Global nchanged: %lu ...\n", nchanged);
+            cltrs_ptr->print_membership_count();
+        }
+
+        BOOST_VERIFY((size_t)std::accumulate(
+                    cltrs_ptr->get_num_members_v().begin(),
+                    cltrs_ptr->get_num_members_v().end(), 0) == g_nrow);
+
+        perc_changed = (double)nchanged/g_nrow; // Global perc change
+        cltrs_ptr->finalize_all();
+
+        if (nchanged == 0 || perc_changed <= tolerance) {
+            converged = true;
+            if (mpi_rank == root)
+                printf("Algorithm converged in %lu iterations!\n", (++iters));
+            break;
+        }
+
+        nchanged = 0;
+        iters++;
+    }
+
+    if (!converged && mpi_rank == root)
+        printf("Algorithm failed to converge in %lu iterations\n", iters);
+
+    gettimeofday(&end, NULL);
+    if (mpi_rank == root)
+        printf("\nAlgorithmic time taken = %.5f sec\n",
+                kpmbase::time_diff(start, end));
+
+    if (!outdir.empty()) {
+        // Collect cluster assignments
+        const unsigned* local_assignments = get_cluster_assignments();
+
+        if (mpi_rank != root) {
+            int rc = MPI_Ssend(local_assignments, get_nrow(),
+                    MPI::UNSIGNED, root, 0, MPI_COMM_WORLD);
+            BOOST_ASSERT_MSG(!rc, "Failure to send local assignments to root");
+        } else {
+            std::vector<unsigned> assignments(g_nrow);
+            std::copy(local_assignments, local_assignments+get_nrow(),
+                    assignments.begin());
+
+            for (int pid = 1; pid < int(nprocs); pid++) {
+                // Account for an uneven # of rows per process
+                unsigned count;
+                if (pid == (nprocs - 1))
+                    count = get_nrow() + (g_nrow % nprocs);
+                else
+                    count = get_nrow();
+
+                int rc = MPI_Recv(&assignments[pid*(g_nrow/nprocs)],
+                        count, MPI::UNSIGNED, pid,
+                        0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+                BOOST_ASSERT_MSG(!rc, "Root Failure receive local assignments");
+            }
+
+            ret = kpmbase::kmeans_t(g_nrow, ncol, iters, k, &assignments[0],
+                    &(cltrs_ptr->get_num_members_v()[0]),
+                    cltrs_ptr->get_means());
+
+            if (!outdir.empty()) {
+                printf("\nWriting output to '%s'\n", outdir.c_str());
+                ret.write(outdir);
+            }
+        }
+    }
+
+    // MPI cleanup and graceful exit
+    delete [] clstr_buff;
+    delete [] nmemb_buff;
+}
+
+dist_coordinator::~dist_coordinator() {
+    MPI_Finalize();
 }
 
 // Aggregate per process from threads &
