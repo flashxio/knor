@@ -24,32 +24,27 @@
 
 namespace kpmeans { namespace prune {
 
+constexpr unsigned root = 0;
+
 class dist_task_coordinator : public kpmprune::kmeans_task_coordinator {
 private:
-    dist_task_coordinator(const std::string fn, const size_t nrow,
-            const size_t ncol, const unsigned k, const unsigned max_iters,
-            const unsigned nnodes, const unsigned nthreads,
-            const unsigned mpi_rank, const unsigned nprocs,
-            const double* centers, const kpmbase::init_type_t it,
-            const double tolerance, const kpmbase::dist_type_t dt);
-
-    unsigned mpi_rank;
-    unsigned nprocs;
-    size_t g_nrow;
-    std::vector<size_t> prev_num_members;
-
-    /* NOTE
-        nrow: The number of rows LOCAL to the process
-    */
-    size_t const get_proc_rows(const size_t g_nrow,
-            const unsigned nprocs, const unsigned mpi_rank) const;
-
-public:
-    static base_kmeans_coordinator::ptr create(
+    dist_task_coordinator(int argc, char* argv[],
             const std::string fn, const size_t nrow,
             const size_t ncol, const unsigned k, const unsigned max_iters,
             const unsigned nnodes, const unsigned nthreads,
-            const unsigned mpi_rank, const unsigned nprocs,
+            const double* centers, const kpmbase::init_type_t it,
+            const double tolerance, const kpmbase::dist_type_t dt);
+
+    int mpi_rank;
+    int nprocs;
+    size_t g_nrow;
+    std::vector<size_t> prev_num_members;
+
+public:
+    static base_kmeans_coordinator::ptr create(int argc, char* argv[],
+            const std::string fn, const size_t nrow,
+            const size_t ncol, const unsigned k, const unsigned max_iters,
+            const unsigned nnodes, const unsigned nthreads,
             const double* centers=NULL, const std::string init="kmeanspp",
             const double tolerance=-1, const std::string dist_type="eucl") {
 
@@ -63,8 +58,8 @@ public:
                 dist_type.c_str(), fn.c_str());
 #endif
         return base_kmeans_coordinator::ptr(
-                new dist_task_coordinator(fn, nrow, ncol, k, max_iters,
-                    nnodes, nthreads, mpi_rank, nprocs, centers,
+                new dist_task_coordinator(argc, argv, fn, nrow, ncol, k,
+                    max_iters, nnodes, nthreads, centers,
                     _init_t, tolerance, _dist_t));
     }
 
@@ -74,14 +69,18 @@ public:
     void kmeanspp_init() override;
     void random_partition_init() override;
     void forgy_init() override;
-    kpmbase::kmeans_t run_kmeans() override; /*Run a single iteration*/
+    void run_kmeans(kpmbase::kmeans_t& ret, const std::string outdir="");
 
+    const bool is_local(const size_t global_rid) const;
     const size_t global_rid(const size_t local_rid) const;
     const size_t local_rid(const size_t global_rid) const;
     void pp_aggregate();
     std::vector<size_t>& get_prev_num_members() {
         return prev_num_members;
     }
+    const int get_nprocs() const { return nprocs; }
+    const size_t init(int argc, char* argv[], const size_t g_nrow);
+    ~dist_task_coordinator();
 };
 } } // End namespace kpmeans, prune
 #endif

@@ -21,7 +21,6 @@
 #define __KPM_KMEANS_THREAD_HPP__
 
 #include "base_kmeans_thread.hpp"
-#include "thread_state.hpp"
 
 namespace kpmeans { namespace base {
     class clusters;
@@ -36,9 +35,11 @@ class kmeans_thread : public base_kmeans_thread {
         std::shared_ptr<kpmbase::clusters> g_clusters;
         unsigned nprocrows; // How many rows to process
 
-        kmeans_thread(const int node_id, const unsigned thd_id, const unsigned start_rid,
-                const unsigned nprocrows, const unsigned ncol,
-                std::shared_ptr<kpmbase::clusters> g_clusters, unsigned* cluster_assignments,
+        kmeans_thread(const int node_id, const unsigned thd_id,
+                const unsigned start_rid, const unsigned nprocrows,
+                const unsigned ncol,
+                std::shared_ptr<kpmbase::clusters> g_clusters,
+                unsigned* cluster_assignments,
                 const std::string fn);
     public:
         static base_kmeans_thread::ptr create(

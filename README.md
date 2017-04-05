@@ -53,7 +53,7 @@ modern compiler to take advantage of compile time optimizations:
 We assume users have [`git`](https://git-scm.com/) already installed.
 
 ```
-git clone git clone https://github.com/disa-mhembere/knor.git
+git clone --recursive https://github.com/disa-mhembere/knor.git
 cd knor
 ./boostrap.sh
 ```
@@ -61,6 +61,13 @@ cd knor
 ### Docker -- Run in a Container
 
 Users can also choose to use a Docker container to run *knor*.
+
+**Mac Docker Users NOTE:**
+
+* You must use the `-O` flag for *knori* and *knord* to use
+OpenMP due to a lack of hardware support for our optimizations.
+* *knors* for Mac is unsupported due to the lack of support for low-level
+interfaces.
 
 #### Quick docker image (Stable release)
 

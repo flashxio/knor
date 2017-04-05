@@ -107,6 +107,8 @@ void kmeans_thread::wake(thread_state_t state) {
     rc = pthread_mutex_lock(&mutex);
     if (rc) perror("pthread_mutex_lock");
     set_thread_state(state);
+    if (state == thread_state_t::KMSPP_INIT)
+        cuml_dist = 0;
     rc = pthread_mutex_unlock(&mutex);
     if (rc) perror("pthread_mutex_unlock");
 
@@ -184,7 +186,6 @@ void kmeans_thread::EM_step() {
  * Used in kmeans++ init
  */
 void kmeans_thread::kmspp_dist() {
-    cuml_dist = 0;
     unsigned clust_idx = meta.clust_idx;
     for (unsigned row = 0; row < nprocrows; row++) {
         unsigned true_row_id = get_global_data_id(row);

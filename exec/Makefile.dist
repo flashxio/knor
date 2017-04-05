@@ -24,4 +24,4 @@ DIST_FLAGS := -L../libdist -ldist
 all: knord
 
 knord: knord.o
-	$(CXX) -o knord knord.o $(LDFLAGS) $(DIST_FLAGS)
+	$(CXX) -o knord knord.o $(DIST_FLAGS) $(LDFLAGS)

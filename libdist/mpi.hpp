@@ -56,6 +56,22 @@ public:
                     , ret);
     }
 
+    static void allgather_double(const double* send_buff,
+            double* recv_buff, const size_t numel) {
+        int ret = MPI_Allgather(
+                send_buff, numel, MPI_DOUBLE, recv_buff,
+                numel, MPI_DOUBLE, MPI_COMM_WORLD);
+        if (ret)
+            throw kpmbase::mpi_exception("All gather failure in double", ret);
+    }
+
+    static void bcast_double(double* buffer, const int pid,
+            const size_t numel) {
+        int ret = MPI_Bcast(buffer, numel, MPI_DOUBLE, pid, MPI_COMM_WORLD);
+        if (ret)
+            throw kpmbase::mpi_exception("Bcast failure in double", ret);
+    }
+
     // Merge the per-process cluster assingments so it can be returned in 1 proc
     void merge_global_assignments() { /*FIXME*/ }
 };

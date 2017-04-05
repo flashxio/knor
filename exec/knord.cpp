@@ -18,10 +18,12 @@
  */
 
 
+#include <numa.h>
+
 #include "signal.h"
 
-#include "dist_task_driver.hpp"
-#include "dist_driver.hpp"
+#include "dist_task_coordinator.hpp"
+#include "dist_coordinator.hpp"
 #include "io.hpp"
 
 static int rank;
@@ -123,15 +125,23 @@ int main(int argc, char* argv[]) {
 
     kpmbase::kmeans_t ret; // Only root fills this
 
-    if (no_prune)
-        kpmeans::dist::driver::run_kmeans(argc, argv,
-                datafn, nrow, ncol, k, max_iters, nnodes, nthread, ret,
-                p_centers, init, tolerance, dist_type, outdir);
-    else
-        kpmeans::prune::driver::run_kmeans(argc, argv,
-                datafn, nrow, ncol, k, max_iters, nnodes, nthread, ret,
-                p_centers, init, tolerance, dist_type, outdir);
+    if (no_prune) {
+        kpmeans::dist::dist_coordinator::ptr dc =
+            kpmeans::dist::dist_coordinator::create(argc, argv,
+                    datafn, nrow, ncol, k, max_iters, nnodes, nthread,
+                    p_centers, init, tolerance, dist_type);
+        std::static_pointer_cast<kpmeans::dist::dist_coordinator>(
+                dc)->run_kmeans(ret, outdir);
+    } else {
+        kpmeans::prune::dist_task_coordinator::ptr dc =
+            kpmeans::prune::dist_task_coordinator::create(argc, argv,
+                    datafn, nrow, ncol, k, max_iters, nnodes, nthread,
+                    p_centers, init, tolerance, dist_type);
+        std::static_pointer_cast<kpmeans::prune::dist_task_coordinator>(
+                dc)->run_kmeans(ret, outdir);
+    }
 
+    if (p_centers) delete [] p_centers;
     return EXIT_SUCCESS;
 }
 

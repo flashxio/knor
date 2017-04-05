@@ -19,6 +19,8 @@
 
 #include <random>
 
+#include <boost/log/trivial.hpp>
+
 #include "kmeans_coordinator.hpp"
 #include "kmeans_thread.hpp"
 #include "util.hpp"
@@ -129,7 +131,7 @@ void kmeans_coordinator::update_clusters() {
 double kmeans_coordinator::reduction_on_cuml_sum() {
     double tot = 0;
     for (thread_iter it = threads.begin(); it != threads.end(); ++it)
-        tot += (*it)->get_culm_dist();
+        tot += (*it)->get_cuml_dist();
     return tot;
 }
 
@@ -162,24 +164,26 @@ void kmeans_coordinator::kmeanspp_init() {
 
     // Choose c1 uniformly at random
     unsigned selected_idx = random() % nrow; // 0...(nrow-1)
-
     cltrs->set_mean(get_thd_data(selected_idx), 0);
     dist_v[selected_idx] = 0.0;
+    cluster_assignments[selected_idx] = 0;
+
 #if KM_TEST
-    BOOST_LOG_TRIVIAL(info) << "\nChoosing "
-        << selected_idx << " as center K = 0";
+    BOOST_LOG_TRIVIAL(info) << "Choosing "
+        << selected_idx << " as center k = 0";
 #endif
     unsigned clust_idx = 0; // The number of clusters assigned
 
     // Choose next center c_i with weighted prob
-    while ((clust_idx + 1) < k) {
+    while (true) {
         set_thread_clust_idx(clust_idx); // Set the current cluster index
         wake4run(KMSPP_INIT); // Run || distance comp to clust_idx
         wait4complete();
         double cuml_dist = reduction_on_cuml_sum(); // Sum the per thread cumulative dists
 
         cuml_dist = (cuml_dist * ((double)random())) / (RAND_MAX - 1.0);
-        clust_idx++;
+        if (++clust_idx >= k)  // No more centers needed
+            break;
 
         for (size_t row = 0; row < nrow; row++) {
             cuml_dist -= dist_v[row];
@@ -189,6 +193,7 @@ void kmeans_coordinator::kmeanspp_init() {
                     << row << " as center k = " << clust_idx;
 #endif
                 cltrs->set_mean(get_thd_data(row), clust_idx);
+                cluster_assignments[row] = clust_idx;
                 break;
             }
         }
@@ -197,10 +202,10 @@ void kmeans_coordinator::kmeanspp_init() {
 
 #if VERBOSE
     BOOST_LOG_TRIVIAL(info) << "\nCluster centers after kmeans++";
-    clusters->print_means();
+    cltrs->print_means();
 #endif
     gettimeofday(&end, NULL);
-    BOOST_LOG_TRIVIAL(info) << "\n\nInitialization time: " <<
+    BOOST_LOG_TRIVIAL(info) << "Initialization time: " <<
         kpmbase::time_diff(start, end) << " sec\n";
 }
 
@@ -270,9 +275,16 @@ kpmbase::kmeans_t kmeans_coordinator::run_kmeans() {
     run_init(); // Initialize clusters
 
     // Run kmeans loop
-    size_t iter = 1;
     bool converged = false;
-    while (iter <= max_iters) {
+    size_t iter = 0;
+
+    if (max_iters > 0)
+        iter++;
+
+    while (iter <= max_iters && max_iters > 0) {
+        if (iter == 1)
+            clear_cluster_assignments();
+
         BOOST_LOG_TRIVIAL(info) << "E-step Iteration: " << iter;
         wake4run(EM);
         wait4complete();

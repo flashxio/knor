@@ -23,7 +23,6 @@
 #include <atomic>
 
 #include "base_kmeans_thread.hpp"
-#include "thread_state.hpp"
 
 namespace kpmeans {
 class task_queue;

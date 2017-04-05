@@ -132,43 +132,46 @@ bool kmeans_task_thread::try_steal_task() {
 
 bool kmeans_task_thread::try_steal_task() {
   std::vector<std::shared_ptr<kpmeans::base_kmeans_thread> > workers =
-    (static_cast<kmeans_task_coordinator*>(driver))->get_threads(); // Myself included
-  for (unsigned i = 0; i < workers.size(); i++) {
-    if (i != get_thd_id()) { // Can't steal from myself & I'm already done
+    (static_cast<kmeans_task_coordinator*>(driver))->get_threads(); // Me included
 
-      //int rc = pthread_mutex_lock(&mutex);
-      int rc = pthread_mutex_lock(&workers[i]->get_lock());
-      if (rc) perror("pthread_mutex_lock");
+  bool one_locked;
+  int j = 0;
+  do {
+      one_locked = false;
+      printf("Thread %u running %d try_steal loop!\n", thd_id, j++);
+      for (unsigned i = 0; i < workers.size(); i++) {
+          if (i != get_thd_id()) { // Can't steal from myself & I'm already done
 
-      if (workers[i]->get_task_queue()->has_task()) {
-        printf("Thread %u scheduled to steal task "
-            "rid:%u from thread %u\n", get_thd_id(),
-            workers[i]->get_task_queue()->get_nxt_rid(), workers[i]->get_thd_id());
+              int rc = pthread_mutex_trylock(&workers[i]->get_lock());
 
-        if (NULL != curr_task)
-          delete curr_task; // Free me breh
+              if (EXIT_SUCCESS == rc) { // Acquired the lock
+                  if (workers[i]->get_task_queue()->has_task()) {
+                      // TODO: Actually steal task
+                      printf("Thread %u stealing task from thread %u!\n", thd_id, i);
 
-        curr_task = workers[i]->get_task_queue()->get_task(); // Stolen a task
-        //pthread_mutex_unlock(&mutex);
-        pthread_mutex_unlock(&workers[i]->get_lock());
-        break;
+                      pthread_mutex_unlock(&workers[i]->get_lock());
+                      printf("T: %u stole & released T: %u's lock\n", thd_id, i);
+                      return false; // TODO: change to true
+                  } else { // Thread has no tasks to give
+                      pthread_mutex_unlock(&workers[i]->get_lock());
+                      printf("T: %u couldn't steal & released T: %u's lock\n", thd_id, i);
+                      continue;
+                  }
+              }
+
+              // Didn't get the lock
+              if (rc == EBUSY) { // Move on if you can't get the lock
+                  printf("T: %u says T:%u is busy \n", thd_id, i);
+                  if (workers[i]->get_task_queue()->has_task())
+                      one_locked = true;
+
+                  continue;
+              }
+          }
       }
-
-      pthread_mutex_unlock(&mutex);
-    }
-  }
-
-#if 1
-  if (!curr_task || !curr_task->get_nrow()) {
-    printf("Thread %u failed to steal task!\n", get_thd_id());
-    return false; // Can happen if last task was stolen
-  }
-  return true;
-#else
+  } while (one_locked);
   return false;
-#endif
 }
-
 #endif
 
 void kmeans_task_thread::lock_sleep() {
@@ -254,7 +257,12 @@ void kmeans_task_thread::wake(thread_state_t state) {
         curr_task = tasks->get_task();
         BOOST_VERIFY(curr_task->get_nrow() <= tasks->get_nrow());
 
-        meta.num_changed = 0; // Always reset at the beginning of an EM-step
+        // TODO: These are exceptions to the rule & therefore not good
+        if (state == thread_state_t::EM)
+            meta.num_changed = 0; // Always reset at the beginning of an EM-step
+        if (state == thread_state_t::KMSPP_INIT)
+            cuml_dist = 0;
+
         local_clusters->clear();
 
         //printf("wake: Thd: %u, Task ==> ", get_thd_id()); curr_task.print();
@@ -386,29 +394,26 @@ void kmeans_task_thread::EM_step() {
     }
 }
 
-
-
 /** Method for a distance computation vs a single cluster.
  * Used in kmeans++ init
  */
 void kmeans_task_thread::kmspp_dist() {
-    BOOST_ASSERT_MSG(false, "Unimplemented!\n");
-#if 0
-    cuml_dist = 0;
     unsigned clust_idx = meta.clust_idx;
-    for (unsigned row = 0; row < nlocal_rows; row++) {
+    for (unsigned row = 0; row < curr_task->get_nrow(); row++) {
         unsigned true_row_id = get_global_data_id(row);
 
-        double dist = dist_comp_raw(&local_data[row*ncol],
-                &((g_clusters->get_means())[clust_idx*ncol]), ncol);
+        double dist = kpmbase::dist_comp_raw<double>(
+                &(curr_task->get_data_ptr()[row*ncol]),
+                &((g_clusters->get_means())[clust_idx*ncol]), ncol,
+                kpmbase::dist_type_t::EUCL);
 
         if (dist < dist_v[true_row_id]) { // Found a closer cluster than before
             dist_v[true_row_id] = dist;
             cluster_assignments[true_row_id] = clust_idx;
         }
+
         cuml_dist += dist_v[true_row_id];
     }
-#endif
 }
 
 const void kmeans_task_thread::print_local_data() const {
