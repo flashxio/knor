@@ -1,7 +1,7 @@
 [![Build
 Status](https://travis-ci.org/disa-mhembere/knor.svg?branch=master)](https://travis-ci.org/disa-mhembere/knor)
 
-![logo](https://docs.google.com/drawings/d/1wDfKYzNoYk4xmtgFbN2VrQJQemGQip_0BlOGkP9E87U/pub?w=240&amp;h=360)
+![logo](https://docs.google.com/drawings/d/1JRW7oklR9yem5-w4Lz4mF2-AM8L0e_yH9Zc-HHJMFeU/pub?w=280&h=360)
 # knor
 
 The K-means NUMA Optimized Routine library or **knor** is a
