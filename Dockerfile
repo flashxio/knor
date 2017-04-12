@@ -1,4 +1,4 @@
-FROM ubuntu:14.04
+FROM ubuntu:16.04
 MAINTAINER Disa Mhembere
 
 RUN apt-get update
@@ -9,7 +9,7 @@ RUN apt-get -y install \
         build-essential \
         git \
         libboost-all-dev \
-        libmpich2-dev \
+        libmpich-dev \
         libnuma-dbg libnuma-dev libnuma1 \
         python-all-dev python-pip \
         vim \
