@@ -19,7 +19,7 @@ RUN apt-get -y install \
 
 WORKDIR /home/ubuntu/
 # TODO: make with multiple procs
-RUN git clone --recursive https://github.com/disa-mhembere/knor.git
+RUN git clone --recursive https://github.com/flashxio/knor.git
 WORKDIR knor
 RUN make -j8
 

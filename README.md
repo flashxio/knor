@@ -1,10 +1,10 @@
 [![Build
-Status](https://travis-ci.org/disa-mhembere/knor.svg?branch=master)](https://travis-ci.org/disa-mhembere/knor)
+Status](https://travis-ci.org/flashxio/knor.svg?branch=master)](https://travis-ci.org/flashxio/knor)
 
 ![logo](https://docs.google.com/drawings/d/1JRW7oklR9yem5-w4Lz4mF2-AM8L0e_yH9Zc-HHJMFeU/pub?w=280&h=360)
 # knor
 
-The K-means NUMA Optimized Routine library or **knor** is a
+The k-means NUMA Optimized Routine library or **knor** is a
 highly optimized and fast library for computing k-means in
 parallel with accelerations for Non-Uniform Memory Access (NUMA) architectures.
 
@@ -18,7 +18,8 @@ parallel with accelerations for Non-Uniform Memory Access (NUMA) architectures.
 (Semi-External Memory) -- **knors**.
 
 These modules are incarnations of algorithms in
-[our publication](https://arxiv.org/abs/1606.08905).
+[our publication](https://arxiv.org/abs/1606.08905) which will appear in the
+annuls of HPDC 2017.
 
 By default *knor* can use a **scalable** adaption of
 [Elkan's](http://users.cecs.anu.edu.au/~daa/courses/GSAC6017/kmeansicml03.pdf)
@@ -53,7 +54,7 @@ modern compiler to take advantage of compile time optimizations:
 We assume users have [`git`](https://git-scm.com/) already installed.
 
 ```
-git clone --recursive https://github.com/disa-mhembere/knor.git
+git clone --recursive https://github.com/flashxio/knor.git
 cd knor
 ./boostrap.sh
 ```
@@ -74,14 +75,14 @@ interfaces.
 Users can get a version that is stable, but possibly not up to date as follows:
 
 ```
-docker run -i -t disamhembere/knor
+docker run -i -t flashxio/knor
 ```
 
 If you already have the *knor* docker image then updating to the newest stable
 release can be done as follows:
 
 ```
-docker pull disamhembere/knor
+docker pull flashxio/knor
 ```
 
 #### Manual build (Bleeding edge release)
@@ -92,7 +93,7 @@ OS has [`curl`](https://linux.die.net/man/1/curl) and
 [`docker`](https://docs.docker.com/engine/installation/) already installed.
 
 ```
-curl -O https://raw.githubusercontent.com/disa-mhembere/knor/master/Dockerfile
+curl -O https://raw.githubusercontent.com/flashxio/knor/master/Dockerfile
 docker build -t knor .
 docker run -i -t knor
 ```
@@ -115,7 +116,7 @@ To run modules from the `$KNOR_HOME` directory, you may do the following:
 ### Test Data
 
 We maintain a very small dataset for testing:
-[`$KNOR_HOME/test-data/matrix_r50_c5_rrw.bin`](https://github.com/disa-mhembere/knor/blob/master/test-data/matrix_r50_c5_rrw.bin?raw=true).
+[`$KNOR_HOME/test-data/matrix_r50_c5_rrw.bin`](https://github.com/flashxio/knor/blob/master/test-data/matrix_r50_c5_rrw.bin?raw=true).
 
 This dataset has:
 
@@ -354,7 +355,7 @@ cd $KNOR_HOME
 - Different *knor* routines **may** not produce the same result
 dependent upon which initialization routine is used, **but** every routine
 will give the same answer over multiple runs.
-- Found a bug? Please [create an issue](https://github.com/disa-mhembere/knor/issues/new) on Github.
+- Found a bug? Please [create an issue](https://github.com/flashxio/knor/issues/new) on Github.
 
 ## Publications
 
