@@ -23,19 +23,19 @@ cd $HOME
 apt-get update
 apt-get sudo apt-get -o Dpkg::Options::="--force-confold" --force-yes -y upgrade
 
-apt-get -y install build-essential
+apt-get install -y build-essential
 # In memory dependencies
-apt-get -y install libboost-all-dev
+apt-get install -y libboost-all-dev
 # NUMA
 apt-get install -y libnuma-dbg libnuma-dev libnuma1
 
 # Message Passing Interface
-apt-get install libmpich-dev
+apt-get install -y libmpich-dev
 
 # SEM
-apt-get install libaio-dev
-apt-get install libatlas-base-dev
-apt-get install libgoogle-perftools-dev
+apt-get install -y libaio-dev
+apt-get install -y libatlas-base-dev
+apt-get install -y libgoogle-perftools-dev
 
 #if [ $(dpkg-query -W -f='${Status}' libmpich2-dev 2>/dev/null | grep -c "ok installed")
 #    -eq 0 ]; then
