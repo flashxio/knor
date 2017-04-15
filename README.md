@@ -56,7 +56,7 @@ We assume users have [`git`](https://git-scm.com/) already installed.
 ```
 git clone --recursive https://github.com/flashxio/knor.git
 cd knor
-./boostrap.sh
+./bootstrap.sh
 ```
 
 ### Docker -- Run in a Container
