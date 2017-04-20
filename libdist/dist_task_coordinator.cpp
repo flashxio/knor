@@ -228,7 +228,7 @@ void dist_task_coordinator::run_kmeans(kpmbase::kmeans_t& ret,
             fprintf(stderr, "\n**[WARNING]**: No output dir specified with "
                     "'-o' flag means no output will be saved!\n");
 
-        BOOST_LOG_TRIVIAL(info) << "Running FULL kmeans\n";
+        BOOST_LOG_TRIVIAL(info) << "Running PRUNED kmeans\n";
     }
 
     // The business
