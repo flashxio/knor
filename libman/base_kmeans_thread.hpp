@@ -83,7 +83,7 @@ protected:
     FILE* f; // Data file on disk
     unsigned* cluster_assignments;
 
-    thread_state_t state;
+    kpmeans::thread_state_t state;
     double* dist_v;
     double cuml_dist;
 
@@ -109,14 +109,14 @@ protected:
         set_thread_state(WAIT);
     }
 
-    void set_thread_state(thread_state_t state) {
+    void set_thread_state(kpmeans::thread_state_t state) {
         this->state = state;
     }
 
 public:
     typedef std::shared_ptr<base_kmeans_thread> ptr;
 
-    virtual void start(const thread_state_t state) = 0;
+    virtual void start(const kpmeans::thread_state_t state) = 0;
     // Allocate and move data using this thread
     virtual void EM_step() = 0;
     virtual void kmspp_dist() = 0;
@@ -128,7 +128,7 @@ public:
     virtual void set_driver(void* driver) {
         throw kpmbase::abstract_exception();
     }
-    virtual void wake(thread_state_t state) {
+    virtual void wake(kpmeans::thread_state_t state) {
         throw kpmbase::abstract_exception();
     }
     virtual void set_prune_init(const bool prune_init) {
@@ -157,7 +157,7 @@ public:
         dist_v = v;
     }
 
-    const thread_state_t get_state() const {
+    const kpmeans::thread_state_t get_state() const {
         return this->state;
     }
 
