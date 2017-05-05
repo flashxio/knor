@@ -2,6 +2,7 @@
 *.d
 *.o
 *.a
+*.pyc
 libkcommon/unit-test/test_clusters
 libkcommon/unit-test/test_thd_safe_bool_vector
 libkcommon/unit-test/test_reader
