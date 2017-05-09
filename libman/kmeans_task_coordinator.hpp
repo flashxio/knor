@@ -90,7 +90,6 @@ public:
 
     std::pair<size_t, size_t> get_rid_len_tup(const unsigned thd_id);
     // Pass file handle to threads to read & numa alloc
-    void create_thread_map();
     void update_clusters(const bool prune_init);
     void wake4run(kpmeans::thread_state_t state);
     void destroy_threads();

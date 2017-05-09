@@ -33,7 +33,6 @@
 #include <gperftools/profiler.h>
 #endif
 
-namespace kpmbase = kpmeans::base;
 namespace kpmeans {
 
 class base_kmeans_thread;
@@ -46,8 +45,8 @@ protected:
     unsigned* cluster_assignments;
     size_t* cluster_assignment_counts;
     unsigned k;
-    kpmbase::init_type_t _init_t;
-    kpmbase::dist_type_t _dist_t;
+    kpmeans::base::init_type_t _init_t;
+    kpmeans::base::dist_type_t _dist_t;
     double tolerance;
     unsigned max_iters;
     size_t num_changed; // total # samples changed in an iter
@@ -63,8 +62,8 @@ protected:
     base_kmeans_coordinator(const std::string fn, const size_t nrow,
             const size_t ncol, const unsigned k, const unsigned max_iters,
             const unsigned nnodes, const unsigned nthreads,
-            const double* centers, const kpmbase::init_type_t it,
-            const double tolerance, const kpmbase::dist_type_t dt);
+            const double* centers, const kpmeans::base::init_type_t it,
+            const double tolerance, const kpmeans::base::dist_type_t dt);
 
 public:
     const size_t get_num_changed() const { return num_changed; }
@@ -77,7 +76,7 @@ public:
     virtual void random_partition_init() = 0;
     virtual void forgy_init() = 0;
 
-    virtual kpmbase::kmeans_t run_kmeans() = 0;
+    virtual kpmeans::base::kmeans_t run_kmeans() = 0;
     virtual void kmeanspp_init() = 0;
     virtual void wake4run(kpmeans::thread_state_t state) = 0;
     virtual const double* get_thd_data(const unsigned row_id) const = 0;
@@ -86,24 +85,23 @@ public:
     virtual double reduction_on_cuml_sum() = 0;
     virtual void destroy_threads() = 0;
     virtual void set_thd_dist_v_ptr(double* v) = 0;
-
     void wait4complete();
     std::vector<std::shared_ptr<base_kmeans_thread> >& get_threads() {
         return threads;
     }
 
-    virtual void set_global_ptrs() { throw kpmbase::abstract_exception(); };
+    virtual void set_global_ptrs() { throw kpmeans::base::abstract_exception(); };
     virtual const void print_thread_data() {
-        throw kpmbase::abstract_exception();
+        throw kpmeans::base::abstract_exception();
     };
-    virtual void build_thread_state() { throw kpmbase::abstract_exception(); };
+    virtual void build_thread_state() { throw kpmeans::base::abstract_exception(); };
     const unsigned* get_cluster_assignments() const {
         return cluster_assignments;
     }
 
     void clear_cluster_assignments() {
         std::fill(cluster_assignments,
-                cluster_assignments+nrow, kpmbase::INVALID_CLUSTER_ID);
+                cluster_assignments+nrow, kpmeans::base::INVALID_CLUSTER_ID);
     }
     const size_t get_nrow() { return nrow; }
     const size_t get_ncol() { return ncol; }

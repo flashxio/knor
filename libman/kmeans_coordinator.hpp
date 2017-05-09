@@ -26,6 +26,7 @@
 #include <gperftools/profiler.h>
 #endif
 
+namespace kpmbase = kpmeans::base;
 namespace kpmeans {
 class base_kmeans_thread;
     namespace base {
@@ -73,7 +74,6 @@ class kmeans_coordinator : public kpmeans::base_kmeans_coordinator {
 
         std::pair<unsigned, unsigned> get_rid_len_tup(const unsigned thd_id);
         // Pass file handle to threads to read & numa alloc
-        void create_thread_map();
         virtual kpmbase::kmeans_t run_kmeans() override;
         void update_clusters();
         void kmeanspp_init();
