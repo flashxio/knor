@@ -19,11 +19,17 @@
 
 %module kmeans_task_coordinator
 
+%include "std_string.i"
+
 %{
 #define SWIG_FILE_WITH_INIT
+#include "base_kmeans_coordinator.hpp"
 #include "kmeans_task_coordinator.hpp"
+#include "../libkcommon/kcommon.hpp"
 %}
 
+
 /* Let's just grab the original header file here */
-%include "base_kmeans_coordinator.hpp" /*TODO: Verify utility*/
+%include "../libkcommon/kcommon.hpp"
+%include "base_kmeans_coordinator.hpp"
 %include "kmeans_task_coordinator.hpp"
