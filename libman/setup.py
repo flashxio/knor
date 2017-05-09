@@ -23,8 +23,14 @@ knori_module = Extension('_kmeans_task_coordinator',
                            sources=['kmeans_task_coordinator_wrap.cpp',
                                'kmeans_task_coordinator.cpp'],
                            extra_compile_args=["-std=gnu++11", "-O3",
-                               "-L../libkcommon", "-lkcommon",
-                               "-I../libkcommon", "-I.."],
+                               "-I.",
+                               "-I../libkcommon", "-I..", "-fPIC",
+                               "-DSTATISTICS", "-DBOOST_LOG_DYN_LINK",
+                               "-fopenmp"],
+                           extra_link_args=["-L../libman", "-lman", "-L../libkcommon",
+                               "-lkcommon", "-lnuma", "-lpthread", "-fopenmp",
+                               "-lboost_log", "-rdynamic", "-lrt", "-rdynamic",
+                               "-lhwloc", "-lpython2.7"]
                            )
 
 setup (name = '_kmeans_task_coordinator',
