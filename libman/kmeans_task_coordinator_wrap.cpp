@@ -3006,15 +3006,15 @@ SWIG_Python_NonDynamicSetAttr(PyObject *obj, PyObject *name, PyObject *value) {
 #define SWIGTYPE_p_char swig_types[0]
 #define SWIGTYPE_p_double swig_types[1]
 #define SWIGTYPE_p_kpmbase__kmeans_t swig_types[2]
-#define SWIGTYPE_p_kpmeans__base_kmeans_coordinator swig_types[3]
-#define SWIGTYPE_p_kpmeans__prune__kmeans_task_coordinator swig_types[4]
-#define SWIGTYPE_p_kpmeans__thread_state_t swig_types[5]
-#define SWIGTYPE_p_ptr swig_types[6]
-#define SWIGTYPE_p_std__pairT_size_t_size_t_t swig_types[7]
-#define SWIGTYPE_p_std__shared_ptrT_kpmeans__base__prune_clusters_t swig_types[8]
-#define SWIGTYPE_p_std__shared_ptrT_kpmeans__base_kmeans_coordinator_t swig_types[9]
-#define SWIGTYPE_p_std__shared_ptrT_kpmprune__dist_matrix_t swig_types[10]
-#define SWIGTYPE_p_std__string swig_types[11]
+#define SWIGTYPE_p_kpmeans__base__kmeans_t swig_types[3]
+#define SWIGTYPE_p_kpmeans__base_kmeans_coordinator swig_types[4]
+#define SWIGTYPE_p_kpmeans__prune__kmeans_task_coordinator swig_types[5]
+#define SWIGTYPE_p_kpmeans__thread_state_t swig_types[6]
+#define SWIGTYPE_p_ptr swig_types[7]
+#define SWIGTYPE_p_std__pairT_size_t_size_t_t swig_types[8]
+#define SWIGTYPE_p_std__shared_ptrT_kpmeans__base__prune_clusters_t swig_types[9]
+#define SWIGTYPE_p_std__shared_ptrT_kpmeans__base_kmeans_coordinator_t swig_types[10]
+#define SWIGTYPE_p_std__shared_ptrT_kpmprune__dist_matrix_t swig_types[11]
 #define SWIGTYPE_p_std__vectorT_std__shared_ptrT_kpmeans__base_kmeans_thread_t_t swig_types[12]
 #define SWIGTYPE_p_thread_iter swig_types[13]
 #define SWIGTYPE_p_unsigned_int swig_types[14]
@@ -3124,7 +3124,13 @@ namespace swig {
 }
 
 
+#include <string>
+
+
+#define SWIG_FILE_WITH_INIT
+#include "base_kmeans_coordinator.hpp"
 #include "kmeans_task_coordinator.hpp"
+#include "../libkcommon/kcommon.hpp"
 
 
   #define SWIG_From_long   PyInt_FromLong 
@@ -3326,6 +3332,163 @@ SWIG_AsVal_unsigned_SS_int (PyObject * obj, unsigned int *val)
 
 
   #define SWIG_From_double   PyFloat_FromDouble 
+
+
+SWIGINTERN swig_type_info*
+SWIG_pchar_descriptor(void)
+{
+  static int init = 0;
+  static swig_type_info* info = 0;
+  if (!init) {
+    info = SWIG_TypeQuery("_p_char");
+    init = 1;
+  }
+  return info;
+}
+
+
+SWIGINTERN int
+SWIG_AsCharPtrAndSize(PyObject *obj, char** cptr, size_t* psize, int *alloc)
+{
+#if PY_VERSION_HEX>=0x03000000
+#if defined(SWIG_PYTHON_STRICT_BYTE_CHAR)
+  if (PyBytes_Check(obj))
+#else
+  if (PyUnicode_Check(obj))
+#endif
+#else  
+  if (PyString_Check(obj))
+#endif
+  {
+    char *cstr; Py_ssize_t len;
+#if PY_VERSION_HEX>=0x03000000
+#if !defined(SWIG_PYTHON_STRICT_BYTE_CHAR)
+    if (!alloc && cptr) {
+        /* We can't allow converting without allocation, since the internal
+           representation of string in Python 3 is UCS-2/UCS-4 but we require
+           a UTF-8 representation.
+           TODO(bhy) More detailed explanation */
+        return SWIG_RuntimeError;
+    }
+    obj = PyUnicode_AsUTF8String(obj);
+    if(alloc) *alloc = SWIG_NEWOBJ;
+#endif
+    PyBytes_AsStringAndSize(obj, &cstr, &len);
+#else
+    PyString_AsStringAndSize(obj, &cstr, &len);
+#endif
+    if (cptr) {
+      if (alloc) {
+	/* 
+	   In python the user should not be able to modify the inner
+	   string representation. To warranty that, if you define
+	   SWIG_PYTHON_SAFE_CSTRINGS, a new/copy of the python string
+	   buffer is always returned.
+
+	   The default behavior is just to return the pointer value,
+	   so, be careful.
+	*/ 
+#if defined(SWIG_PYTHON_SAFE_CSTRINGS)
+	if (*alloc != SWIG_OLDOBJ) 
+#else
+	if (*alloc == SWIG_NEWOBJ) 
+#endif
+	{
+	  *cptr = reinterpret_cast< char* >(memcpy(new char[len + 1], cstr, sizeof(char)*(len + 1)));
+	  *alloc = SWIG_NEWOBJ;
+	} else {
+	  *cptr = cstr;
+	  *alloc = SWIG_OLDOBJ;
+	}
+      } else {
+#if PY_VERSION_HEX>=0x03000000
+#if defined(SWIG_PYTHON_STRICT_BYTE_CHAR)
+	*cptr = PyBytes_AsString(obj);
+#else
+	assert(0); /* Should never reach here with Unicode strings in Python 3 */
+#endif
+#else
+	*cptr = SWIG_Python_str_AsChar(obj);
+#endif
+      }
+    }
+    if (psize) *psize = len + 1;
+#if PY_VERSION_HEX>=0x03000000 && !defined(SWIG_PYTHON_STRICT_BYTE_CHAR)
+    Py_XDECREF(obj);
+#endif
+    return SWIG_OK;
+  } else {
+#if defined(SWIG_PYTHON_2_UNICODE)
+#if defined(SWIG_PYTHON_STRICT_BYTE_CHAR)
+#error "Cannot use both SWIG_PYTHON_2_UNICODE and SWIG_PYTHON_STRICT_BYTE_CHAR at once"
+#endif
+#if PY_VERSION_HEX<0x03000000
+    if (PyUnicode_Check(obj)) {
+      char *cstr; Py_ssize_t len;
+      if (!alloc && cptr) {
+        return SWIG_RuntimeError;
+      }
+      obj = PyUnicode_AsUTF8String(obj);
+      if (PyString_AsStringAndSize(obj, &cstr, &len) != -1) {
+        if (cptr) {
+          if (alloc) *alloc = SWIG_NEWOBJ;
+          *cptr = reinterpret_cast< char* >(memcpy(new char[len + 1], cstr, sizeof(char)*(len + 1)));
+        }
+        if (psize) *psize = len + 1;
+
+        Py_XDECREF(obj);
+        return SWIG_OK;
+      } else {
+        Py_XDECREF(obj);
+      }
+    }
+#endif
+#endif
+
+    swig_type_info* pchar_descriptor = SWIG_pchar_descriptor();
+    if (pchar_descriptor) {
+      void* vptr = 0;
+      if (SWIG_ConvertPtr(obj, &vptr, pchar_descriptor, 0) == SWIG_OK) {
+	if (cptr) *cptr = (char *) vptr;
+	if (psize) *psize = vptr ? (strlen((char *)vptr) + 1) : 0;
+	if (alloc) *alloc = SWIG_OLDOBJ;
+	return SWIG_OK;
+      }
+    }
+  }
+  return SWIG_TypeError;
+}
+
+
+SWIGINTERN int
+SWIG_AsPtr_std_string (PyObject * obj, std::string **val) 
+{
+  char* buf = 0 ; size_t size = 0; int alloc = SWIG_OLDOBJ;
+  if (SWIG_IsOK((SWIG_AsCharPtrAndSize(obj, &buf, &size, &alloc)))) {
+    if (buf) {
+      if (val) *val = new std::string(buf, size - 1);
+      if (alloc == SWIG_NEWOBJ) delete[] buf;
+      return SWIG_NEWOBJ;
+    } else {
+      if (val) *val = 0;
+      return SWIG_OLDOBJ;
+    }
+  } else {
+    static int init = 0;
+    static swig_type_info* descriptor = 0;
+    if (!init) {
+      descriptor = SWIG_TypeQuery("std::string" " *");
+      init = 1;
+    }
+    if (descriptor) {
+      std::string *vptr;
+      int res = SWIG_ConvertPtr(obj, (void**)&vptr, descriptor, 0);
+      if (SWIG_IsOK(res) && val) *val = vptr;
+      return res;
+    }
+  }
+  return SWIG_ERROR;
+}
 
 
 #ifdef SWIG_LONG_LONG_AVAILABLE
@@ -3540,7 +3703,7 @@ SWIGINTERN PyObject *_wrap_base_kmeans_coordinator_run_kmeans(PyObject *SWIGUNUS
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
-  kpmbase::kmeans_t result;
+  kpmeans::base::kmeans_t result;
   
   if (!PyArg_ParseTuple(args,(char *)"O:base_kmeans_coordinator_run_kmeans",&obj0)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_kpmeans__base_kmeans_coordinator, 0 |  0 );
@@ -3549,7 +3712,7 @@ SWIGINTERN PyObject *_wrap_base_kmeans_coordinator_run_kmeans(PyObject *SWIGUNUS
   }
   arg1 = reinterpret_cast< kpmeans::base_kmeans_coordinator * >(argp1);
   result = (arg1)->run_kmeans();
-  resultobj = SWIG_NewPointerObj((new kpmbase::kmeans_t(static_cast< const kpmbase::kmeans_t& >(result))), SWIGTYPE_p_kpmbase__kmeans_t, SWIG_POINTER_OWN |  0 );
+  resultobj = SWIG_NewPointerObj((new kpmeans::base::kmeans_t(static_cast< const kpmeans::base::kmeans_t& >(result))), SWIGTYPE_p_kpmeans__base__kmeans_t, SWIG_POINTER_OWN |  0 );
   return resultobj;
 fail:
   return NULL;
@@ -3983,8 +4146,6 @@ SWIGINTERN PyObject *_wrap_kmeans_task_coordinator_create__SWIG_0(PyObject *SWIG
   std::string arg9 ;
   double arg10 ;
   std::string arg11 ;
-  void *argp1 ;
-  int res1 = 0 ;
   size_t val2 ;
   int ecode2 = 0 ;
   size_t val3 ;
@@ -3999,12 +4160,8 @@ SWIGINTERN PyObject *_wrap_kmeans_task_coordinator_create__SWIG_0(PyObject *SWIG
   int ecode7 = 0 ;
   void *argp8 = 0 ;
   int res8 = 0 ;
-  void *argp9 ;
-  int res9 = 0 ;
   double val10 ;
   int ecode10 = 0 ;
-  void *argp11 ;
-  int res11 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
@@ -4020,17 +4177,13 @@ SWIGINTERN PyObject *_wrap_kmeans_task_coordinator_create__SWIG_0(PyObject *SWIG
   
   if (!PyArg_ParseTuple(args,(char *)"OOOOOOOOOOO:kmeans_task_coordinator_create",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7,&obj8,&obj9,&obj10)) SWIG_fail;
   {
-    res1 = SWIG_ConvertPtr(obj0, &argp1, SWIGTYPE_p_std__string,  0  | 0);
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "kmeans_task_coordinator_create" "', argument " "1"" of type '" "std::string const""'"); 
-    }  
-    if (!argp1) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "kmeans_task_coordinator_create" "', argument " "1"" of type '" "std::string const""'");
-    } else {
-      std::string * temp = reinterpret_cast< std::string * >(argp1);
-      arg1 = *temp;
-      if (SWIG_IsNewObj(res1)) delete temp;
+    std::string *ptr = (std::string *)0;
+    int res = SWIG_AsPtr_std_string(obj0, &ptr);
+    if (!SWIG_IsOK(res) || !ptr) {
+      SWIG_exception_fail(SWIG_ArgError((ptr ? res : SWIG_TypeError)), "in method '" "kmeans_task_coordinator_create" "', argument " "1"" of type '" "std::string const""'"); 
     }
+    arg1 = *ptr;
+    if (SWIG_IsNewObj(res)) delete ptr;
   }
   ecode2 = SWIG_AsVal_size_t(obj1, &val2);
   if (!SWIG_IsOK(ecode2)) {
@@ -4068,17 +4221,13 @@ SWIGINTERN PyObject *_wrap_kmeans_task_coordinator_create__SWIG_0(PyObject *SWIG
   }
   arg8 = reinterpret_cast< double * >(argp8);
   {
-    res9 = SWIG_ConvertPtr(obj8, &argp9, SWIGTYPE_p_std__string,  0  | 0);
-    if (!SWIG_IsOK(res9)) {
-      SWIG_exception_fail(SWIG_ArgError(res9), "in method '" "kmeans_task_coordinator_create" "', argument " "9"" of type '" "std::string const""'"); 
-    }  
-    if (!argp9) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "kmeans_task_coordinator_create" "', argument " "9"" of type '" "std::string const""'");
-    } else {
-      std::string * temp = reinterpret_cast< std::string * >(argp9);
-      arg9 = *temp;
-      if (SWIG_IsNewObj(res9)) delete temp;
+    std::string *ptr = (std::string *)0;
+    int res = SWIG_AsPtr_std_string(obj8, &ptr);
+    if (!SWIG_IsOK(res) || !ptr) {
+      SWIG_exception_fail(SWIG_ArgError((ptr ? res : SWIG_TypeError)), "in method '" "kmeans_task_coordinator_create" "', argument " "9"" of type '" "std::string const""'"); 
     }
+    arg9 = *ptr;
+    if (SWIG_IsNewObj(res)) delete ptr;
   }
   ecode10 = SWIG_AsVal_double(obj9, &val10);
   if (!SWIG_IsOK(ecode10)) {
@@ -4086,17 +4235,13 @@ SWIGINTERN PyObject *_wrap_kmeans_task_coordinator_create__SWIG_0(PyObject *SWIG
   } 
   arg10 = static_cast< double >(val10);
   {
-    res11 = SWIG_ConvertPtr(obj10, &argp11, SWIGTYPE_p_std__string,  0  | 0);
-    if (!SWIG_IsOK(res11)) {
-      SWIG_exception_fail(SWIG_ArgError(res11), "in method '" "kmeans_task_coordinator_create" "', argument " "11"" of type '" "std::string const""'"); 
-    }  
-    if (!argp11) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "kmeans_task_coordinator_create" "', argument " "11"" of type '" "std::string const""'");
-    } else {
-      std::string * temp = reinterpret_cast< std::string * >(argp11);
-      arg11 = *temp;
-      if (SWIG_IsNewObj(res11)) delete temp;
+    std::string *ptr = (std::string *)0;
+    int res = SWIG_AsPtr_std_string(obj10, &ptr);
+    if (!SWIG_IsOK(res) || !ptr) {
+      SWIG_exception_fail(SWIG_ArgError((ptr ? res : SWIG_TypeError)), "in method '" "kmeans_task_coordinator_create" "', argument " "11"" of type '" "std::string const""'"); 
     }
+    arg11 = *ptr;
+    if (SWIG_IsNewObj(res)) delete ptr;
   }
   result = kpmeans::prune::kmeans_task_coordinator::create(arg1,arg2,arg3,arg4,arg5,arg6,arg7,(double const *)arg8,arg9,arg10,arg11);
   resultobj = SWIG_NewPointerObj((new kpmeans::base_kmeans_coordinator::ptr(static_cast< const kpmeans::base_kmeans_coordinator::ptr& >(result))), SWIGTYPE_p_std__shared_ptrT_kpmeans__base_kmeans_coordinator_t, SWIG_POINTER_OWN |  0 );
@@ -4118,8 +4263,6 @@ SWIGINTERN PyObject *_wrap_kmeans_task_coordinator_create__SWIG_1(PyObject *SWIG
   double *arg8 = (double *) 0 ;
   std::string arg9 ;
   double arg10 ;
-  void *argp1 ;
-  int res1 = 0 ;
   size_t val2 ;
   int ecode2 = 0 ;
   size_t val3 ;
@@ -4134,8 +4277,6 @@ SWIGINTERN PyObject *_wrap_kmeans_task_coordinator_create__SWIG_1(PyObject *SWIG
   int ecode7 = 0 ;
   void *argp8 = 0 ;
   int res8 = 0 ;
-  void *argp9 ;
-  int res9 = 0 ;
   double val10 ;
   int ecode10 = 0 ;
   PyObject * obj0 = 0 ;
@@ -4152,17 +4293,13 @@ SWIGINTERN PyObject *_wrap_kmeans_task_coordinator_create__SWIG_1(PyObject *SWIG
   
   if (!PyArg_ParseTuple(args,(char *)"OOOOOOOOOO:kmeans_task_coordinator_create",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7,&obj8,&obj9)) SWIG_fail;
   {
-    res1 = SWIG_ConvertPtr(obj0, &argp1, SWIGTYPE_p_std__string,  0  | 0);
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "kmeans_task_coordinator_create" "', argument " "1"" of type '" "std::string const""'"); 
-    }  
-    if (!argp1) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "kmeans_task_coordinator_create" "', argument " "1"" of type '" "std::string const""'");
-    } else {
-      std::string * temp = reinterpret_cast< std::string * >(argp1);
-      arg1 = *temp;
-      if (SWIG_IsNewObj(res1)) delete temp;
+    std::string *ptr = (std::string *)0;
+    int res = SWIG_AsPtr_std_string(obj0, &ptr);
+    if (!SWIG_IsOK(res) || !ptr) {
+      SWIG_exception_fail(SWIG_ArgError((ptr ? res : SWIG_TypeError)), "in method '" "kmeans_task_coordinator_create" "', argument " "1"" of type '" "std::string const""'"); 
     }
+    arg1 = *ptr;
+    if (SWIG_IsNewObj(res)) delete ptr;
   }
   ecode2 = SWIG_AsVal_size_t(obj1, &val2);
   if (!SWIG_IsOK(ecode2)) {
@@ -4200,17 +4337,13 @@ SWIGINTERN PyObject *_wrap_kmeans_task_coordinator_create__SWIG_1(PyObject *SWIG
   }
   arg8 = reinterpret_cast< double * >(argp8);
   {
-    res9 = SWIG_ConvertPtr(obj8, &argp9, SWIGTYPE_p_std__string,  0  | 0);
-    if (!SWIG_IsOK(res9)) {
-      SWIG_exception_fail(SWIG_ArgError(res9), "in method '" "kmeans_task_coordinator_create" "', argument " "9"" of type '" "std::string const""'"); 
-    }  
-    if (!argp9) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "kmeans_task_coordinator_create" "', argument " "9"" of type '" "std::string const""'");
-    } else {
-      std::string * temp = reinterpret_cast< std::string * >(argp9);
-      arg9 = *temp;
-      if (SWIG_IsNewObj(res9)) delete temp;
+    std::string *ptr = (std::string *)0;
+    int res = SWIG_AsPtr_std_string(obj8, &ptr);
+    if (!SWIG_IsOK(res) || !ptr) {
+      SWIG_exception_fail(SWIG_ArgError((ptr ? res : SWIG_TypeError)), "in method '" "kmeans_task_coordinator_create" "', argument " "9"" of type '" "std::string const""'"); 
     }
+    arg9 = *ptr;
+    if (SWIG_IsNewObj(res)) delete ptr;
   }
   ecode10 = SWIG_AsVal_double(obj9, &val10);
   if (!SWIG_IsOK(ecode10)) {
@@ -4236,8 +4369,6 @@ SWIGINTERN PyObject *_wrap_kmeans_task_coordinator_create__SWIG_2(PyObject *SWIG
   unsigned int arg7 ;
   double *arg8 = (double *) 0 ;
   std::string arg9 ;
-  void *argp1 ;
-  int res1 = 0 ;
   size_t val2 ;
   int ecode2 = 0 ;
   size_t val3 ;
@@ -4252,8 +4383,6 @@ SWIGINTERN PyObject *_wrap_kmeans_task_coordinator_create__SWIG_2(PyObject *SWIG
   int ecode7 = 0 ;
   void *argp8 = 0 ;
   int res8 = 0 ;
-  void *argp9 ;
-  int res9 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
@@ -4267,17 +4396,13 @@ SWIGINTERN PyObject *_wrap_kmeans_task_coordinator_create__SWIG_2(PyObject *SWIG
   
   if (!PyArg_ParseTuple(args,(char *)"OOOOOOOOO:kmeans_task_coordinator_create",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7,&obj8)) SWIG_fail;
   {
-    res1 = SWIG_ConvertPtr(obj0, &argp1, SWIGTYPE_p_std__string,  0  | 0);
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "kmeans_task_coordinator_create" "', argument " "1"" of type '" "std::string const""'"); 
-    }  
-    if (!argp1) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "kmeans_task_coordinator_create" "', argument " "1"" of type '" "std::string const""'");
-    } else {
-      std::string * temp = reinterpret_cast< std::string * >(argp1);
-      arg1 = *temp;
-      if (SWIG_IsNewObj(res1)) delete temp;
+    std::string *ptr = (std::string *)0;
+    int res = SWIG_AsPtr_std_string(obj0, &ptr);
+    if (!SWIG_IsOK(res) || !ptr) {
+      SWIG_exception_fail(SWIG_ArgError((ptr ? res : SWIG_TypeError)), "in method '" "kmeans_task_coordinator_create" "', argument " "1"" of type '" "std::string const""'"); 
     }
+    arg1 = *ptr;
+    if (SWIG_IsNewObj(res)) delete ptr;
   }
   ecode2 = SWIG_AsVal_size_t(obj1, &val2);
   if (!SWIG_IsOK(ecode2)) {
@@ -4315,17 +4440,13 @@ SWIGINTERN PyObject *_wrap_kmeans_task_coordinator_create__SWIG_2(PyObject *SWIG
   }
   arg8 = reinterpret_cast< double * >(argp8);
   {
-    res9 = SWIG_ConvertPtr(obj8, &argp9, SWIGTYPE_p_std__string,  0  | 0);
-    if (!SWIG_IsOK(res9)) {
-      SWIG_exception_fail(SWIG_ArgError(res9), "in method '" "kmeans_task_coordinator_create" "', argument " "9"" of type '" "std::string const""'"); 
-    }  
-    if (!argp9) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "kmeans_task_coordinator_create" "', argument " "9"" of type '" "std::string const""'");
-    } else {
-      std::string * temp = reinterpret_cast< std::string * >(argp9);
-      arg9 = *temp;
-      if (SWIG_IsNewObj(res9)) delete temp;
+    std::string *ptr = (std::string *)0;
+    int res = SWIG_AsPtr_std_string(obj8, &ptr);
+    if (!SWIG_IsOK(res) || !ptr) {
+      SWIG_exception_fail(SWIG_ArgError((ptr ? res : SWIG_TypeError)), "in method '" "kmeans_task_coordinator_create" "', argument " "9"" of type '" "std::string const""'"); 
     }
+    arg9 = *ptr;
+    if (SWIG_IsNewObj(res)) delete ptr;
   }
   result = kpmeans::prune::kmeans_task_coordinator::create(arg1,arg2,arg3,arg4,arg5,arg6,arg7,(double const *)arg8,arg9);
   resultobj = SWIG_NewPointerObj((new kpmeans::base_kmeans_coordinator::ptr(static_cast< const kpmeans::base_kmeans_coordinator::ptr& >(result))), SWIGTYPE_p_std__shared_ptrT_kpmeans__base_kmeans_coordinator_t, SWIG_POINTER_OWN |  0 );
@@ -4345,8 +4466,6 @@ SWIGINTERN PyObject *_wrap_kmeans_task_coordinator_create__SWIG_3(PyObject *SWIG
   unsigned int arg6 ;
   unsigned int arg7 ;
   double *arg8 = (double *) 0 ;
-  void *argp1 ;
-  int res1 = 0 ;
   size_t val2 ;
   int ecode2 = 0 ;
   size_t val3 ;
@@ -4373,17 +4492,13 @@ SWIGINTERN PyObject *_wrap_kmeans_task_coordinator_create__SWIG_3(PyObject *SWIG
   
   if (!PyArg_ParseTuple(args,(char *)"OOOOOOOO:kmeans_task_coordinator_create",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7)) SWIG_fail;
   {
-    res1 = SWIG_ConvertPtr(obj0, &argp1, SWIGTYPE_p_std__string,  0  | 0);
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "kmeans_task_coordinator_create" "', argument " "1"" of type '" "std::string const""'"); 
-    }  
-    if (!argp1) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "kmeans_task_coordinator_create" "', argument " "1"" of type '" "std::string const""'");
-    } else {
-      std::string * temp = reinterpret_cast< std::string * >(argp1);
-      arg1 = *temp;
-      if (SWIG_IsNewObj(res1)) delete temp;
+    std::string *ptr = (std::string *)0;
+    int res = SWIG_AsPtr_std_string(obj0, &ptr);
+    if (!SWIG_IsOK(res) || !ptr) {
+      SWIG_exception_fail(SWIG_ArgError((ptr ? res : SWIG_TypeError)), "in method '" "kmeans_task_coordinator_create" "', argument " "1"" of type '" "std::string const""'"); 
     }
+    arg1 = *ptr;
+    if (SWIG_IsNewObj(res)) delete ptr;
   }
   ecode2 = SWIG_AsVal_size_t(obj1, &val2);
   if (!SWIG_IsOK(ecode2)) {
@@ -4437,8 +4552,6 @@ SWIGINTERN PyObject *_wrap_kmeans_task_coordinator_create__SWIG_4(PyObject *SWIG
   unsigned int arg5 ;
   unsigned int arg6 ;
   unsigned int arg7 ;
-  void *argp1 ;
-  int res1 = 0 ;
   size_t val2 ;
   int ecode2 = 0 ;
   size_t val3 ;
@@ -4462,17 +4575,13 @@ SWIGINTERN PyObject *_wrap_kmeans_task_coordinator_create__SWIG_4(PyObject *SWIG
   
   if (!PyArg_ParseTuple(args,(char *)"OOOOOOO:kmeans_task_coordinator_create",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6)) SWIG_fail;
   {
-    res1 = SWIG_ConvertPtr(obj0, &argp1, SWIGTYPE_p_std__string,  0  | 0);
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "kmeans_task_coordinator_create" "', argument " "1"" of type '" "std::string const""'"); 
-    }  
-    if (!argp1) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "kmeans_task_coordinator_create" "', argument " "1"" of type '" "std::string const""'");
-    } else {
-      std::string * temp = reinterpret_cast< std::string * >(argp1);
-      arg1 = *temp;
-      if (SWIG_IsNewObj(res1)) delete temp;
+    std::string *ptr = (std::string *)0;
+    int res = SWIG_AsPtr_std_string(obj0, &ptr);
+    if (!SWIG_IsOK(res) || !ptr) {
+      SWIG_exception_fail(SWIG_ArgError((ptr ? res : SWIG_TypeError)), "in method '" "kmeans_task_coordinator_create" "', argument " "1"" of type '" "std::string const""'"); 
     }
+    arg1 = *ptr;
+    if (SWIG_IsNewObj(res)) delete ptr;
   }
   ecode2 = SWIG_AsVal_size_t(obj1, &val2);
   if (!SWIG_IsOK(ecode2)) {
@@ -4526,7 +4635,7 @@ SWIGINTERN PyObject *_wrap_kmeans_task_coordinator_create(PyObject *self, PyObje
   }
   if (argc == 7) {
     int _v;
-    int res = SWIG_ConvertPtr(argv[0], 0, SWIGTYPE_p_std__string, 0);
+    int res = SWIG_AsPtr_std_string(argv[0], (std::string**)(0));
     _v = SWIG_CheckState(res);
     if (_v) {
       {
@@ -4570,7 +4679,7 @@ SWIGINTERN PyObject *_wrap_kmeans_task_coordinator_create(PyObject *self, PyObje
   }
   if (argc == 8) {
     int _v;
-    int res = SWIG_ConvertPtr(argv[0], 0, SWIGTYPE_p_std__string, 0);
+    int res = SWIG_AsPtr_std_string(argv[0], (std::string**)(0));
     _v = SWIG_CheckState(res);
     if (_v) {
       {
@@ -4619,7 +4728,7 @@ SWIGINTERN PyObject *_wrap_kmeans_task_coordinator_create(PyObject *self, PyObje
   }
   if (argc == 9) {
     int _v;
-    int res = SWIG_ConvertPtr(argv[0], 0, SWIGTYPE_p_std__string, 0);
+    int res = SWIG_AsPtr_std_string(argv[0], (std::string**)(0));
     _v = SWIG_CheckState(res);
     if (_v) {
       {
@@ -4656,7 +4765,7 @@ SWIGINTERN PyObject *_wrap_kmeans_task_coordinator_create(PyObject *self, PyObje
                   int res = SWIG_ConvertPtr(argv[7], &vptr, SWIGTYPE_p_double, 0);
                   _v = SWIG_CheckState(res);
                   if (_v) {
-                    int res = SWIG_ConvertPtr(argv[8], 0, SWIGTYPE_p_std__string, 0);
+                    int res = SWIG_AsPtr_std_string(argv[8], (std::string**)(0));
                     _v = SWIG_CheckState(res);
                     if (_v) {
                       return _wrap_kmeans_task_coordinator_create__SWIG_2(self, args);
@@ -4672,7 +4781,7 @@ SWIGINTERN PyObject *_wrap_kmeans_task_coordinator_create(PyObject *self, PyObje
   }
   if (argc == 10) {
     int _v;
-    int res = SWIG_ConvertPtr(argv[0], 0, SWIGTYPE_p_std__string, 0);
+    int res = SWIG_AsPtr_std_string(argv[0], (std::string**)(0));
     _v = SWIG_CheckState(res);
     if (_v) {
       {
@@ -4709,7 +4818,7 @@ SWIGINTERN PyObject *_wrap_kmeans_task_coordinator_create(PyObject *self, PyObje
                   int res = SWIG_ConvertPtr(argv[7], &vptr, SWIGTYPE_p_double, 0);
                   _v = SWIG_CheckState(res);
                   if (_v) {
-                    int res = SWIG_ConvertPtr(argv[8], 0, SWIGTYPE_p_std__string, 0);
+                    int res = SWIG_AsPtr_std_string(argv[8], (std::string**)(0));
                     _v = SWIG_CheckState(res);
                     if (_v) {
                       {
@@ -4731,7 +4840,7 @@ SWIGINTERN PyObject *_wrap_kmeans_task_coordinator_create(PyObject *self, PyObje
   }
   if (argc == 11) {
     int _v;
-    int res = SWIG_ConvertPtr(argv[0], 0, SWIGTYPE_p_std__string, 0);
+    int res = SWIG_AsPtr_std_string(argv[0], (std::string**)(0));
     _v = SWIG_CheckState(res);
     if (_v) {
       {
@@ -4768,7 +4877,7 @@ SWIGINTERN PyObject *_wrap_kmeans_task_coordinator_create(PyObject *self, PyObje
                   int res = SWIG_ConvertPtr(argv[7], &vptr, SWIGTYPE_p_double, 0);
                   _v = SWIG_CheckState(res);
                   if (_v) {
-                    int res = SWIG_ConvertPtr(argv[8], 0, SWIGTYPE_p_std__string, 0);
+                    int res = SWIG_AsPtr_std_string(argv[8], (std::string**)(0));
                     _v = SWIG_CheckState(res);
                     if (_v) {
                       {
@@ -4776,7 +4885,7 @@ SWIGINTERN PyObject *_wrap_kmeans_task_coordinator_create(PyObject *self, PyObje
                         _v = SWIG_CheckState(res);
                       }
                       if (_v) {
-                        int res = SWIG_ConvertPtr(argv[10], 0, SWIGTYPE_p_std__string, 0);
+                        int res = SWIG_AsPtr_std_string(argv[10], (std::string**)(0));
                         _v = SWIG_CheckState(res);
                         if (_v) {
                           return _wrap_kmeans_task_coordinator_create__SWIG_0(self, args);
@@ -4874,27 +4983,6 @@ SWIGINTERN PyObject *_wrap_kmeans_task_coordinator_get_rid_len_tup(PyObject *SWI
   arg2 = static_cast< unsigned int >(val2);
   result = (arg1)->get_rid_len_tup(arg2);
   resultobj = SWIG_NewPointerObj((new std::pair< size_t,size_t >(static_cast< const std::pair< size_t,size_t >& >(result))), SWIGTYPE_p_std__pairT_size_t_size_t_t, SWIG_POINTER_OWN |  0 );
-  return resultobj;
-fail:
-  return NULL;
-}
-
-
-SWIGINTERN PyObject *_wrap_kmeans_task_coordinator_create_thread_map(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
-  PyObject *resultobj = 0;
-  kpmeans::prune::kmeans_task_coordinator *arg1 = (kpmeans::prune::kmeans_task_coordinator *) 0 ;
-  void *argp1 = 0 ;
-  int res1 = 0 ;
-  PyObject * obj0 = 0 ;
-  
-  if (!PyArg_ParseTuple(args,(char *)"O:kmeans_task_coordinator_create_thread_map",&obj0)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_kpmeans__prune__kmeans_task_coordinator, 0 |  0 );
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "kmeans_task_coordinator_create_thread_map" "', argument " "1"" of type '" "kpmeans::prune::kmeans_task_coordinator *""'"); 
-  }
-  arg1 = reinterpret_cast< kpmeans::prune::kmeans_task_coordinator * >(argp1);
-  (arg1)->create_thread_map();
-  resultobj = SWIG_Py_Void();
   return resultobj;
 fail:
   return NULL;
@@ -5359,7 +5447,6 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"kmeans_task_coordinator_get_gcltrs", _wrap_kmeans_task_coordinator_get_gcltrs, METH_VARARGS, NULL},
 	 { (char *)"kmeans_task_coordinator_get_dm", _wrap_kmeans_task_coordinator_get_dm, METH_VARARGS, NULL},
 	 { (char *)"kmeans_task_coordinator_get_rid_len_tup", _wrap_kmeans_task_coordinator_get_rid_len_tup, METH_VARARGS, NULL},
-	 { (char *)"kmeans_task_coordinator_create_thread_map", _wrap_kmeans_task_coordinator_create_thread_map, METH_VARARGS, NULL},
 	 { (char *)"kmeans_task_coordinator_update_clusters", _wrap_kmeans_task_coordinator_update_clusters, METH_VARARGS, NULL},
 	 { (char *)"kmeans_task_coordinator_wake4run", _wrap_kmeans_task_coordinator_wake4run, METH_VARARGS, NULL},
 	 { (char *)"kmeans_task_coordinator_destroy_threads", _wrap_kmeans_task_coordinator_destroy_threads, METH_VARARGS, NULL},
@@ -5390,6 +5477,7 @@ static void *_p_kpmeans__prune__kmeans_task_coordinatorTo_p_kpmeans__base_kmeans
 static swig_type_info _swigt__p_char = {"_p_char", "char *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_double = {"_p_double", "double *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_kpmbase__kmeans_t = {"_p_kpmbase__kmeans_t", "kpmbase::kmeans_t *", 0, 0, (void*)0, 0};
+static swig_type_info _swigt__p_kpmeans__base__kmeans_t = {"_p_kpmeans__base__kmeans_t", "kpmeans::base::kmeans_t *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_kpmeans__base_kmeans_coordinator = {"_p_kpmeans__base_kmeans_coordinator", "kpmeans::base_kmeans_coordinator *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_kpmeans__prune__kmeans_task_coordinator = {"_p_kpmeans__prune__kmeans_task_coordinator", "kpmeans::prune::kmeans_task_coordinator *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_kpmeans__thread_state_t = {"_p_kpmeans__thread_state_t", "kpmeans::thread_state_t *", 0, 0, (void*)0, 0};
@@ -5398,7 +5486,6 @@ static swig_type_info _swigt__p_std__pairT_size_t_size_t_t = {"_p_std__pairT_siz
 static swig_type_info _swigt__p_std__shared_ptrT_kpmeans__base__prune_clusters_t = {"_p_std__shared_ptrT_kpmeans__base__prune_clusters_t", "std::shared_ptr< kpmeans::base::prune_clusters > *|std::shared_ptr< kpmbase::prune_clusters > *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_std__shared_ptrT_kpmeans__base_kmeans_coordinator_t = {"_p_std__shared_ptrT_kpmeans__base_kmeans_coordinator_t", "kpmeans::base_kmeans_coordinator::ptr *|std::shared_ptr< kpmeans::base_kmeans_coordinator > *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_std__shared_ptrT_kpmprune__dist_matrix_t = {"_p_std__shared_ptrT_kpmprune__dist_matrix_t", "std::shared_ptr< kpmprune::dist_matrix > *", 0, 0, (void*)0, 0};
-static swig_type_info _swigt__p_std__string = {"_p_std__string", "std::string *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_std__vectorT_std__shared_ptrT_kpmeans__base_kmeans_thread_t_t = {"_p_std__vectorT_std__shared_ptrT_kpmeans__base_kmeans_thread_t_t", "std::vector< std::shared_ptr< kpmeans::base_kmeans_thread > > *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_thread_iter = {"_p_thread_iter", "thread_iter *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_unsigned_int = {"_p_unsigned_int", "unsigned int *", 0, 0, (void*)0, 0};
@@ -5407,6 +5494,7 @@ static swig_type_info *swig_type_initial[] = {
   &_swigt__p_char,
   &_swigt__p_double,
   &_swigt__p_kpmbase__kmeans_t,
+  &_swigt__p_kpmeans__base__kmeans_t,
   &_swigt__p_kpmeans__base_kmeans_coordinator,
   &_swigt__p_kpmeans__prune__kmeans_task_coordinator,
   &_swigt__p_kpmeans__thread_state_t,
@@ -5415,7 +5503,6 @@ static swig_type_info *swig_type_initial[] = {
   &_swigt__p_std__shared_ptrT_kpmeans__base__prune_clusters_t,
   &_swigt__p_std__shared_ptrT_kpmeans__base_kmeans_coordinator_t,
   &_swigt__p_std__shared_ptrT_kpmprune__dist_matrix_t,
-  &_swigt__p_std__string,
   &_swigt__p_std__vectorT_std__shared_ptrT_kpmeans__base_kmeans_thread_t_t,
   &_swigt__p_thread_iter,
   &_swigt__p_unsigned_int,
@@ -5424,6 +5511,7 @@ static swig_type_info *swig_type_initial[] = {
 static swig_cast_info _swigc__p_char[] = {  {&_swigt__p_char, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_double[] = {  {&_swigt__p_double, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_kpmbase__kmeans_t[] = {  {&_swigt__p_kpmbase__kmeans_t, 0, 0, 0},{0, 0, 0, 0}};
+static swig_cast_info _swigc__p_kpmeans__base__kmeans_t[] = {  {&_swigt__p_kpmeans__base__kmeans_t, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_kpmeans__base_kmeans_coordinator[] = {  {&_swigt__p_kpmeans__base_kmeans_coordinator, 0, 0, 0},  {&_swigt__p_kpmeans__prune__kmeans_task_coordinator, _p_kpmeans__prune__kmeans_task_coordinatorTo_p_kpmeans__base_kmeans_coordinator, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_kpmeans__prune__kmeans_task_coordinator[] = {  {&_swigt__p_kpmeans__prune__kmeans_task_coordinator, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_kpmeans__thread_state_t[] = {  {&_swigt__p_kpmeans__thread_state_t, 0, 0, 0},{0, 0, 0, 0}};
@@ -5432,7 +5520,6 @@ static swig_cast_info _swigc__p_std__pairT_size_t_size_t_t[] = {  {&_swigt__p_st
 static swig_cast_info _swigc__p_std__shared_ptrT_kpmeans__base__prune_clusters_t[] = {  {&_swigt__p_std__shared_ptrT_kpmeans__base__prune_clusters_t, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_std__shared_ptrT_kpmeans__base_kmeans_coordinator_t[] = {  {&_swigt__p_std__shared_ptrT_kpmeans__base_kmeans_coordinator_t, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_std__shared_ptrT_kpmprune__dist_matrix_t[] = {  {&_swigt__p_std__shared_ptrT_kpmprune__dist_matrix_t, 0, 0, 0},{0, 0, 0, 0}};
-static swig_cast_info _swigc__p_std__string[] = {  {&_swigt__p_std__string, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_std__vectorT_std__shared_ptrT_kpmeans__base_kmeans_thread_t_t[] = {  {&_swigt__p_std__vectorT_std__shared_ptrT_kpmeans__base_kmeans_thread_t_t, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_thread_iter[] = {  {&_swigt__p_thread_iter, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_unsigned_int[] = {  {&_swigt__p_unsigned_int, 0, 0, 0},{0, 0, 0, 0}};
@@ -5441,6 +5528,7 @@ static swig_cast_info *swig_cast_initial[] = {
   _swigc__p_char,
   _swigc__p_double,
   _swigc__p_kpmbase__kmeans_t,
+  _swigc__p_kpmeans__base__kmeans_t,
   _swigc__p_kpmeans__base_kmeans_coordinator,
   _swigc__p_kpmeans__prune__kmeans_task_coordinator,
   _swigc__p_kpmeans__thread_state_t,
@@ -5449,7 +5537,6 @@ static swig_cast_info *swig_cast_initial[] = {
   _swigc__p_std__shared_ptrT_kpmeans__base__prune_clusters_t,
   _swigc__p_std__shared_ptrT_kpmeans__base_kmeans_coordinator_t,
   _swigc__p_std__shared_ptrT_kpmprune__dist_matrix_t,
-  _swigc__p_std__string,
   _swigc__p_std__vectorT_std__shared_ptrT_kpmeans__base_kmeans_thread_t_t,
   _swigc__p_thread_iter,
   _swigc__p_unsigned_int,

@@ -199,9 +199,6 @@ class kmeans_task_coordinator(base_kmeans_coordinator):
     def get_rid_len_tup(self, thd_id):
         return _kmeans_task_coordinator.kmeans_task_coordinator_get_rid_len_tup(self, thd_id)
 
-    def create_thread_map(self):
-        return _kmeans_task_coordinator.kmeans_task_coordinator_create_thread_map(self)
-
     def update_clusters(self, prune_init):
         return _kmeans_task_coordinator.kmeans_task_coordinator_update_clusters(self, prune_init)
 
