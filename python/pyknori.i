@@ -2,7 +2,7 @@
  * Copyright 2016 neurodata (http://neurodata.io/)
  * Written by Disa Mhembere (disa@jhu.edu)
  *
- * This file is part of k-par-means
+ * This file is part of knor
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,19 +17,16 @@
  * limitations under the License.
  */
 
-%module kmeans_task_coordinator
+%module pyknori
 
-%include "std_string.i"
+%include <std_string.i>
+%include <std_vector.i>
 
 %{
 #define SWIG_FILE_WITH_INIT
-#include "base_kmeans_coordinator.hpp"
-#include "kmeans_task_coordinator.hpp"
-#include "../libkcommon/kcommon.hpp"
+#include "pyknori.hpp"
 %}
-
 
 /* Let's just grab the original header file here */
 %include "../libkcommon/kcommon.hpp"
-%include "base_kmeans_coordinator.hpp"
-%include "kmeans_task_coordinator.hpp"
+%include "pyknori.hpp"

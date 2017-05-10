@@ -266,8 +266,7 @@ class bin_io {
 
         // Read all the data!
         void read(T* v) {
-            size_t num_read = fread(&v[0], sizeof(T)*ncol*nrow, 1, f);
-            assert(num_read == 1);
+            assert(fread(&v[0], sizeof(T)*ncol*nrow, 1, f) == 1);
         }
 
         void write(const T* data, const size_t numel) {
