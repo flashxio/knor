@@ -1,7 +1,7 @@
 # Copyright 2016 neurodata (http://neurodata.io/)
 # Written by Disa Mhembere (disa@jhu.edu)
 #
-# This file is part of k-par-means.
+# This file is part of knor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 
 include Makefile.common
 
-all: build_common build_libs exec release-test
+all: build_common build_libs exec release-test python
 
 build_common:
 	$(MAKE) -C libkcommon
@@ -34,6 +34,9 @@ exec: build_libs
 release-test: exec
 	$(MAKE) -C release-test
 
+python: build_libs
+	$(MAKE) -C python
+
 clean:
 	rm -f *.d
 	rm -f *.o
@@ -45,5 +48,6 @@ clean:
 	make --ignore-errors -C exec clean
 	make --ignore-errors -C libdist clean
 	make --ignore-errors -C release-test clean
+	make --ignore-errors -C python clean
 
 -include $(DEPS)
