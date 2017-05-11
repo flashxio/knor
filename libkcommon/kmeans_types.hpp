@@ -59,6 +59,8 @@ public:
     void set_computed(const unsigned* assignments_buf,
              const size_t* assignment_count_buf,
              const std::vector<double> centroids);
+
+    ~kmeans_t() { }
 };
 } }
 #endif
