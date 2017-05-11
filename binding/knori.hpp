@@ -17,8 +17,8 @@
  * limitations under the License.
  */
 
-#ifndef __KPM_PYKNORI_HPP__
-#define __KPM_PYKNORI_HPP__
+#ifndef __KNORI_HPP__
+#define __KNORI_HPP__
 
 #include <limits>
 #include <numa.h>
@@ -31,8 +31,8 @@
 #include "kmeans_task_coordinator.hpp"
 #include "util.hpp"
 
-namespace kpmeans { namespace python {
-kpmeans::base::kmeans_t kmeans(const std::string datafn, const size_t nrow,
+namespace kpmeans { namespace base {
+kpmbase::kmeans_t kmeans(const std::string datafn, const size_t nrow,
         const size_t ncol, const unsigned k,
         size_t max_iters=std::numeric_limits<size_t>::max(),
         unsigned nnodes=numa_num_task_nodes(),
@@ -70,5 +70,5 @@ kpmeans::base::kmeans_t kmeans(const std::string datafn, const size_t nrow,
     return ret;
 }
 
-} } // End namespace kpmeans::python
+} } // End namespace kpmeans::base
 #endif
