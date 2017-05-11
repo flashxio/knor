@@ -20,7 +20,8 @@
 from distutils.core import setup, Extension
 
 knor_module = Extension('_pyknori',
-                           sources=['pyknori_wrap.cpp'],
+                           sources=['pyknori_wrap.cpp',
+                               "../libkcommon/kmeans_types.cpp"],
                            extra_compile_args=["-std=gnu++11", "-O3",
                                "-I..", "-I../libauto", "-I../libman",
                                "-I../libkcommon", "-fPIC",

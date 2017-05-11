@@ -25,8 +25,9 @@
 %{
 #define SWIG_FILE_WITH_INIT
 #include "pyknori.hpp"
+#include "../libkcommon/kmeans_types.hpp"
 %}
 
 /* Let's just grab the original header file here */
-%include "../libkcommon/kcommon.hpp"
+%include "../libkcommon/kmeans_types.hpp"
 %include "pyknori.hpp"
