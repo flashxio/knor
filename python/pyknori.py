@@ -159,6 +159,77 @@ class SwigPyIterator(_object):
 SwigPyIterator_swigregister = _pyknori.SwigPyIterator_swigregister
 SwigPyIterator_swigregister(SwigPyIterator)
 
+INIT = _pyknori.INIT
+ESTEP = _pyknori.ESTEP
+EUCL = _pyknori.EUCL
+COS = _pyknori.COS
+RANDOM = _pyknori.RANDOM
+FORGY = _pyknori.FORGY
+PLUSPLUS = _pyknori.PLUSPLUS
+NONE = _pyknori.NONE
+class kmeans_t(_object):
+    __swig_setmethods__ = {}
+    __setattr__ = lambda self, name, value: _swig_setattr(self, kmeans_t, name, value)
+    __swig_getmethods__ = {}
+    __getattr__ = lambda self, name: _swig_getattr(self, kmeans_t, name)
+    __repr__ = _swig_repr
+    __swig_setmethods__["nrow"] = _pyknori.kmeans_t_nrow_set
+    __swig_getmethods__["nrow"] = _pyknori.kmeans_t_nrow_get
+    if _newclass:
+        nrow = _swig_property(_pyknori.kmeans_t_nrow_get, _pyknori.kmeans_t_nrow_set)
+    __swig_setmethods__["ncol"] = _pyknori.kmeans_t_ncol_set
+    __swig_getmethods__["ncol"] = _pyknori.kmeans_t_ncol_get
+    if _newclass:
+        ncol = _swig_property(_pyknori.kmeans_t_ncol_get, _pyknori.kmeans_t_ncol_set)
+    __swig_setmethods__["iters"] = _pyknori.kmeans_t_iters_set
+    __swig_getmethods__["iters"] = _pyknori.kmeans_t_iters_get
+    if _newclass:
+        iters = _swig_property(_pyknori.kmeans_t_iters_get, _pyknori.kmeans_t_iters_set)
+    __swig_setmethods__["k"] = _pyknori.kmeans_t_k_set
+    __swig_getmethods__["k"] = _pyknori.kmeans_t_k_get
+    if _newclass:
+        k = _swig_property(_pyknori.kmeans_t_k_get, _pyknori.kmeans_t_k_set)
+    __swig_setmethods__["assignments"] = _pyknori.kmeans_t_assignments_set
+    __swig_getmethods__["assignments"] = _pyknori.kmeans_t_assignments_get
+    if _newclass:
+        assignments = _swig_property(_pyknori.kmeans_t_assignments_get, _pyknori.kmeans_t_assignments_set)
+    __swig_setmethods__["assignment_count"] = _pyknori.kmeans_t_assignment_count_set
+    __swig_getmethods__["assignment_count"] = _pyknori.kmeans_t_assignment_count_get
+    if _newclass:
+        assignment_count = _swig_property(_pyknori.kmeans_t_assignment_count_get, _pyknori.kmeans_t_assignment_count_set)
+    __swig_setmethods__["centroids"] = _pyknori.kmeans_t_centroids_set
+    __swig_getmethods__["centroids"] = _pyknori.kmeans_t_centroids_get
+    if _newclass:
+        centroids = _swig_property(_pyknori.kmeans_t_centroids_get, _pyknori.kmeans_t_centroids_set)
+
+    def __init__(self, *args):
+        this = _pyknori.new_kmeans_t(*args)
+        try:
+            self.this.append(this)
+        except __builtin__.Exception:
+            self.this = this
+
+    def _print(self):
+        return _pyknori.kmeans_t__print(self)
+
+    def write(self, dirname):
+        return _pyknori.kmeans_t_write(self, dirname)
+
+    def __eq__(self, other):
+        return _pyknori.kmeans_t___eq__(self, other)
+
+    def set_params(self, nrow, ncol, iters, k):
+        return _pyknori.kmeans_t_set_params(self, nrow, ncol, iters, k)
+
+    def set_computed(self, assignments_buf, assignment_count_buf, centroids):
+        return _pyknori.kmeans_t_set_computed(self, assignments_buf, assignment_count_buf, centroids)
+    __swig_destroy__ = _pyknori.delete_kmeans_t
+    __del__ = lambda self: None
+kmeans_t_swigregister = _pyknori.kmeans_t_swigregister
+kmeans_t_swigregister(kmeans_t)
+cvar = _pyknori.cvar
+INVALID_CLUSTER_ID = cvar.INVALID_CLUSTER_ID
+
 
 def kmeans(*args):
     return _pyknori.kmeans(*args)

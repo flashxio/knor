@@ -3009,10 +3009,15 @@ SWIG_Python_NonDynamicSetAttr(PyObject *obj, PyObject *name, PyObject *value) {
 #define SWIGTYPE_p_char swig_types[0]
 #define SWIGTYPE_p_double swig_types[1]
 #define SWIGTYPE_p_kpmeans__base__kmeans_t swig_types[2]
-#define SWIGTYPE_p_std__invalid_argument swig_types[3]
-#define SWIGTYPE_p_swig__SwigPyIterator swig_types[4]
-static swig_type_info *swig_types[6];
-static swig_module_info swig_module = {swig_types, 5, 0, 0, 0, 0};
+#define SWIGTYPE_p_size_t swig_types[3]
+#define SWIGTYPE_p_std__invalid_argument swig_types[4]
+#define SWIGTYPE_p_std__vectorT_double_std__allocatorT_double_t_t swig_types[5]
+#define SWIGTYPE_p_std__vectorT_size_t_std__allocatorT_size_t_t_t swig_types[6]
+#define SWIGTYPE_p_std__vectorT_unsigned_int_std__allocatorT_unsigned_int_t_t swig_types[7]
+#define SWIGTYPE_p_swig__SwigPyIterator swig_types[8]
+#define SWIGTYPE_p_unsigned_int swig_types[9]
+static swig_type_info *swig_types[11];
+static swig_module_info swig_module = {swig_types, 10, 0, 0, 0, 0};
 #define SWIG_TypeQuery(name) SWIG_TypeQueryModule(&swig_module, &swig_module, name)
 #define SWIG_MangledTypeQuery(name) SWIG_MangledTypeQueryModule(&swig_module, &swig_module, name)
 
@@ -3627,6 +3632,55 @@ SWIG_AsVal_ptrdiff_t (PyObject * obj, ptrdiff_t *val)
 
 #define SWIG_FILE_WITH_INIT
 #include "pyknori.hpp"
+#include "../libkcommon/kmeans_types.hpp"
+
+
+SWIGINTERNINLINE PyObject*
+  SWIG_From_unsigned_SS_int  (unsigned int value)
+{
+  return PyInt_FromSize_t((size_t) value);
+}
+
+
+SWIGINTERNINLINE PyObject*
+  SWIG_From_int  (int value)
+{
+  return PyInt_FromLong((long) value);
+}
+
+
+SWIGINTERNINLINE PyObject* 
+SWIG_From_unsigned_SS_long  (unsigned long value)
+{
+  return (value > LONG_MAX) ?
+    PyLong_FromUnsignedLong(value) : PyInt_FromLong(static_cast< long >(value));
+}
+
+
+#ifdef SWIG_LONG_LONG_AVAILABLE
+SWIGINTERNINLINE PyObject* 
+SWIG_From_unsigned_SS_long_SS_long  (unsigned long long value)
+{
+  return (value > LONG_MAX) ?
+    PyLong_FromUnsignedLongLong(value) : PyInt_FromLong(static_cast< long >(value));
+}
+#endif
+
+
+SWIGINTERNINLINE PyObject *
+SWIG_From_size_t  (size_t value)
+{    
+#ifdef SWIG_LONG_LONG_AVAILABLE
+  if (sizeof(size_t) <= sizeof(unsigned long)) {
+#endif
+    return SWIG_From_unsigned_SS_long  (static_cast< unsigned long >(value));
+#ifdef SWIG_LONG_LONG_AVAILABLE
+  } else {
+    /* assume sizeof(size_t) <= sizeof(unsigned long long) */
+    return SWIG_From_unsigned_SS_long_SS_long  (static_cast< unsigned long long >(value));
+  }
+#endif
+}
 
 
 SWIGINTERN swig_type_info*
@@ -4665,6 +4719,771 @@ SWIGINTERN PyObject *SwigPyIterator_swigregister(PyObject *SWIGUNUSEDPARM(self),
   PyObject *obj;
   if (!PyArg_ParseTuple(args,(char *)"O:swigregister", &obj)) return NULL;
   SWIG_TypeNewClientData(SWIGTYPE_p_swig__SwigPyIterator, SWIG_NewClientData(obj));
+  return SWIG_Py_Void();
+}
+
+SWIGINTERN int Swig_var_INVALID_CLUSTER_ID_set(PyObject *) {
+  SWIG_Error(SWIG_AttributeError,"Variable INVALID_CLUSTER_ID is read-only.");
+  return 1;
+}
+
+
+SWIGINTERN PyObject *Swig_var_INVALID_CLUSTER_ID_get(void) {
+  PyObject *pyobj = 0;
+  
+  pyobj = SWIG_From_unsigned_SS_int(static_cast< unsigned int >(kpmeans::base::INVALID_CLUSTER_ID));
+  return pyobj;
+}
+
+
+SWIGINTERN PyObject *_wrap_kmeans_t_nrow_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  kpmeans::base::kmeans_t *arg1 = (kpmeans::base::kmeans_t *) 0 ;
+  size_t arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  size_t val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:kmeans_t_nrow_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_kpmeans__base__kmeans_t, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "kmeans_t_nrow_set" "', argument " "1"" of type '" "kpmeans::base::kmeans_t *""'"); 
+  }
+  arg1 = reinterpret_cast< kpmeans::base::kmeans_t * >(argp1);
+  ecode2 = SWIG_AsVal_size_t(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "kmeans_t_nrow_set" "', argument " "2"" of type '" "size_t""'");
+  } 
+  arg2 = static_cast< size_t >(val2);
+  if (arg1) (arg1)->nrow = arg2;
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_kmeans_t_nrow_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  kpmeans::base::kmeans_t *arg1 = (kpmeans::base::kmeans_t *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  size_t result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:kmeans_t_nrow_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_kpmeans__base__kmeans_t, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "kmeans_t_nrow_get" "', argument " "1"" of type '" "kpmeans::base::kmeans_t *""'"); 
+  }
+  arg1 = reinterpret_cast< kpmeans::base::kmeans_t * >(argp1);
+  result =  ((arg1)->nrow);
+  resultobj = SWIG_From_size_t(static_cast< size_t >(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_kmeans_t_ncol_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  kpmeans::base::kmeans_t *arg1 = (kpmeans::base::kmeans_t *) 0 ;
+  size_t arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  size_t val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:kmeans_t_ncol_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_kpmeans__base__kmeans_t, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "kmeans_t_ncol_set" "', argument " "1"" of type '" "kpmeans::base::kmeans_t *""'"); 
+  }
+  arg1 = reinterpret_cast< kpmeans::base::kmeans_t * >(argp1);
+  ecode2 = SWIG_AsVal_size_t(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "kmeans_t_ncol_set" "', argument " "2"" of type '" "size_t""'");
+  } 
+  arg2 = static_cast< size_t >(val2);
+  if (arg1) (arg1)->ncol = arg2;
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_kmeans_t_ncol_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  kpmeans::base::kmeans_t *arg1 = (kpmeans::base::kmeans_t *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  size_t result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:kmeans_t_ncol_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_kpmeans__base__kmeans_t, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "kmeans_t_ncol_get" "', argument " "1"" of type '" "kpmeans::base::kmeans_t *""'"); 
+  }
+  arg1 = reinterpret_cast< kpmeans::base::kmeans_t * >(argp1);
+  result =  ((arg1)->ncol);
+  resultobj = SWIG_From_size_t(static_cast< size_t >(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_kmeans_t_iters_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  kpmeans::base::kmeans_t *arg1 = (kpmeans::base::kmeans_t *) 0 ;
+  size_t arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  size_t val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:kmeans_t_iters_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_kpmeans__base__kmeans_t, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "kmeans_t_iters_set" "', argument " "1"" of type '" "kpmeans::base::kmeans_t *""'"); 
+  }
+  arg1 = reinterpret_cast< kpmeans::base::kmeans_t * >(argp1);
+  ecode2 = SWIG_AsVal_size_t(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "kmeans_t_iters_set" "', argument " "2"" of type '" "size_t""'");
+  } 
+  arg2 = static_cast< size_t >(val2);
+  if (arg1) (arg1)->iters = arg2;
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_kmeans_t_iters_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  kpmeans::base::kmeans_t *arg1 = (kpmeans::base::kmeans_t *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  size_t result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:kmeans_t_iters_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_kpmeans__base__kmeans_t, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "kmeans_t_iters_get" "', argument " "1"" of type '" "kpmeans::base::kmeans_t *""'"); 
+  }
+  arg1 = reinterpret_cast< kpmeans::base::kmeans_t * >(argp1);
+  result =  ((arg1)->iters);
+  resultobj = SWIG_From_size_t(static_cast< size_t >(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_kmeans_t_k_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  kpmeans::base::kmeans_t *arg1 = (kpmeans::base::kmeans_t *) 0 ;
+  size_t arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  size_t val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:kmeans_t_k_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_kpmeans__base__kmeans_t, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "kmeans_t_k_set" "', argument " "1"" of type '" "kpmeans::base::kmeans_t *""'"); 
+  }
+  arg1 = reinterpret_cast< kpmeans::base::kmeans_t * >(argp1);
+  ecode2 = SWIG_AsVal_size_t(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "kmeans_t_k_set" "', argument " "2"" of type '" "size_t""'");
+  } 
+  arg2 = static_cast< size_t >(val2);
+  if (arg1) (arg1)->k = arg2;
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_kmeans_t_k_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  kpmeans::base::kmeans_t *arg1 = (kpmeans::base::kmeans_t *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  size_t result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:kmeans_t_k_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_kpmeans__base__kmeans_t, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "kmeans_t_k_get" "', argument " "1"" of type '" "kpmeans::base::kmeans_t *""'"); 
+  }
+  arg1 = reinterpret_cast< kpmeans::base::kmeans_t * >(argp1);
+  result =  ((arg1)->k);
+  resultobj = SWIG_From_size_t(static_cast< size_t >(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_kmeans_t_assignments_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  kpmeans::base::kmeans_t *arg1 = (kpmeans::base::kmeans_t *) 0 ;
+  std::vector< unsigned int,std::allocator< unsigned int > > *arg2 = (std::vector< unsigned int,std::allocator< unsigned int > > *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  void *argp2 = 0 ;
+  int res2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:kmeans_t_assignments_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_kpmeans__base__kmeans_t, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "kmeans_t_assignments_set" "', argument " "1"" of type '" "kpmeans::base::kmeans_t *""'"); 
+  }
+  arg1 = reinterpret_cast< kpmeans::base::kmeans_t * >(argp1);
+  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_std__vectorT_unsigned_int_std__allocatorT_unsigned_int_t_t, 0 |  0 );
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "kmeans_t_assignments_set" "', argument " "2"" of type '" "std::vector< unsigned int,std::allocator< unsigned int > > *""'"); 
+  }
+  arg2 = reinterpret_cast< std::vector< unsigned int,std::allocator< unsigned int > > * >(argp2);
+  if (arg1) (arg1)->assignments = *arg2;
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_kmeans_t_assignments_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  kpmeans::base::kmeans_t *arg1 = (kpmeans::base::kmeans_t *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  std::vector< unsigned int,std::allocator< unsigned int > > *result = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:kmeans_t_assignments_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_kpmeans__base__kmeans_t, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "kmeans_t_assignments_get" "', argument " "1"" of type '" "kpmeans::base::kmeans_t *""'"); 
+  }
+  arg1 = reinterpret_cast< kpmeans::base::kmeans_t * >(argp1);
+  result = (std::vector< unsigned int,std::allocator< unsigned int > > *)& ((arg1)->assignments);
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_std__vectorT_unsigned_int_std__allocatorT_unsigned_int_t_t, 0 |  0 );
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_kmeans_t_assignment_count_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  kpmeans::base::kmeans_t *arg1 = (kpmeans::base::kmeans_t *) 0 ;
+  std::vector< size_t,std::allocator< size_t > > *arg2 = (std::vector< size_t,std::allocator< size_t > > *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  void *argp2 = 0 ;
+  int res2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:kmeans_t_assignment_count_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_kpmeans__base__kmeans_t, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "kmeans_t_assignment_count_set" "', argument " "1"" of type '" "kpmeans::base::kmeans_t *""'"); 
+  }
+  arg1 = reinterpret_cast< kpmeans::base::kmeans_t * >(argp1);
+  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_std__vectorT_size_t_std__allocatorT_size_t_t_t, 0 |  0 );
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "kmeans_t_assignment_count_set" "', argument " "2"" of type '" "std::vector< size_t,std::allocator< size_t > > *""'"); 
+  }
+  arg2 = reinterpret_cast< std::vector< size_t,std::allocator< size_t > > * >(argp2);
+  if (arg1) (arg1)->assignment_count = *arg2;
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_kmeans_t_assignment_count_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  kpmeans::base::kmeans_t *arg1 = (kpmeans::base::kmeans_t *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  std::vector< size_t,std::allocator< size_t > > *result = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:kmeans_t_assignment_count_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_kpmeans__base__kmeans_t, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "kmeans_t_assignment_count_get" "', argument " "1"" of type '" "kpmeans::base::kmeans_t *""'"); 
+  }
+  arg1 = reinterpret_cast< kpmeans::base::kmeans_t * >(argp1);
+  result = (std::vector< size_t,std::allocator< size_t > > *)& ((arg1)->assignment_count);
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_std__vectorT_size_t_std__allocatorT_size_t_t_t, 0 |  0 );
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_kmeans_t_centroids_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  kpmeans::base::kmeans_t *arg1 = (kpmeans::base::kmeans_t *) 0 ;
+  std::vector< double,std::allocator< double > > *arg2 = (std::vector< double,std::allocator< double > > *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  void *argp2 = 0 ;
+  int res2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:kmeans_t_centroids_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_kpmeans__base__kmeans_t, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "kmeans_t_centroids_set" "', argument " "1"" of type '" "kpmeans::base::kmeans_t *""'"); 
+  }
+  arg1 = reinterpret_cast< kpmeans::base::kmeans_t * >(argp1);
+  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_std__vectorT_double_std__allocatorT_double_t_t, 0 |  0 );
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "kmeans_t_centroids_set" "', argument " "2"" of type '" "std::vector< double,std::allocator< double > > *""'"); 
+  }
+  arg2 = reinterpret_cast< std::vector< double,std::allocator< double > > * >(argp2);
+  if (arg1) (arg1)->centroids = *arg2;
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_kmeans_t_centroids_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  kpmeans::base::kmeans_t *arg1 = (kpmeans::base::kmeans_t *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  std::vector< double,std::allocator< double > > *result = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:kmeans_t_centroids_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_kpmeans__base__kmeans_t, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "kmeans_t_centroids_get" "', argument " "1"" of type '" "kpmeans::base::kmeans_t *""'"); 
+  }
+  arg1 = reinterpret_cast< kpmeans::base::kmeans_t * >(argp1);
+  result = (std::vector< double,std::allocator< double > > *)& ((arg1)->centroids);
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_std__vectorT_double_std__allocatorT_double_t_t, 0 |  0 );
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_new_kmeans_t__SWIG_0(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  kpmeans::base::kmeans_t *result = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)":new_kmeans_t")) SWIG_fail;
+  result = (kpmeans::base::kmeans_t *)new kpmeans::base::kmeans_t();
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_kpmeans__base__kmeans_t, SWIG_POINTER_NEW |  0 );
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_new_kmeans_t__SWIG_1(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  size_t arg1 ;
+  size_t arg2 ;
+  size_t arg3 ;
+  size_t arg4 ;
+  unsigned int *arg5 = (unsigned int *) 0 ;
+  size_t *arg6 = (size_t *) 0 ;
+  std::vector< double,std::allocator< double > > *arg7 = 0 ;
+  size_t val1 ;
+  int ecode1 = 0 ;
+  size_t val2 ;
+  int ecode2 = 0 ;
+  size_t val3 ;
+  int ecode3 = 0 ;
+  size_t val4 ;
+  int ecode4 = 0 ;
+  void *argp5 = 0 ;
+  int res5 = 0 ;
+  void *argp6 = 0 ;
+  int res6 = 0 ;
+  void *argp7 = 0 ;
+  int res7 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  PyObject * obj2 = 0 ;
+  PyObject * obj3 = 0 ;
+  PyObject * obj4 = 0 ;
+  PyObject * obj5 = 0 ;
+  PyObject * obj6 = 0 ;
+  kpmeans::base::kmeans_t *result = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OOOOOOO:new_kmeans_t",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6)) SWIG_fail;
+  ecode1 = SWIG_AsVal_size_t(obj0, &val1);
+  if (!SWIG_IsOK(ecode1)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "new_kmeans_t" "', argument " "1"" of type '" "size_t""'");
+  } 
+  arg1 = static_cast< size_t >(val1);
+  ecode2 = SWIG_AsVal_size_t(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "new_kmeans_t" "', argument " "2"" of type '" "size_t""'");
+  } 
+  arg2 = static_cast< size_t >(val2);
+  ecode3 = SWIG_AsVal_size_t(obj2, &val3);
+  if (!SWIG_IsOK(ecode3)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "new_kmeans_t" "', argument " "3"" of type '" "size_t""'");
+  } 
+  arg3 = static_cast< size_t >(val3);
+  ecode4 = SWIG_AsVal_size_t(obj3, &val4);
+  if (!SWIG_IsOK(ecode4)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "new_kmeans_t" "', argument " "4"" of type '" "size_t""'");
+  } 
+  arg4 = static_cast< size_t >(val4);
+  res5 = SWIG_ConvertPtr(obj4, &argp5,SWIGTYPE_p_unsigned_int, 0 |  0 );
+  if (!SWIG_IsOK(res5)) {
+    SWIG_exception_fail(SWIG_ArgError(res5), "in method '" "new_kmeans_t" "', argument " "5"" of type '" "unsigned int const *""'"); 
+  }
+  arg5 = reinterpret_cast< unsigned int * >(argp5);
+  res6 = SWIG_ConvertPtr(obj5, &argp6,SWIGTYPE_p_size_t, 0 |  0 );
+  if (!SWIG_IsOK(res6)) {
+    SWIG_exception_fail(SWIG_ArgError(res6), "in method '" "new_kmeans_t" "', argument " "6"" of type '" "size_t const *""'"); 
+  }
+  arg6 = reinterpret_cast< size_t * >(argp6);
+  res7 = SWIG_ConvertPtr(obj6, &argp7, SWIGTYPE_p_std__vectorT_double_std__allocatorT_double_t_t,  0  | 0);
+  if (!SWIG_IsOK(res7)) {
+    SWIG_exception_fail(SWIG_ArgError(res7), "in method '" "new_kmeans_t" "', argument " "7"" of type '" "std::vector< double,std::allocator< double > > const &""'"); 
+  }
+  if (!argp7) {
+    SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "new_kmeans_t" "', argument " "7"" of type '" "std::vector< double,std::allocator< double > > const &""'"); 
+  }
+  arg7 = reinterpret_cast< std::vector< double,std::allocator< double > > * >(argp7);
+  result = (kpmeans::base::kmeans_t *)new kpmeans::base::kmeans_t(arg1,arg2,arg3,arg4,(unsigned int const *)arg5,(size_t const *)arg6,(std::vector< double,std::allocator< double > > const &)*arg7);
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_kpmeans__base__kmeans_t, SWIG_POINTER_NEW |  0 );
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_new_kmeans_t(PyObject *self, PyObject *args) {
+  Py_ssize_t argc;
+  PyObject *argv[8] = {
+    0
+  };
+  Py_ssize_t ii;
+  
+  if (!PyTuple_Check(args)) SWIG_fail;
+  argc = args ? PyObject_Length(args) : 0;
+  for (ii = 0; (ii < 7) && (ii < argc); ii++) {
+    argv[ii] = PyTuple_GET_ITEM(args,ii);
+  }
+  if (argc == 0) {
+    return _wrap_new_kmeans_t__SWIG_0(self, args);
+  }
+  if (argc == 7) {
+    int _v;
+    {
+      int res = SWIG_AsVal_size_t(argv[0], NULL);
+      _v = SWIG_CheckState(res);
+    }
+    if (_v) {
+      {
+        int res = SWIG_AsVal_size_t(argv[1], NULL);
+        _v = SWIG_CheckState(res);
+      }
+      if (_v) {
+        {
+          int res = SWIG_AsVal_size_t(argv[2], NULL);
+          _v = SWIG_CheckState(res);
+        }
+        if (_v) {
+          {
+            int res = SWIG_AsVal_size_t(argv[3], NULL);
+            _v = SWIG_CheckState(res);
+          }
+          if (_v) {
+            void *vptr = 0;
+            int res = SWIG_ConvertPtr(argv[4], &vptr, SWIGTYPE_p_unsigned_int, 0);
+            _v = SWIG_CheckState(res);
+            if (_v) {
+              void *vptr = 0;
+              int res = SWIG_ConvertPtr(argv[5], &vptr, SWIGTYPE_p_size_t, 0);
+              _v = SWIG_CheckState(res);
+              if (_v) {
+                int res = SWIG_ConvertPtr(argv[6], 0, SWIGTYPE_p_std__vectorT_double_std__allocatorT_double_t_t, 0);
+                _v = SWIG_CheckState(res);
+                if (_v) {
+                  return _wrap_new_kmeans_t__SWIG_1(self, args);
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  
+fail:
+  SWIG_SetErrorMsg(PyExc_NotImplementedError,"Wrong number or type of arguments for overloaded function 'new_kmeans_t'.\n"
+    "  Possible C/C++ prototypes are:\n"
+    "    kpmeans::base::kmeans_t::kmeans_t()\n"
+    "    kpmeans::base::kmeans_t::kmeans_t(size_t const,size_t const,size_t const,size_t const,unsigned int const *,size_t const *,std::vector< double,std::allocator< double > > const &)\n");
+  return 0;
+}
+
+
+SWIGINTERN PyObject *_wrap_kmeans_t__print(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  kpmeans::base::kmeans_t *arg1 = (kpmeans::base::kmeans_t *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:kmeans_t__print",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_kpmeans__base__kmeans_t, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "kmeans_t__print" "', argument " "1"" of type '" "kpmeans::base::kmeans_t const *""'"); 
+  }
+  arg1 = reinterpret_cast< kpmeans::base::kmeans_t * >(argp1);
+  ((kpmeans::base::kmeans_t const *)arg1)->print();
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_kmeans_t_write(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  kpmeans::base::kmeans_t *arg1 = (kpmeans::base::kmeans_t *) 0 ;
+  std::string arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:kmeans_t_write",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_kpmeans__base__kmeans_t, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "kmeans_t_write" "', argument " "1"" of type '" "kpmeans::base::kmeans_t const *""'"); 
+  }
+  arg1 = reinterpret_cast< kpmeans::base::kmeans_t * >(argp1);
+  {
+    std::string *ptr = (std::string *)0;
+    int res = SWIG_AsPtr_std_string(obj1, &ptr);
+    if (!SWIG_IsOK(res) || !ptr) {
+      SWIG_exception_fail(SWIG_ArgError((ptr ? res : SWIG_TypeError)), "in method '" "kmeans_t_write" "', argument " "2"" of type '" "std::string const""'"); 
+    }
+    arg2 = *ptr;
+    if (SWIG_IsNewObj(res)) delete ptr;
+  }
+  ((kpmeans::base::kmeans_t const *)arg1)->write(arg2);
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_kmeans_t___eq__(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  kpmeans::base::kmeans_t *arg1 = (kpmeans::base::kmeans_t *) 0 ;
+  kpmeans::base::kmeans_t *arg2 = 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  void *argp2 = 0 ;
+  int res2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  bool result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:kmeans_t___eq__",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_kpmeans__base__kmeans_t, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "kmeans_t___eq__" "', argument " "1"" of type '" "kpmeans::base::kmeans_t *""'"); 
+  }
+  arg1 = reinterpret_cast< kpmeans::base::kmeans_t * >(argp1);
+  res2 = SWIG_ConvertPtr(obj1, &argp2, SWIGTYPE_p_kpmeans__base__kmeans_t,  0  | 0);
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "kmeans_t___eq__" "', argument " "2"" of type '" "kpmeans::base::kmeans_t const &""'"); 
+  }
+  if (!argp2) {
+    SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "kmeans_t___eq__" "', argument " "2"" of type '" "kpmeans::base::kmeans_t const &""'"); 
+  }
+  arg2 = reinterpret_cast< kpmeans::base::kmeans_t * >(argp2);
+  result = (bool)(arg1)->operator ==((kpmeans::base::kmeans_t const &)*arg2);
+  resultobj = SWIG_From_bool(static_cast< bool >(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_kmeans_t_set_params(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  kpmeans::base::kmeans_t *arg1 = (kpmeans::base::kmeans_t *) 0 ;
+  size_t arg2 ;
+  size_t arg3 ;
+  size_t arg4 ;
+  size_t arg5 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  size_t val2 ;
+  int ecode2 = 0 ;
+  size_t val3 ;
+  int ecode3 = 0 ;
+  size_t val4 ;
+  int ecode4 = 0 ;
+  size_t val5 ;
+  int ecode5 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  PyObject * obj2 = 0 ;
+  PyObject * obj3 = 0 ;
+  PyObject * obj4 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OOOOO:kmeans_t_set_params",&obj0,&obj1,&obj2,&obj3,&obj4)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_kpmeans__base__kmeans_t, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "kmeans_t_set_params" "', argument " "1"" of type '" "kpmeans::base::kmeans_t *""'"); 
+  }
+  arg1 = reinterpret_cast< kpmeans::base::kmeans_t * >(argp1);
+  ecode2 = SWIG_AsVal_size_t(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "kmeans_t_set_params" "', argument " "2"" of type '" "size_t""'");
+  } 
+  arg2 = static_cast< size_t >(val2);
+  ecode3 = SWIG_AsVal_size_t(obj2, &val3);
+  if (!SWIG_IsOK(ecode3)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "kmeans_t_set_params" "', argument " "3"" of type '" "size_t""'");
+  } 
+  arg3 = static_cast< size_t >(val3);
+  ecode4 = SWIG_AsVal_size_t(obj3, &val4);
+  if (!SWIG_IsOK(ecode4)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "kmeans_t_set_params" "', argument " "4"" of type '" "size_t""'");
+  } 
+  arg4 = static_cast< size_t >(val4);
+  ecode5 = SWIG_AsVal_size_t(obj4, &val5);
+  if (!SWIG_IsOK(ecode5)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "kmeans_t_set_params" "', argument " "5"" of type '" "size_t""'");
+  } 
+  arg5 = static_cast< size_t >(val5);
+  (arg1)->set_params(arg2,arg3,arg4,arg5);
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_kmeans_t_set_computed(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  kpmeans::base::kmeans_t *arg1 = (kpmeans::base::kmeans_t *) 0 ;
+  unsigned int *arg2 = (unsigned int *) 0 ;
+  size_t *arg3 = (size_t *) 0 ;
+  SwigValueWrapper< std::vector< double,std::allocator< double > > > arg4 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  void *argp2 = 0 ;
+  int res2 = 0 ;
+  void *argp3 = 0 ;
+  int res3 = 0 ;
+  void *argp4 ;
+  int res4 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  PyObject * obj2 = 0 ;
+  PyObject * obj3 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OOOO:kmeans_t_set_computed",&obj0,&obj1,&obj2,&obj3)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_kpmeans__base__kmeans_t, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "kmeans_t_set_computed" "', argument " "1"" of type '" "kpmeans::base::kmeans_t *""'"); 
+  }
+  arg1 = reinterpret_cast< kpmeans::base::kmeans_t * >(argp1);
+  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_unsigned_int, 0 |  0 );
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "kmeans_t_set_computed" "', argument " "2"" of type '" "unsigned int const *""'"); 
+  }
+  arg2 = reinterpret_cast< unsigned int * >(argp2);
+  res3 = SWIG_ConvertPtr(obj2, &argp3,SWIGTYPE_p_size_t, 0 |  0 );
+  if (!SWIG_IsOK(res3)) {
+    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "kmeans_t_set_computed" "', argument " "3"" of type '" "size_t const *""'"); 
+  }
+  arg3 = reinterpret_cast< size_t * >(argp3);
+  {
+    res4 = SWIG_ConvertPtr(obj3, &argp4, SWIGTYPE_p_std__vectorT_double_std__allocatorT_double_t_t,  0  | 0);
+    if (!SWIG_IsOK(res4)) {
+      SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "kmeans_t_set_computed" "', argument " "4"" of type '" "std::vector< double,std::allocator< double > > const""'"); 
+    }  
+    if (!argp4) {
+      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "kmeans_t_set_computed" "', argument " "4"" of type '" "std::vector< double,std::allocator< double > > const""'");
+    } else {
+      std::vector< double,std::allocator< double > > * temp = reinterpret_cast< std::vector< double,std::allocator< double > > * >(argp4);
+      arg4 = *temp;
+      if (SWIG_IsNewObj(res4)) delete temp;
+    }
+  }
+  (arg1)->set_computed((unsigned int const *)arg2,(size_t const *)arg3,arg4);
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_delete_kmeans_t(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  kpmeans::base::kmeans_t *arg1 = (kpmeans::base::kmeans_t *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:delete_kmeans_t",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_kpmeans__base__kmeans_t, SWIG_POINTER_DISOWN |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "delete_kmeans_t" "', argument " "1"" of type '" "kpmeans::base::kmeans_t *""'"); 
+  }
+  arg1 = reinterpret_cast< kpmeans::base::kmeans_t * >(argp1);
+  delete arg1;
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *kmeans_t_swigregister(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *obj;
+  if (!PyArg_ParseTuple(args,(char *)"O:swigregister", &obj)) return NULL;
+  SWIG_TypeNewClientData(SWIGTYPE_p_kpmeans__base__kmeans_t, SWIG_NewClientData(obj));
   return SWIG_Py_Void();
 }
 
@@ -6157,6 +6976,28 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"SwigPyIterator___add__", _wrap_SwigPyIterator___add__, METH_VARARGS, NULL},
 	 { (char *)"SwigPyIterator___sub__", _wrap_SwigPyIterator___sub__, METH_VARARGS, NULL},
 	 { (char *)"SwigPyIterator_swigregister", SwigPyIterator_swigregister, METH_VARARGS, NULL},
+	 { (char *)"kmeans_t_nrow_set", _wrap_kmeans_t_nrow_set, METH_VARARGS, NULL},
+	 { (char *)"kmeans_t_nrow_get", _wrap_kmeans_t_nrow_get, METH_VARARGS, NULL},
+	 { (char *)"kmeans_t_ncol_set", _wrap_kmeans_t_ncol_set, METH_VARARGS, NULL},
+	 { (char *)"kmeans_t_ncol_get", _wrap_kmeans_t_ncol_get, METH_VARARGS, NULL},
+	 { (char *)"kmeans_t_iters_set", _wrap_kmeans_t_iters_set, METH_VARARGS, NULL},
+	 { (char *)"kmeans_t_iters_get", _wrap_kmeans_t_iters_get, METH_VARARGS, NULL},
+	 { (char *)"kmeans_t_k_set", _wrap_kmeans_t_k_set, METH_VARARGS, NULL},
+	 { (char *)"kmeans_t_k_get", _wrap_kmeans_t_k_get, METH_VARARGS, NULL},
+	 { (char *)"kmeans_t_assignments_set", _wrap_kmeans_t_assignments_set, METH_VARARGS, NULL},
+	 { (char *)"kmeans_t_assignments_get", _wrap_kmeans_t_assignments_get, METH_VARARGS, NULL},
+	 { (char *)"kmeans_t_assignment_count_set", _wrap_kmeans_t_assignment_count_set, METH_VARARGS, NULL},
+	 { (char *)"kmeans_t_assignment_count_get", _wrap_kmeans_t_assignment_count_get, METH_VARARGS, NULL},
+	 { (char *)"kmeans_t_centroids_set", _wrap_kmeans_t_centroids_set, METH_VARARGS, NULL},
+	 { (char *)"kmeans_t_centroids_get", _wrap_kmeans_t_centroids_get, METH_VARARGS, NULL},
+	 { (char *)"new_kmeans_t", _wrap_new_kmeans_t, METH_VARARGS, NULL},
+	 { (char *)"kmeans_t__print", _wrap_kmeans_t__print, METH_VARARGS, NULL},
+	 { (char *)"kmeans_t_write", _wrap_kmeans_t_write, METH_VARARGS, NULL},
+	 { (char *)"kmeans_t___eq__", _wrap_kmeans_t___eq__, METH_VARARGS, NULL},
+	 { (char *)"kmeans_t_set_params", _wrap_kmeans_t_set_params, METH_VARARGS, NULL},
+	 { (char *)"kmeans_t_set_computed", _wrap_kmeans_t_set_computed, METH_VARARGS, NULL},
+	 { (char *)"delete_kmeans_t", _wrap_delete_kmeans_t, METH_VARARGS, NULL},
+	 { (char *)"kmeans_t_swigregister", kmeans_t_swigregister, METH_VARARGS, NULL},
 	 { (char *)"kmeans", _wrap_kmeans, METH_VARARGS, NULL},
 	 { NULL, NULL, 0, NULL }
 };
@@ -6167,29 +7008,49 @@ static PyMethodDef SwigMethods[] = {
 static swig_type_info _swigt__p_char = {"_p_char", "char *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_double = {"_p_double", "double *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_kpmeans__base__kmeans_t = {"_p_kpmeans__base__kmeans_t", "kpmeans::base::kmeans_t *", 0, 0, (void*)0, 0};
+static swig_type_info _swigt__p_size_t = {"_p_size_t", "size_t *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_std__invalid_argument = {"_p_std__invalid_argument", "std::invalid_argument *", 0, 0, (void*)0, 0};
+static swig_type_info _swigt__p_std__vectorT_double_std__allocatorT_double_t_t = {"_p_std__vectorT_double_std__allocatorT_double_t_t", "std::vector< double,std::allocator< double > > *", 0, 0, (void*)0, 0};
+static swig_type_info _swigt__p_std__vectorT_size_t_std__allocatorT_size_t_t_t = {"_p_std__vectorT_size_t_std__allocatorT_size_t_t_t", "std::vector< size_t,std::allocator< size_t > > *", 0, 0, (void*)0, 0};
+static swig_type_info _swigt__p_std__vectorT_unsigned_int_std__allocatorT_unsigned_int_t_t = {"_p_std__vectorT_unsigned_int_std__allocatorT_unsigned_int_t_t", "std::vector< unsigned int,std::allocator< unsigned int > > *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_swig__SwigPyIterator = {"_p_swig__SwigPyIterator", "swig::SwigPyIterator *", 0, 0, (void*)0, 0};
+static swig_type_info _swigt__p_unsigned_int = {"_p_unsigned_int", "unsigned int *", 0, 0, (void*)0, 0};
 
 static swig_type_info *swig_type_initial[] = {
   &_swigt__p_char,
   &_swigt__p_double,
   &_swigt__p_kpmeans__base__kmeans_t,
+  &_swigt__p_size_t,
   &_swigt__p_std__invalid_argument,
+  &_swigt__p_std__vectorT_double_std__allocatorT_double_t_t,
+  &_swigt__p_std__vectorT_size_t_std__allocatorT_size_t_t_t,
+  &_swigt__p_std__vectorT_unsigned_int_std__allocatorT_unsigned_int_t_t,
   &_swigt__p_swig__SwigPyIterator,
+  &_swigt__p_unsigned_int,
 };
 
 static swig_cast_info _swigc__p_char[] = {  {&_swigt__p_char, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_double[] = {  {&_swigt__p_double, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_kpmeans__base__kmeans_t[] = {  {&_swigt__p_kpmeans__base__kmeans_t, 0, 0, 0},{0, 0, 0, 0}};
+static swig_cast_info _swigc__p_size_t[] = {  {&_swigt__p_size_t, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_std__invalid_argument[] = {  {&_swigt__p_std__invalid_argument, 0, 0, 0},{0, 0, 0, 0}};
+static swig_cast_info _swigc__p_std__vectorT_double_std__allocatorT_double_t_t[] = {  {&_swigt__p_std__vectorT_double_std__allocatorT_double_t_t, 0, 0, 0},{0, 0, 0, 0}};
+static swig_cast_info _swigc__p_std__vectorT_size_t_std__allocatorT_size_t_t_t[] = {  {&_swigt__p_std__vectorT_size_t_std__allocatorT_size_t_t_t, 0, 0, 0},{0, 0, 0, 0}};
+static swig_cast_info _swigc__p_std__vectorT_unsigned_int_std__allocatorT_unsigned_int_t_t[] = {  {&_swigt__p_std__vectorT_unsigned_int_std__allocatorT_unsigned_int_t_t, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_swig__SwigPyIterator[] = {  {&_swigt__p_swig__SwigPyIterator, 0, 0, 0},{0, 0, 0, 0}};
+static swig_cast_info _swigc__p_unsigned_int[] = {  {&_swigt__p_unsigned_int, 0, 0, 0},{0, 0, 0, 0}};
 
 static swig_cast_info *swig_cast_initial[] = {
   _swigc__p_char,
   _swigc__p_double,
   _swigc__p_kpmeans__base__kmeans_t,
+  _swigc__p_size_t,
   _swigc__p_std__invalid_argument,
+  _swigc__p_std__vectorT_double_std__allocatorT_double_t_t,
+  _swigc__p_std__vectorT_size_t_std__allocatorT_size_t_t_t,
+  _swigc__p_std__vectorT_unsigned_int_std__allocatorT_unsigned_int_t_t,
   _swigc__p_swig__SwigPyIterator,
+  _swigc__p_unsigned_int,
 };
 
 
@@ -6880,6 +7741,16 @@ SWIG_init(void) {
   
   SWIG_InstallConstants(d,swig_const_table);
   
+  PyDict_SetItemString(md,(char *)"cvar", SWIG_globals());
+  SWIG_addvarlink(SWIG_globals(),(char *)"INVALID_CLUSTER_ID",Swig_var_INVALID_CLUSTER_ID_get, Swig_var_INVALID_CLUSTER_ID_set);
+  SWIG_Python_SetConstant(d, "INIT",SWIG_From_int(static_cast< int >(kpmeans::base::INIT)));
+  SWIG_Python_SetConstant(d, "ESTEP",SWIG_From_int(static_cast< int >(kpmeans::base::ESTEP)));
+  SWIG_Python_SetConstant(d, "EUCL",SWIG_From_int(static_cast< int >(kpmeans::base::EUCL)));
+  SWIG_Python_SetConstant(d, "COS",SWIG_From_int(static_cast< int >(kpmeans::base::COS)));
+  SWIG_Python_SetConstant(d, "RANDOM",SWIG_From_int(static_cast< int >(kpmeans::base::RANDOM)));
+  SWIG_Python_SetConstant(d, "FORGY",SWIG_From_int(static_cast< int >(kpmeans::base::FORGY)));
+  SWIG_Python_SetConstant(d, "PLUSPLUS",SWIG_From_int(static_cast< int >(kpmeans::base::PLUSPLUS)));
+  SWIG_Python_SetConstant(d, "NONE",SWIG_From_int(static_cast< int >(kpmeans::base::NONE)));
 #if PY_VERSION_HEX >= 0x03000000
   return m;
 #else
