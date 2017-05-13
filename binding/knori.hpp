@@ -66,6 +66,7 @@ kpmbase::kmeans_t kmeans(const std::string datafn, const size_t nrow,
         ret = kc->run_kmeans();
     }
 
+    if (p_centers) { delete [] p_centers; }
     ret.print();
     return ret;
 }
