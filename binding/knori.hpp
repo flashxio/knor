@@ -35,8 +35,7 @@ namespace kpmeans { namespace base {
 kpmbase::kmeans_t kmeans(const std::string datafn, const size_t nrow,
         const size_t ncol, const unsigned k,
         size_t max_iters=std::numeric_limits<size_t>::max(),
-        unsigned nnodes=numa_num_task_nodes(),
-        unsigned nthread=kpmbase::get_num_omp_threads(),
+        unsigned nnodes=numa_num_task_nodes(), unsigned nthread=kpmbase::get_num_omp_threads(),
         double* p_centers=NULL, std::string init="kmeanspp",
         double tolerance=-1, std::string dist_type="eucl",
         std::string centersfn = "", bool omp=false) {
@@ -49,25 +48,27 @@ kpmbase::kmeans_t kmeans(const std::string datafn, const size_t nrow,
         br2.read(p_centers);
         printf("Read centers!\n");
     } else
-        printf("No centers to read ..\n");
+        printf("No centers to read\n");
 
 
     if (omp) {
+        printf("Calling FULL kmeans ..\n");
         kpmeans::kmeans_coordinator::ptr kc =
             kpmeans::kmeans_coordinator::create(datafn,
                     nrow, ncol, k, max_iters, nnodes, nthread, p_centers,
                     init, tolerance, dist_type);
         ret = kc->run_kmeans();
     } else {
-        kpmeans::kmeans_coordinator::ptr kc =
-            kpmeans::kmeans_coordinator::create(datafn,
-                    nrow, ncol, k, max_iters, nnodes, nthread, p_centers,
+        printf("Calling PRUNED kmeans ..\n");
+        kpmprune::kmeans_task_coordinator::ptr kc =
+            kpmprune::kmeans_task_coordinator::create(
+                    datafn, nrow, ncol, k, max_iters, nnodes, nthread, p_centers,
                     init, tolerance, dist_type);
         ret = kc->run_kmeans();
     }
 
-    if (p_centers) { delete [] p_centers; }
     ret.print();
+    if (p_centers) { delete [] p_centers; }
     return ret;
 }
 
