@@ -47,19 +47,17 @@ kpmbase::kmeans_t kmeans(const std::string datafn, const size_t nrow,
         kpmbase::bin_io<double> br2(centersfn, k, ncol);
         br2.read(p_centers);
         printf("Read centers!\n");
-    } else
-        printf("No centers to read\n");
-
+    }
 
     if (omp) {
-        printf("Calling FULL kmeans ..\n");
+        //printf("Calling FULL kmeans ..\n");
         kpmeans::kmeans_coordinator::ptr kc =
             kpmeans::kmeans_coordinator::create(datafn,
                     nrow, ncol, k, max_iters, nnodes, nthread, p_centers,
                     init, tolerance, dist_type);
         ret = kc->run_kmeans();
     } else {
-        printf("Calling PRUNED kmeans ..\n");
+        //printf("Calling PRUNED kmeans ..\n");
         kpmprune::kmeans_task_coordinator::ptr kc =
             kpmprune::kmeans_task_coordinator::create(
                     datafn, nrow, ncol, k, max_iters, nnodes, nthread, p_centers,
