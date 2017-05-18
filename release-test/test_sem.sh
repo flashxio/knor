@@ -42,10 +42,9 @@ fi
 
 exec/knors libsem/FlashX/flash-graph/conf/run_graph.txt\
     test-data/matrix_r50_c5_rrw.adj 50 5 8 \
-    -t none -C test-data/init_clusters_k8_c5.bin -P -o $OUTDIR_SEM &&
+    -t none -C test-data/init_clusters_k8_c5.bin -P -o $OUTDIR_FSEM &&
     if [ "$(diff $OUTDIR_IM/* $OUTDIR_FSEM/*)" = "" ];
-    then
-        echo "knors FULL test success!"
+    then echo "knors FULL test success!"
     else
         echo "knors FULL release test failure!"
         exit 1
