@@ -76,7 +76,8 @@ public:
     virtual void random_partition_init() = 0;
     virtual void forgy_init() = 0;
 
-    virtual kpmeans::base::kmeans_t run_kmeans() = 0;
+    virtual kpmeans::base::kmeans_t run_kmeans(double* allocd_data=NULL,
+        bool numa_opt=false) = 0;
     virtual void kmeanspp_init() = 0;
     virtual void wake4run(kpmeans::thread_state_t state) = 0;
     virtual const double* get_thd_data(const unsigned row_id) const = 0;

@@ -309,16 +309,32 @@ void const kmeans_task_coordinator::print_thread_data() {
     }
 }
 
+void kmeans_task_coordinator::set_thread_data_ptr(double* allocd_data) {
+    thread_iter it = threads.begin();
+    for (; it != threads.end(); ++it)
+        (*it)->set_local_data_ptr(allocd_data);
+}
+
 /**
  * Main driver for kmeans
  */
-kpmbase::kmeans_t kmeans_task_coordinator::run_kmeans() {
+kpmbase::kmeans_t kmeans_task_coordinator::run_kmeans(double* allocd_data,
+        bool numa_opt) {
 #ifdef PROFILER
     ProfilerStart("matrix/kmeans_task_coordinator.perf");
 #endif
     set_global_ptrs();
-    wake4run(ALLOC_DATA);
-    wait4complete();
+
+    if (NULL == allocd_data) {
+        wake4run(ALLOC_DATA);
+        wait4complete();
+    } else {
+        if (numa_opt) {
+            throw kpmbase::not_implemented_exception();
+        } else {
+            set_thread_data_ptr(allocd_data);
+        }
+    }
 
     struct timeval start, end;
     gettimeofday(&start , NULL);

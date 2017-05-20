@@ -26,7 +26,7 @@ build_libs: build_common
 	$(MAKE) -C libauto # OMP
 	$(MAKE) -C libman # pthreads
 	$(MAKE) -C libdist # MPI
-	$(MAKE) -C libsem # MPI
+	#$(MAKE) -C libsem # MPI
 
 exec: build_libs
 	$(MAKE) -C exec

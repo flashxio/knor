@@ -263,7 +263,8 @@ void kmeans_coordinator::run_init() {
 /**
  * Main driver for kmeans
  */
-kpmbase::kmeans_t kmeans_coordinator::run_kmeans() {
+kpmbase::kmeans_t kmeans_coordinator::run_kmeans(double* allocd_data,
+        bool numa_opt) {
 #ifdef PROFILER
     ProfilerStart("matrix/kmeans_coordinator.perf");
 #endif

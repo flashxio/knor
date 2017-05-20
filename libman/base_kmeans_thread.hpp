@@ -26,6 +26,7 @@
 #include <memory>
 #include <utility>
 #include <atomic>
+#include <string>
 
 #include <boost/assert.hpp>
 #include <boost/log/trivial.hpp>
@@ -92,7 +93,7 @@ protected:
     base_kmeans_thread(const int node_id, const unsigned thd_id,
             const unsigned ncol, const unsigned nclust,
             unsigned* cluster_assignments, const unsigned start_rid,
-            const std::string fn) {
+            const std::string fn="") {
 
         pthread_mutexattr_init(&mutex_attr);
         pthread_mutexattr_settype(&mutex_attr, PTHREAD_MUTEX_ERRORCHECK);
@@ -103,7 +104,9 @@ protected:
         this->ncol = ncol;
         this->cluster_assignments = cluster_assignments;
         this->start_rid = start_rid;
-        BOOST_VERIFY(this->f = fopen(fn.c_str(), "rb"));
+
+        if (!fn.empty())
+            BOOST_VERIFY(this->f = fopen(fn.c_str(), "rb"));
 
         meta.num_changed = 0; // Same as meta.clust_idx = 0;
         set_thread_state(WAIT);
@@ -257,6 +260,10 @@ public:
         fseek(f, start_rid*ncol*sizeof(double), SEEK_SET); // start position
         BOOST_VERIFY(1 == fread(local_data, blob_size, 1, f));
         close_file_handle();
+    }
+
+    void set_local_data_ptr(double* data) {
+        local_data = &(data[start_rid*ncol]); // Grab your offset
     }
 
     ~base_kmeans_thread() {
