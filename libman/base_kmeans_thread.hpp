@@ -107,6 +107,8 @@ protected:
 
         if (!fn.empty())
             BOOST_VERIFY(this->f = fopen(fn.c_str(), "rb"));
+        else
+            this->f = NULL;
 
         meta.num_changed = 0; // Same as meta.clust_idx = 0;
         set_thread_state(WAIT);
