@@ -266,10 +266,19 @@ void kmeans_coordinator::run_init() {
 kpmbase::kmeans_t kmeans_coordinator::run_kmeans(double* allocd_data,
         bool numa_opt) {
 #ifdef PROFILER
-    ProfilerStart("matrix/kmeans_coordinator.perf");
+    ProfilerStart("libman/kmeans_coordinator.perf");
 #endif
-    wake4run(ALLOC_DATA);
-    wait4complete();
+
+    if (NULL == allocd_data) {
+        wake4run(ALLOC_DATA);
+        wait4complete();
+    } else {
+        if (numa_opt) {
+            throw kpmbase::not_implemented_exception();
+        } else {
+            set_thread_data_ptr(allocd_data);
+        }
+    }
 
     struct timeval start, end;
     gettimeofday(&start , NULL);

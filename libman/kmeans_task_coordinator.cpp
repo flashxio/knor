@@ -197,6 +197,19 @@ void kmeans_task_coordinator::set_thd_dist_v_ptr(double* v) {
     }
 }
 
+void kmeans_task_coordinator::set_thread_data_ptr(double* allocd_data) {
+
+    base_kmeans_coordinator::set_thread_data_ptr(allocd_data);
+
+    // We must also set the pointer for the task queues
+    thread_iter it = threads.begin();
+    for (; it != threads.end(); ++it) {
+        prune::kmeans_task_thread::ptr thd = std::static_pointer_cast
+            <prune::kmeans_task_thread>(*it);
+        thd->get_task_queue()->set_data_ptr(thd->get_local_data());
+    }
+}
+
 void kmeans_task_coordinator::kmeanspp_init() {
     struct timeval start, end;
     gettimeofday(&start , NULL);
@@ -309,20 +322,15 @@ void const kmeans_task_coordinator::print_thread_data() {
     }
 }
 
-void kmeans_task_coordinator::set_thread_data_ptr(double* allocd_data) {
-    thread_iter it = threads.begin();
-    for (; it != threads.end(); ++it)
-        (*it)->set_local_data_ptr(allocd_data);
-}
-
 /**
  * Main driver for kmeans
  */
 kpmbase::kmeans_t kmeans_task_coordinator::run_kmeans(double* allocd_data,
         bool numa_opt) {
 #ifdef PROFILER
-    ProfilerStart("matrix/kmeans_task_coordinator.perf");
+    ProfilerStart("libman/kmeans_task_coordinator.perf");
 #endif
+
     set_global_ptrs();
 
     if (NULL == allocd_data) {

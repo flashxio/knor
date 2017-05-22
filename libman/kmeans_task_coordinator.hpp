@@ -98,6 +98,7 @@ public:
     void set_thd_dist_v_ptr(double* v);
     void run_init();
     void set_global_ptrs();
+    void set_thread_data_ptr(double* allocd_data) override;
 
     virtual void kmeanspp_init();
     virtual void random_partition_init();
@@ -111,8 +112,6 @@ public:
     void set_prune_init(const bool prune_init);
     virtual const void print_thread_data();
     virtual void build_thread_state();
-    void set_thread_data_ptr(double* allocd_data);
-
 };
 } } // End namespace kpmeans, prune
 #endif

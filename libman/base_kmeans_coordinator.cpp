@@ -22,6 +22,7 @@
 
 #include "kcommon.hpp"
 #include "base_kmeans_coordinator.hpp"
+#include "base_kmeans_thread.hpp"
 
 namespace kpmeans {
 base_kmeans_coordinator::base_kmeans_coordinator(const std::string fn,
@@ -72,5 +73,11 @@ void base_kmeans_coordinator::wait4complete() {
     }
     pthread_mutex_unlock(&mutex);
     //printf("Coordinator exiting wait4complete!!\n");
+}
+
+void base_kmeans_coordinator::set_thread_data_ptr(double* allocd_data) {
+    thread_iter it = threads.begin();
+    for (; it != threads.end(); ++it)
+        (*it)->set_local_data_ptr(allocd_data);
 }
 } // End namespace kpmeans

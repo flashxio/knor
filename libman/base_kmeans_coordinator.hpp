@@ -91,6 +91,8 @@ public:
         return threads;
     }
 
+    virtual void set_thread_data_ptr(double* allocd_data);
+
     virtual void set_global_ptrs() { throw kpmeans::base::abstract_exception(); };
     virtual const void print_thread_data() {
         throw kpmeans::base::abstract_exception();
