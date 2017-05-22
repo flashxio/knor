@@ -32,25 +32,25 @@ namespace kpmeans {
 template <typename T>
     class data_container {
         private:
-            T* data;
+            const T* data;
             unsigned start_rid; // row id of the first elem
             unsigned nrow;
         public:
             data_container() { }
 
-            data_container(T* data, const unsigned start_rid) {
+            data_container(const T* data, const unsigned start_rid) {
                 set_data_ptr(data);
                 set_start_rid(start_rid);
             }
 
-            data_container(T* data, const unsigned start_rid,
+            data_container(const T* data, const unsigned start_rid,
                     const unsigned nrow) {
                 set_data_ptr(data);
                 set_start_rid(start_rid);
                 set_nrow(nrow);
             }
 
-            void set_data_ptr(T* data) {
+            void set_data_ptr(const T* data) {
                 this->data = data;
             }
 
@@ -61,7 +61,7 @@ template <typename T>
                 this->nrow = nrow;
             }
 
-            T* get_data_ptr() const {
+            const T* get_data_ptr() const {
                 return data;
             }
 
@@ -84,8 +84,8 @@ template <typename T>
 class task : public data_container<double> {
     public:
         task():data_container() { }
-        task(double* data, const unsigned start_rid):data_container(data, start_rid) { }
-        task(double* data, const unsigned start_rid,
+        task(const double* data, const unsigned start_rid):data_container(data, start_rid) { }
+        task(const double* data, const unsigned start_rid,
                 const unsigned nrow):data_container(data, start_rid, nrow){ }
 };
 
