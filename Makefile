@@ -17,7 +17,7 @@
 
 include Makefile.common
 
-all: build_common build_libs exec release-test python
+all: build_common build_libs exec release-test binding python
 
 build_common:
 	$(MAKE) -C libkcommon
@@ -26,7 +26,8 @@ build_libs: build_common
 	$(MAKE) -C libauto # OMP
 	$(MAKE) -C libman # pthreads
 	$(MAKE) -C libdist # MPI
-	#$(MAKE) -C libsem # MPI
+	$(MAKE) -C libsem # MPI
+	$(MAKE) -C binding # MPI
 
 exec: build_libs
 	$(MAKE) -C exec
@@ -48,6 +49,7 @@ clean:
 	make --ignore-errors -C exec clean
 	make --ignore-errors -C libdist clean
 	make --ignore-errors -C release-test clean
+	make --ignore-errors -C binding clean
 	make --ignore-errors -C python clean
 
 -include $(DEPS)
