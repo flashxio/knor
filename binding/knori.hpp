@@ -41,7 +41,7 @@ kpmbase::kmeans_t kmeans(double* data, const size_t nrow,
         unsigned nthread=kpmbase::get_num_omp_threads(),
         double* p_centers=NULL, std::string init="kmeanspp",
         double tolerance=-1, std::string dist_type="eucl",
-        std::string centersfn = "", bool omp=false) {
+        bool omp=false) {
 
     if (p_centers)
         init = "none";
@@ -73,16 +73,12 @@ kpmbase::kmeans_t kmeans(const std::string datafn, const size_t nrow,
         unsigned nthread=kpmbase::get_num_omp_threads(),
         double* p_centers=NULL, std::string init="kmeanspp",
         double tolerance=-1, std::string dist_type="eucl",
-        std::string centersfn = "", bool omp=false) {
+        bool omp=false) {
+
+    if (p_centers)
+        init = "none";
 
     kpmbase::kmeans_t ret;
-
-    if (kpmbase::is_file_exist(centersfn.c_str())) {
-        p_centers = new double [k*ncol];
-        kpmbase::bin_io<double> br2(centersfn, k, ncol);
-        br2.read(p_centers);
-        printf("Read centers!\n");
-    }
 
     if (omp) {
         kpmeans::kmeans_coordinator::ptr kc =
@@ -98,7 +94,7 @@ kpmbase::kmeans_t kmeans(const std::string datafn, const size_t nrow,
         ret = kc->run_kmeans();
     }
 
-    if (p_centers) { delete [] p_centers; }
+    // NOTE: the caller must take responsibility of cleaning up p_centers
     return ret;
 }
 

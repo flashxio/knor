@@ -29,7 +29,7 @@ int main(int argc, char* argv[]) {
     kpmbase::kmeans_t ret = kpmbase::kmeans(
             &data[0], nrow, ncol, k,
             max_iters, numa_num_task_nodes(), nthread, NULL,
-            "kmeanspp", -1, "eucl", "", true);
+            "kmeanspp", -1, "eucl", true);
 
     ret.print();
     }
