@@ -210,6 +210,22 @@ void kmeans_task_coordinator::set_thread_data_ptr(double* allocd_data) {
     }
 }
 
+void kmeans_task_coordinator::set_numa_data_ptr(
+        std::vector<double*>& numa_allocd_data) {
+
+    BOOST_VERIFY(nnodes == numa_allocd_data.size());
+
+    // We must also set the pointer for the task queues
+    thread_iter it = threads.begin();
+    for (; it != threads.end(); ++it) {
+        prune::kmeans_task_thread::ptr thd = std::static_pointer_cast
+            <prune::kmeans_task_thread>(*it);
+
+        thd->set_local_data_ptr(numa_allocd_data[thd->get_node_id()]);
+        thd->get_task_queue()->set_data_ptr(thd->get_local_data());
+    }
+}
+
 void kmeans_task_coordinator::kmeanspp_init() {
     struct timeval start, end;
     gettimeofday(&start , NULL);
@@ -325,23 +341,21 @@ void const kmeans_task_coordinator::print_thread_data() {
 /**
  * Main driver for kmeans
  */
-kpmbase::kmeans_t kmeans_task_coordinator::run_kmeans(double* allocd_data,
-        bool numa_opt) {
+kpmbase::kmeans_t kmeans_task_coordinator::run_kmeans(
+        std::vector<double*> allocd_data) {
 #ifdef PROFILER
     ProfilerStart("libman/kmeans_task_coordinator.perf");
 #endif
 
     set_global_ptrs();
 
-    if (NULL == allocd_data) {
+    if (!allocd_data.size()) {
         wake4run(ALLOC_DATA);
         wait4complete();
+    } else if (allocd_data.size() == 1) { // No NUMA opt
+        set_thread_data_ptr(allocd_data[0]);
     } else {
-        if (numa_opt) {
-            throw kpmbase::not_implemented_exception();
-        } else {
-            set_thread_data_ptr(allocd_data);
-        }
+        set_numa_data_ptr(allocd_data);
     }
 
     struct timeval start, end;
