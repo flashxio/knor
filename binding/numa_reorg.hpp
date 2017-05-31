@@ -58,9 +58,6 @@ private:
 
         part_size = std::pair<size_t, unsigned>(nrow/npart,
                 (nrow/npart + nrow%npart));
-        std::cout << "nrow: " << nrow << ", part_size.first*npart: " <<
-            part_size.first*npart << ", part_size.second: " << part_size.second
-            << std::endl;
 
         BOOST_VERIFY(nrow ==
                 ((part_size.first*(npart-1)) + part_size.second));
@@ -77,11 +74,10 @@ public:
     void numa_reorg () {
         numa_allocd_ptrs.resize(npart);
 
-//#pragma omp parallel for shared (numa_allocd_ptrs) firstprivate(mallocd_data)
+#pragma omp parallel for
         for (size_t part_id = 0; part_id < npart; part_id++) {
-
             size_t nelem = (part_id == npart-1) ? part_size.second*ncol :
-                part_size.first;
+                part_size.first*ncol;
             size_t offset = part_id*part_size.first*ncol;
 
             numa_allocd_ptrs[part_id] =

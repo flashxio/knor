@@ -31,12 +31,17 @@ int main(int argc, char* argv[]) {
     constexpr unsigned nthread = 2;
     const std::string fn = "../../test-data/matrix_r50_c5_rrw.bin";
 
+    omp_set_num_threads(nthread);
     std::vector<double> data(nrow*ncol);
     kpmbase::bin_rm_reader<double> br(fn);
+    std::cout << "\nNUMA reorg-ing " << fn << ". Dim: " << nrow <<
+        " rows, " << ncol << ", cols\n";
     br.read(data);
 
+#if VERBOSE
     std::cout << "Original matrix\n";
     kpmbase::print_mat<double>(&data[0], nrow, ncol);
+#endif
 
     unsigned nnodes = static_cast<unsigned>(numa_num_task_nodes());
     kpmbind::memory_distributor<double>::ptr md =
@@ -47,13 +52,19 @@ int main(int argc, char* argv[]) {
     std::vector<double*> numa_ptrs = md->get_ptrs();
 
     for (size_t node_id = 0; node_id < numa_ptrs.size(); node_id++) {
+        size_t offset = node_id*(nrow/nnodes)*ncol;
         size_t prows = node_id < numa_ptrs.size() - 1 ? (nrow/nnodes) :
             ((nrow/nnodes)+(nrow%nnodes));
-        std::cout << "Part: " << node_id << "\n";
-        kpmbase::print_mat<double>(numa_ptrs[node_id], prows, ncol);
 
-        BOOST_VERIFY(kpmbase::eq_all(&data[node_id*prows],
+#if VERBOSE
+        std::cout << "Part: " << node_id << " with rows: "<< prows << "\n";
+        kpmbase::print_mat<double>(numa_ptrs[node_id], prows, ncol);
+#endif
+
+        BOOST_VERIFY(kpmbase::eq_all(&data[offset],
                     numa_ptrs[node_id], prows*ncol));
     }
+
+    std::cout << "\nSUCCESS test_numa_reorg!\n\n";
     return EXIT_SUCCESS;
 }

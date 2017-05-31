@@ -25,6 +25,10 @@ TESTFILES := test_knori test_numa_reorg
 
 all: $(TESTFILES)
 
+test: all
+	./test_knori
+	./test_numa_reorg
+
 test_knori: test_knori.o
 	$(CXX) -o test_knori test_knori.o $(LDFLAGS)
 
