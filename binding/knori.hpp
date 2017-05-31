@@ -41,12 +41,17 @@ kpmbase::kmeans_t kmeans(double* data, const size_t nrow,
         unsigned nthread=kpmbase::get_num_omp_threads(),
         double* p_centers=NULL, std::string init="kmeanspp",
         double tolerance=-1, std::string dist_type="eucl",
-        bool omp=false) {
+        bool omp=false, bool numa_opt=false) {
 
     if (p_centers)
         init = "none";
 
     kpmbase::kmeans_t ret;
+
+    // Reorganize memory
+    if (numa_opt) {
+        // TODO
+    }
 
     if (omp) {
         kpmeans::kmeans_coordinator::ptr kc =

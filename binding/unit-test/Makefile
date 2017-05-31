@@ -15,14 +15,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-include ../Makefile.common
+include ../../Makefile.common
 
-all: unit_test
+LDFLAGS := -L../../libauto -lauto -L../../libman -lman \
+	-L../../libkcommon -lkcommon $(LDFLAGS)
+CXXFLAGS += -I.. -I../../libauto -I../../libman -I../../libkcommon
 
-unit_test:
-	$(MAKE) -C unit-test
+TESTFILES := test_knori test_numa_reorg
+
+all: $(TESTFILES)
+
+test_knori: test_knori.o
+	$(CXX) -o test_knori test_knori.o $(LDFLAGS)
+
+test_numa_reorg: test_numa_reorg.o
+	$(CXX) -o test_numa_reorg test_numa_reorg.o $(LDFLAGS)
 
 clean:
-	$(MAKE) --ignore-errors clean -C unit-test
+	rm -f *.d
+	rm -f *.o
+	rm -f *~
+	rm -f $(TESTFILES)
 
 -include $(DEPS)
