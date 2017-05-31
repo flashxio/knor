@@ -62,12 +62,10 @@ kpmbase::kmeans_t kmeans(double* data, const size_t nrow,
                 kpmbind::memory_distributor<double>::create(data,
                         nnodes, nrow, ncol);
 
-            md->numa_reorg();
-            std::vector<double*> numa_ptrs = md->get_ptrs();
-            ret = kc->run_kmeans(numa_ptrs);
+            md->numa_reorg(kc->get_threads());
+            ret = kc->run_kmeans(NULL, true);
         } else {
-            std::vector<double*> dp = {data};
-            ret = kc->run_kmeans(dp);
+            ret = kc->run_kmeans(data);
         }
     } else {
         kpmprune::kmeans_task_coordinator::ptr kc =
@@ -80,12 +78,10 @@ kpmbase::kmeans_t kmeans(double* data, const size_t nrow,
                 kpmbind::memory_distributor<double>::create(data,
                         nnodes, nrow, ncol);
 
-            md->numa_reorg();
-            std::vector<double*> numa_ptrs = md->get_ptrs();
-            ret = kc->run_kmeans(numa_ptrs);
+            md->numa_reorg(kc->get_threads());
+            ret = kc->run_kmeans(NULL, true);
         } else {
-            std::vector<double*> dp = {data};
-            ret = kc->run_kmeans(dp);
+            ret = kc->run_kmeans(data);
         }
     }
 

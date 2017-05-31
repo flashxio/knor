@@ -45,6 +45,7 @@ private:
     T* mallocd_data;
     size_t npart;
     size_t ncol;
+    size_t gnrow;
 
     /**
       * npart - the number of NUMA nodes generally
@@ -53,6 +54,7 @@ private:
             const size_t nrow, const size_t ncol) {
         this->npart = npart;
         this->ncol = ncol;
+        this->gnrow = nrow;
         this->mallocd_data = mallocd_data;
         BOOST_VERIFY(mallocd_data);
 
@@ -71,22 +73,34 @@ public:
         return ptr(new memory_distributor<T>(mallocd_data, npart, nrow, ncol));
     }
 
-    void numa_reorg () {
-        numa_allocd_ptrs.resize(npart);
+    void numa_reorg (std::vector<base_kmeans_thread::ptr>& threads) {
+        for (size_t tid = 0; tid < threads.size(); tid++) {
+            size_t nbytes = threads[tid]->get_data_size();
+            size_t start_rid = threads[tid]->get_start_rid();
+            unsigned node_id = threads[tid]->get_node_id();
+            size_t offset = start_rid*ncol;
 
-#pragma omp parallel for
-        for (size_t part_id = 0; part_id < npart; part_id++) {
-            size_t nelem = (part_id == npart-1) ? part_size.second*ncol :
-                part_size.first*ncol;
-            size_t offset = part_id*part_size.first*ncol;
+#if VERBOSE
+            std::cout << "Thread: " <<  tid << ", nbytes: " << nbytes << ", start_rid: "
+                << start_rid << ", node_id: " << node_id << ", global offset: " << offset << "\n\n";
+#endif
 
-            numa_allocd_ptrs[part_id] =
-                static_cast<T*>(numa_alloc_onnode(nelem*sizeof(T), part_id));
-            BOOST_VERIFY(numa_allocd_ptrs[part_id]);
-
-            std::copy(&mallocd_data[offset], &mallocd_data[offset+nelem],
-                numa_allocd_ptrs[part_id]); // Limit mem?
+            T* numa_allocd_data = static_cast<T*>(numa_alloc_onnode(nbytes, node_id));
+            BOOST_VERIFY(numa_allocd_data);
+            std::copy(&mallocd_data[offset], &mallocd_data[offset+(nbytes/sizeof(T))],
+                numa_allocd_data); // TODO: Limit mem
+            threads[tid]->set_local_data_ptr(numa_allocd_data, false);
         }
+    }
+
+    const size_t local_rid (const size_t global_rid,
+            const unsigned node_id) const {
+        size_t ret = global_rid - (node_id * (gnrow/npart));
+#if VERBOSE
+        std::cout << "Given global_rid: " << global_rid << ", node_id: " << node_id
+            << " ==> local_rid: " << ret << "\n";
+#endif
+        return ret;
     }
 
     std::vector<T*>& get_ptrs() {
