@@ -30,6 +30,9 @@
 #include "kmeans_coordinator.hpp"
 #include "kmeans_task_coordinator.hpp"
 #include "util.hpp"
+#include "numa_reorg.hpp"
+
+namespace kpmbind = kpmeans::binding;
 
 namespace kpmeans { namespace base {
     // NOTE: It is the callers job to allocate/free data & p_centers
@@ -48,24 +51,42 @@ kpmbase::kmeans_t kmeans(double* data, const size_t nrow,
 
     kpmbase::kmeans_t ret;
 
-    // Reorganize memory
-    if (numa_opt) {
-        // TODO
-    }
-
     if (omp) {
         kpmeans::kmeans_coordinator::ptr kc =
             kpmeans::kmeans_coordinator::create("",
                     nrow, ncol, k, max_iters, nnodes, nthread, p_centers,
                     init, tolerance, dist_type);
-        ret = kc->run_kmeans(data);
+
+        if (numa_opt) {
+            kpmbind::memory_distributor<double>::ptr md =
+                kpmbind::memory_distributor<double>::create(data,
+                        nnodes, nrow, ncol);
+
+            md->numa_reorg();
+            std::vector<double*> numa_ptrs = md->get_ptrs();
+            ret = kc->run_kmeans(numa_ptrs);
+        } else {
+            std::vector<double*> dp = {data};
+            ret = kc->run_kmeans(dp);
+        }
     } else {
         kpmprune::kmeans_task_coordinator::ptr kc =
             kpmprune::kmeans_task_coordinator::create(
                     "", nrow, ncol, k, max_iters, nnodes,
                     nthread, p_centers,
                     init, tolerance, dist_type);
-        ret = kc->run_kmeans(data);
+        if (numa_opt) {
+            kpmbind::memory_distributor<double>::ptr md =
+                kpmbind::memory_distributor<double>::create(data,
+                        nnodes, nrow, ncol);
+
+            md->numa_reorg();
+            std::vector<double*> numa_ptrs = md->get_ptrs();
+            ret = kc->run_kmeans(numa_ptrs);
+        } else {
+            std::vector<double*> dp = {data};
+            ret = kc->run_kmeans(dp);
+        }
     }
 
     return ret;
