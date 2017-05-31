@@ -21,19 +21,15 @@ LDFLAGS := -L../../libauto -lauto -L../../libman -lman \
 	-L../../libkcommon -lkcommon $(LDFLAGS)
 CXXFLAGS += -I.. -I../../libauto -I../../libman -I../../libkcommon
 
-TESTFILES := test_knori test_numa_reorg
+TESTFILES := test_knori
 
 all: $(TESTFILES)
 
 test: all
 	./test_knori
-	./test_numa_reorg
 
 test_knori: test_knori.o
 	$(CXX) -o test_knori test_knori.o $(LDFLAGS)
-
-test_numa_reorg: test_numa_reorg.o
-	$(CXX) -o test_numa_reorg test_numa_reorg.o $(LDFLAGS)
 
 clean:
 	rm -f *.d

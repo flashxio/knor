@@ -25,7 +25,7 @@ int main(int argc, char* argv[]) {
     constexpr size_t ncol = 5;
     constexpr size_t max_iters = 20;
     constexpr unsigned k = 8;
-    constexpr unsigned nthread = 2;
+    constexpr unsigned nthread = 4;
     const std::string fn = "../../test-data/matrix_r50_c5_rrw.bin";
     const std::string centroidfn = "../../test-data/init_clusters_k8_c5.bin";
 
