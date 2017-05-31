@@ -264,8 +264,11 @@ public:
         close_file_handle();
     }
 
-    void set_local_data_ptr(double* data) {
-        local_data = &(data[start_rid*ncol]); // Grab your offset
+    void set_local_data_ptr(double* data, bool offset=true) {
+        if (offset)
+            local_data = &(data[start_rid*ncol]); // Grab your offset
+        else
+            local_data = data;
     }
 
     ~base_kmeans_thread() {
