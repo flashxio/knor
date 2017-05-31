@@ -27,44 +27,101 @@ int main(int argc, char* argv[]) {
     constexpr unsigned k = 8;
     constexpr unsigned nthread = 2;
     const std::string fn = "../../test-data/matrix_r50_c5_rrw.bin";
+    const std::string centroidfn = "../../test-data/init_clusters_k8_c5.bin";
 
     // Read from disk
     std::cout << "Testing read from disk ..\n";
     {
-    kpmbase::kmeans_t ret = kpmbase::kmeans(
-            fn, nrow, ncol, k,
-            /*"/data/kmeans/r16_c3145728_k100_cw.dat", 3145728, 16, 100,*/
-            max_iters, numa_num_task_nodes(), nthread, NULL);
-    ret.print();
+        kpmbase::kmeans_t ret = kpmbase::kmeans(
+                fn, nrow, ncol, k,
+                /*"/data/kmeans/r16_c3145728_k100_cw.dat", 3145728, 16, 100,*/
+                max_iters, numa_num_task_nodes(), nthread, NULL);
+        ret.print();
     }
 
-    // Data already in-mem FULL
+    //Data already in-mem FULL
     std::cout << "Testing data only in-mem ..\n";
     {
-    std::vector<double> data(nrow*ncol);
-    kpmbase::bin_rm_reader<double> br(fn);
-    br.read(data);
+        std::vector<double> data(nrow*ncol);
+        kpmbase::bin_rm_reader<double> br(fn);
+        br.read(data);
 
-    kpmbase::kmeans_t ret = kpmbase::kmeans(
-            &data[0], nrow, ncol, k,
-            max_iters, numa_num_task_nodes(), nthread, NULL,
-            "kmeanspp", -1, "eucl", true);
+        kpmbase::kmeans_t ret = kpmbase::kmeans(
+                &data[0], nrow, ncol, k,
+                max_iters, numa_num_task_nodes(), nthread, NULL,
+                "kmeanspp", -1, "eucl", true);
 
-    ret.print();
+        ret.print();
     }
 
     // Data already in-mem PRUNED
     std::cout << "Testing PRUNED data only in-mem ..\n";
     {
-    std::vector<double> data(nrow*ncol);
-    kpmbase::bin_rm_reader<double> br(fn);
-    br.read(data);
+        std::vector<double> data(nrow*ncol);
+        kpmbase::bin_rm_reader<double> br(fn);
+        br.read(data);
 
-    kpmbase::kmeans_t ret = kpmbase::kmeans(
-            &data[0], nrow, ncol, k,
-            max_iters, numa_num_task_nodes(), nthread, NULL);
+        kpmbase::kmeans_t ret = kpmbase::kmeans(
+                &data[0], nrow, ncol, k,
+                max_iters, numa_num_task_nodes(), nthread, NULL);
 
-    ret.print();
+        ret.print();
+    }
+
+    std::cout << "Testing data + Centroid in-mem ..\n";
+    {
+        std::vector<double> data(nrow*ncol);
+        kpmbase::bin_rm_reader<double> br(fn);
+        br.read(data);
+
+        std::vector<double> centroids(k*ncol);
+        kpmbase::bin_rm_reader<double> br2(centroidfn);
+        br2.read(centroids);
+
+        kpmbase::kmeans_t ret_full = kpmbase::kmeans(
+                &data[0], nrow, ncol, k,
+                max_iters, numa_num_task_nodes(), nthread, &centroids[0],
+                "none", -1, "eucl", true, false);
+
+        ret_full.print();
+
+        //////////////////////////////////*****////////////////////////////
+        //////////////////////////////////*****////////////////////////////
+        kpmbase::kmeans_t ret_numa_full = kpmbase::kmeans(
+                &data[0], nrow, ncol, k,
+                max_iters, numa_num_task_nodes(), nthread, &centroids[0],
+                "none", -1, "eucl", true, true);
+
+        ret_numa_full.print();
+        BOOST_VERIFY(ret_full == ret_numa_full);
+        std::cout << "SUCCESS FULL. Data + Centroids in-mem (numa_opt)!\n\n";
+
+        //////////////////////////////////*****////////////////////////////
+        //////////////////////////////////*****////////////////////////////
+        std::cout << "Testing PRUNED. Data + Centroid in-mem ...\n";
+        kpmbase::kmeans_t ret = kpmbase::kmeans(
+                &data[0], nrow, ncol, k,
+                max_iters, numa_num_task_nodes(), nthread, &centroids[0],
+                "none");
+
+        ret.print();
+
+        //////////////////////////////////*****////////////////////////////
+        //////////////////////////////////*****////////////////////////////
+        std::cout << "Testing PRUNED. Data + Centroid in-mem ...\n";
+        kpmbase::kmeans_t ret_numa = kpmbase::kmeans(
+                &data[0], nrow, ncol, k,
+                max_iters, numa_num_task_nodes(), nthread, &centroids[0],
+                "none", -1, "eucl", false, true);
+
+        ret_numa.print();
+        BOOST_VERIFY(ret == ret_numa);
+        std::cout << "SUCCESS PRUNED. Data + Centroids in-mem (numa_opt)!\n\n";
+
+        //////////////////////////////////*****////////////////////////////
+        //////////////////////////////////*****////////////////////////////
+        // BOOST_VERIFY(ret_full == ret_numa); // FIXME: Fails but is the same ...
+        // std::cout << "SUCCESS PRUNED v FULL. Data + Centroids in-mem (numa_opt)!\n\n";
     }
 
     return EXIT_SUCCESS;
