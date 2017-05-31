@@ -200,30 +200,8 @@ void kmeans_task_coordinator::set_thd_dist_v_ptr(double* v) {
 void kmeans_task_coordinator::set_thread_data_ptr(double* allocd_data) {
 
     base_kmeans_coordinator::set_thread_data_ptr(allocd_data);
-
     // We must also set the pointer for the task queues
-    thread_iter it = threads.begin();
-    for (; it != threads.end(); ++it) {
-        prune::kmeans_task_thread::ptr thd = std::static_pointer_cast
-            <prune::kmeans_task_thread>(*it);
-        thd->get_task_queue()->set_data_ptr(thd->get_local_data());
-    }
-}
-
-void kmeans_task_coordinator::set_numa_data_ptr(
-        std::vector<double*>& numa_allocd_data) {
-
-    BOOST_VERIFY(nnodes == numa_allocd_data.size());
-
-    // We must also set the pointer for the task queues
-    thread_iter it = threads.begin();
-    for (; it != threads.end(); ++it) {
-        prune::kmeans_task_thread::ptr thd = std::static_pointer_cast
-            <prune::kmeans_task_thread>(*it);
-
-        thd->set_local_data_ptr(numa_allocd_data[thd->get_node_id()]);
-        thd->get_task_queue()->set_data_ptr(thd->get_local_data());
-    }
+    set_task_data_ptrs();
 }
 
 void kmeans_task_coordinator::kmeanspp_init() {
@@ -338,24 +316,33 @@ void const kmeans_task_coordinator::print_thread_data() {
     }
 }
 
+void kmeans_task_coordinator::set_task_data_ptrs() {
+    thread_iter it = threads.begin();
+    for (; it != threads.end(); ++it) {
+        prune::kmeans_task_thread::ptr thd = std::static_pointer_cast
+            <prune::kmeans_task_thread>(*it);
+        thd->get_task_queue()->set_data_ptr(thd->get_local_data());
+    }
+}
+
 /**
  * Main driver for kmeans
  */
 kpmbase::kmeans_t kmeans_task_coordinator::run_kmeans(
-        std::vector<double*> allocd_data) {
+        double* allocd_data, const bool numa_opt) {
 #ifdef PROFILER
     ProfilerStart("libman/kmeans_task_coordinator.perf");
 #endif
 
     set_global_ptrs();
 
-    if (!allocd_data.size()) {
+    if (!numa_opt && NULL == allocd_data) {
         wake4run(ALLOC_DATA);
         wait4complete();
-    } else if (allocd_data.size() == 1) { // No NUMA opt
-        set_thread_data_ptr(allocd_data[0]);
+    } else if (allocd_data) { // No NUMA opt
+        set_thread_data_ptr(allocd_data);
     } else {
-        set_numa_data_ptr(allocd_data);
+        set_task_data_ptrs();
     }
 
     struct timeval start, end;

@@ -99,15 +99,14 @@ public:
     void run_init();
     void set_global_ptrs();
     void set_thread_data_ptr(double* allocd_data) override;
-    void set_numa_data_ptr(std::vector<double*>& numa_allocd_data) override;
-
     virtual void kmeanspp_init();
     virtual void random_partition_init();
     virtual void forgy_init();
-    virtual kpmbase::kmeans_t run_kmeans(
-            std::vector<double*> allocd_data) override;
+    virtual kpmbase::kmeans_t run_kmeans(double* allocd_data,
+            const bool numa_opt) override;
 
     const double* get_thd_data(const unsigned row_id) const;
+    void set_task_data_ptrs();
 
     ~kmeans_task_coordinator();
     void set_prune_init(const bool prune_init);

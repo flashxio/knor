@@ -77,7 +77,7 @@ public:
     virtual void forgy_init() = 0;
 
     virtual kpmeans::base::kmeans_t run_kmeans(
-            std::vector<double*> allocd_data=std::vector<double*>()) = 0;
+            double* allocd_data=NULL, const bool numa_opt=false) = 0;
     virtual void kmeanspp_init() = 0;
     virtual void wake4run(kpmeans::thread_state_t state) = 0;
     virtual const double* get_thd_data(const unsigned row_id) const = 0;
@@ -86,7 +86,6 @@ public:
     virtual double reduction_on_cuml_sum() = 0;
     virtual void destroy_threads() = 0;
     virtual void set_thd_dist_v_ptr(double* v) = 0;
-    virtual void set_numa_data_ptr(std::vector<double*>& numa_allocd_data) = 0;
     void wait4complete();
     std::vector<std::shared_ptr<base_kmeans_thread> >& get_threads() {
         return threads;
