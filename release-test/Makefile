@@ -17,20 +17,32 @@
 
 include ../Makefile.common
 
-LDFLAGS := -L../libauto -lauto -L../libman -lman \
-	-L../libkcommon -lkcommon $(LDFLAGS)
-CXXFLAGS += -I.. -I../libauto -I../libman -I../libdist -I../libkcommon
-DIST_FLAGS := -L../libdist -ldist
+ifeq ($(UNAME_S), Darwin)
+	LDFLAGS := -L../libman -lman -L../libkcommon -lkcommon $(LDFLAGS)
+	CXXFLAGS += -I.. -I../libman -I../libkcommon
 
-TESTFILES := test_auto test_man
+	TESTFILES := test_man
+else
+	LDFLAGS := -L../libauto -lauto -L../libman -lman \
+		-L../libkcommon -lkcommon $(LDFLAGS)
+	CXXFLAGS += -I.. -I../libauto -I../libman -I../libdist -I../libkcommon
+	DIST_FLAGS := -L../libdist -ldist
+
+	TESTFILES := test_auto test_man
+endif
 
 all: $(TESTFILES)
 
+ifeq ($(UNAME_S), Darwin)
+test: all
+	./test_man
+else
 test: all
 	./test_auto
 	./test_man
 	./test_dist.sh
 	./test_sem.sh
+endif
 
 test_auto: test_auto.o
 	$(CXX) -o test_auto test_auto.o $(LDFLAGS)

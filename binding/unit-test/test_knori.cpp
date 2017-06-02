@@ -29,13 +29,19 @@ int main(int argc, char* argv[]) {
     const std::string fn = "../../test-data/matrix_r50_c5_rrw.bin";
     const std::string centroidfn = "../../test-data/init_clusters_k8_c5.bin";
 
+#ifdef LINUX
+    const unsigned nnodes = numa_num_task_nodes();
+#else
+    const unsigned nnodes = 1;
+#endif
+
     // Read from disk
     std::cout << "Testing read from disk ..\n";
     {
         kpmbase::kmeans_t ret = kpmbase::kmeans(
                 fn, nrow, ncol, k,
                 /*"/data/kmeans/r16_c3145728_k100_cw.dat", 3145728, 16, 100,*/
-                max_iters, numa_num_task_nodes(), nthread, NULL);
+                max_iters, nnodes, nthread, NULL);
         ret.print();
     }
 
@@ -48,7 +54,7 @@ int main(int argc, char* argv[]) {
 
         kpmbase::kmeans_t ret = kpmbase::kmeans(
                 &data[0], nrow, ncol, k,
-                max_iters, numa_num_task_nodes(), nthread, NULL,
+                max_iters, nnodes, nthread, NULL,
                 "kmeanspp", -1, "eucl", true);
 
         ret.print();
@@ -63,7 +69,7 @@ int main(int argc, char* argv[]) {
 
         kpmbase::kmeans_t ret = kpmbase::kmeans(
                 &data[0], nrow, ncol, k,
-                max_iters, numa_num_task_nodes(), nthread, NULL);
+                max_iters, nnodes, nthread, NULL);
 
         ret.print();
     }
@@ -80,7 +86,7 @@ int main(int argc, char* argv[]) {
 
         kpmbase::kmeans_t ret_full = kpmbase::kmeans(
                 &data[0], nrow, ncol, k,
-                max_iters, numa_num_task_nodes(), nthread, &centroids[0],
+                max_iters, nnodes, nthread, &centroids[0],
                 "none", -1, "eucl", true, false);
 
         ret_full.print();
@@ -89,7 +95,7 @@ int main(int argc, char* argv[]) {
         //////////////////////////////////*****////////////////////////////
         kpmbase::kmeans_t ret_numa_full = kpmbase::kmeans(
                 &data[0], nrow, ncol, k,
-                max_iters, numa_num_task_nodes(), nthread, &centroids[0],
+                max_iters, nnodes, nthread, &centroids[0],
                 "none", -1, "eucl", true, true);
 
         ret_numa_full.print();
@@ -101,7 +107,7 @@ int main(int argc, char* argv[]) {
         std::cout << "Testing PRUNED. Data + Centroid in-mem ...\n";
         kpmbase::kmeans_t ret = kpmbase::kmeans(
                 &data[0], nrow, ncol, k,
-                max_iters, numa_num_task_nodes(), nthread, &centroids[0],
+                max_iters, nnodes, nthread, &centroids[0],
                 "none");
 
         ret.print();
@@ -111,7 +117,7 @@ int main(int argc, char* argv[]) {
         std::cout << "Testing PRUNED. Data + Centroid in-mem ...\n";
         kpmbase::kmeans_t ret_numa = kpmbase::kmeans(
                 &data[0], nrow, ncol, k,
-                max_iters, numa_num_task_nodes(), nthread, &centroids[0],
+                max_iters, nnodes, nthread, &centroids[0],
                 "none", -1, "eucl", false, true);
 
         ret_numa.print();

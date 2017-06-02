@@ -19,11 +19,15 @@
 
 
 #include <limits>
+#ifdef LINUX
 #include <numa.h>
+#endif
 
 #include "signal.h"
 #include "io.hpp"
+#ifdef LINUX
 #include "kmeans.hpp"
+#endif
 
 #include "kmeans_coordinator.hpp"
 #include "kmeans_task_coordinator.hpp"
@@ -53,7 +57,12 @@ int main(int argc, char* argv[]) {
 	double tolerance = -1;
     bool no_prune = false;
     bool omp = false;
+    if (omp) { }
+#ifdef LINUX
     unsigned nnodes = numa_num_task_nodes();
+#else
+    unsigned nnodes = 1;
+#endif
     std::string outdir = "";
 
     // Increase by 3 -- getopt ignores argv[0]
@@ -132,6 +141,7 @@ int main(int argc, char* argv[]) {
         printf("Read centers!\n");
     } else
         printf("No centers to read ..\n");
+#ifdef LINUX
     if (omp) {
         kpmbase::bin_io<double> br(datafn, nrow, ncol);
         double* p_data = new double [nrow*ncol];
@@ -158,6 +168,7 @@ int main(int argc, char* argv[]) {
         delete [] p_clust_asgn_cnt;
         delete [] p_data;
     } else {
+#endif
         if (no_prune) {
             kpmeans::kmeans_coordinator::ptr kc =
                 kpmeans::kmeans_coordinator::create(datafn,
@@ -171,7 +182,9 @@ int main(int argc, char* argv[]) {
                     init, tolerance, dist_type);
             ret = kc->run_kmeans();
         }
+#ifdef LINUX
     }
+#endif
 
     if (!outdir.empty()) {
         printf("\nWriting output to '%s'\n", outdir.c_str());

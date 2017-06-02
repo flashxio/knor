@@ -15,7 +15,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
+ifeq ($(UNAME_S), Linux)
 all: im dist
+else
+all: im
+endif
 
 im:
 	$(MAKE) -f Makefile.im

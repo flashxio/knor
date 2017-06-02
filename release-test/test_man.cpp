@@ -17,7 +17,9 @@
  * limitations under the License.
  */
 
+#ifdef LINUX
 #include <numa.h>
+#endif
 
 #include "kmeans_coordinator.hpp"
 #include "kmeans_task_coordinator.hpp"
@@ -32,7 +34,11 @@ kpmbase::kmeans_t run_test(const std::string datafn, double* p_centers,
         const std::string init, const unsigned max_iter) {
     constexpr unsigned NTHREADS = 2;
 
+#ifdef LINUX
     unsigned nnodes = numa_num_task_nodes();
+#else
+    unsigned nnodes = 1;
+#endif
 
     if (init == "none") {
             kpmbase::bin_io<double> br(TEST_INIT_CLUSTERS, TEST_K, TEST_NCOL);

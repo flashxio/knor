@@ -20,13 +20,13 @@ include ../Makefile.common
 LDFLAGS += -L../libkcommon -lkcommon
 CXXFLAGS += -I../libkcommon -I..
 
-all: libman unit-test
+all: libman unit_test
 
 libman: $(OBJS)
 	rm -f libman.a
 	ar -cvq libman.a $(OBJS)
 
-unit-test: libman
+unit_test: libman
 	$(MAKE) -C unit-test
 
 clean:

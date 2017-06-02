@@ -17,9 +17,14 @@
 
 include ../../Makefile.common
 
+ifeq ($(UNAME_S), Darwin)
+LDFLAGS := -L../../libman -lman -L../../libkcommon -lkcommon $(LDFLAGS)
+CXXFLAGS += -I.. -I../../libman -I../../libkcommon
+else
 LDFLAGS := -L../../libauto -lauto -L../../libman -lman \
 	-L../../libkcommon -lkcommon $(LDFLAGS)
 CXXFLAGS += -I.. -I../../libauto -I../../libman -I../../libkcommon
+endif
 
 TESTFILES := test_knori
 

@@ -25,6 +25,10 @@
 #include "thread_state.hpp"
 #include "kcommon.hpp"
 
+#ifdef LINUX
+#include "numa.h"
+#endif
+
 namespace kpmbase = kpmeans::base;
 
 static std::atomic<unsigned> pending_threads;
@@ -126,7 +130,11 @@ int main(int argc, char* argv[]) {
     pthread_mutex_init(&mutex, &mutex_attr);
     pthread_cond_init(&cond, NULL);
 
+#ifdef OSX
+    unsigned nnodes = 1;
+#else
     unsigned nnodes = numa_num_task_nodes();
+#endif
     if (argc < 2) {
         fprintf(stderr, "usage: ./test_kmeans_thread nthreads [nnodes]\n");
         exit(EXIT_FAILURE);

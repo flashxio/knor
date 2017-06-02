@@ -25,6 +25,10 @@
 #include "kmeans_task_thread.hpp"
 #include "thread_state.hpp"
 
+#ifdef LINUX
+#include "numa.h"
+#endif
+
 namespace kpmprune = kpmeans::prune;
 namespace kpmbase = kpmeans::base;
 
@@ -122,7 +126,11 @@ int main(int argc, char* argv[]) {
     pthread_mutex_init(&mutex, &mutex_attr);
     pthread_cond_init(&cond, NULL);
 
+#ifdef OSX
+    unsigned nnodes = 1;
+#else
     unsigned nnodes = numa_num_task_nodes();
+#endif
     if (argc < 2) {
         fprintf(stderr, "usage: ./test_kmeans_task_thread nthreads [nnodes]\n");
         exit(EXIT_FAILURE);

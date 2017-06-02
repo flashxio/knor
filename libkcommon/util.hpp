@@ -19,7 +19,6 @@
 #ifndef __KPM_UTIL_HPP__
 #define __KPM_UTIL_HPP__
 
-#include <omp.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
