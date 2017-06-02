@@ -21,7 +21,6 @@
 #define __KPM_BASE_KMEANS_THREAD_HPP__
 
 #include <pthread.h>
-#include <numa.h>
 
 #include <memory>
 #include <utility>
@@ -29,8 +28,6 @@
 #include <string>
 
 #include <boost/assert.hpp>
-#include <boost/log/trivial.hpp>
-
 #include "thread_state.hpp"
 #include "exception.hpp"
 
@@ -218,9 +215,7 @@ public:
         parent_pending_threads = ppt;
     }
 
-    void destroy_numa_mem() {
-        numa_free(local_data, get_data_size());
-    }
+    void destroy_numa_mem();
 
     const size_t get_start_rid() const {
         return start_rid;
@@ -230,67 +225,14 @@ public:
         this->start_rid = start_rid;
     }
 
-    void join() {
-        void* join_status;
-        int rc = pthread_join(hw_thd, &join_status);
-        if (rc) {
-            fprintf(stderr, "[FATAL]: Return code from pthread_join() "
-                    "is %d\n", rc);
-            exit(rc);
-        }
-        thd_id = INVALID_THD_ID;
-    }
-
+    void join();
     // Once the algorithm ends we should deallocate the memory we moved
-    void close_file_handle() {
-        int rc = fclose(f);
-        if (rc) {
-            fprintf(stderr, "[FATAL]: fclose() failed with code: %d\n", rc);
-            exit(rc);
-        }
-#if VERBOSE
-        printf("Thread %u closing the file handle.\n",thd_id);
-#endif
-        f = NULL;
-    }
-
+    void close_file_handle();
     // Move data ~equally to all nodes
-    void numa_alloc_mem() {
-        BOOST_ASSERT_MSG(f, "File handle invalid, can only alloc once!");
-        size_t blob_size = get_data_size();
-        local_data = static_cast<double*>(numa_alloc_onnode(blob_size, node_id));
-        fseek(f, start_rid*ncol*sizeof(double), SEEK_SET); // start position
-        BOOST_VERIFY(1 == fread(local_data, blob_size, 1, f));
-        close_file_handle();
-    }
-
-    void set_local_data_ptr(double* data, bool offset=true) {
-        if (offset)
-            local_data = &(data[start_rid*ncol]); // Grab your offset
-        else
-            local_data = data;
-    }
-
-    ~base_kmeans_thread() {
-        pthread_cond_destroy(&cond);
-        pthread_mutex_destroy(&mutex);
-        pthread_mutexattr_destroy(&mutex_attr);
-
-        if (f)
-            close_file_handle();
-#if VERBOSE
-        printf("Thread %u being destroyed\n", thd_id);
-#endif
-        if (thd_id != INVALID_THD_ID)
-            join();
-    }
-
-    void bind2node_id() {
-        struct bitmask *bmp = numa_allocate_nodemask();
-        numa_bitmask_setbit(bmp, node_id);
-        numa_bind(bmp);
-        numa_free_nodemask(bmp);
-    }
+    void numa_alloc_mem();
+    void set_local_data_ptr(double* data, bool offset=true);
+    ~base_kmeans_thread();
+    void bind2node_id();
 };
 }
 #endif
