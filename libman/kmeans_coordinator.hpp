@@ -77,16 +77,16 @@ class kmeans_coordinator : public kpmeans::base_kmeans_coordinator {
         virtual kpmbase::kmeans_t run_kmeans(double* allocd_data,
                 const bool numa_opt) override;
         void update_clusters();
-        void kmeanspp_init();
-        void wake4run(kpmeans::thread_state_t state);
-        void destroy_threads();
-        void set_thread_clust_idx(const unsigned clust_idx);
-        double reduction_on_cuml_sum();
-        void set_thd_dist_v_ptr(double* v);
-        void run_init();
-        void random_partition_init();
-        void forgy_init();
-        const double* get_thd_data(const unsigned row_id) const;
+        void kmeanspp_init() override;
+        void wake4run(kpmeans::thread_state_t state) override;
+        void destroy_threads() override;
+        void set_thread_clust_idx(const unsigned clust_idx) override;
+        double reduction_on_cuml_sum() override;
+        void set_thd_dist_v_ptr(double* v) override;
+        void run_init() override;
+        void random_partition_init() override;
+        void forgy_init() override;
+        const double* get_thd_data(const unsigned row_id) const override;
         ~kmeans_coordinator();
 
         // For testing

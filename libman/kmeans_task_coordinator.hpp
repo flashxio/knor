@@ -91,27 +91,27 @@ public:
     std::pair<size_t, size_t> get_rid_len_tup(const unsigned thd_id);
     // Pass file handle to threads to read & numa alloc
     void update_clusters(const bool prune_init);
-    void wake4run(kpmeans::thread_state_t state);
-    void destroy_threads();
-    void set_thread_clust_idx(const unsigned clust_idx);
-    double reduction_on_cuml_sum();
-    void set_thd_dist_v_ptr(double* v);
-    void run_init();
-    void set_global_ptrs();
+    void wake4run(kpmeans::thread_state_t state) override;
+    void destroy_threads() override;
+    void set_thread_clust_idx(const unsigned clust_idx) override;
+    double reduction_on_cuml_sum() override;
+    void set_thd_dist_v_ptr(double* v) override;
+    void run_init() override;
+    void set_global_ptrs() override;
     void set_thread_data_ptr(double* allocd_data) override;
-    virtual void kmeanspp_init();
-    virtual void random_partition_init();
-    virtual void forgy_init();
+    virtual void kmeanspp_init() override;
+    virtual void random_partition_init() override;
+    virtual void forgy_init() override;
     virtual kpmbase::kmeans_t run_kmeans(double* allocd_data,
             const bool numa_opt) override;
 
-    const double* get_thd_data(const unsigned row_id) const;
+    const double* get_thd_data(const unsigned row_id) const override;
     void set_task_data_ptrs();
 
     ~kmeans_task_coordinator();
     void set_prune_init(const bool prune_init);
-    virtual const void print_thread_data();
-    virtual void build_thread_state();
+    virtual const void print_thread_data() override;
+    virtual void build_thread_state() override;
 };
 } } // End namespace kpmeans, prune
 #endif
