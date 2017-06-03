@@ -16,11 +16,7 @@
 # limitations under the License.
 
 UNAME_S := $(shell uname -s)
-#UNAME_S = Darwin
-#UNAME_S = Linux
 
-CC = gcc
-CXX = g++
 #PROF=1
 #RELEASE=1
 CFLAGS = -g -O3 -fno-inline-functions -DSTATISTICS $(LIB_PATHS)
@@ -28,13 +24,19 @@ CLANG_FLAGS = -Wno-attributes -Wno-unused-variable
 OMP_FLAG = -fopenmp
 
 ifeq ($(UNAME_S), Darwin)
-	LDFLAGS = -lpthread -lboost_log \
-			   -rdynamic -lrt -rdynamic -lpython2.7
+	CC = clang
+	CXX = clang++
+	LDFLAGS = -lpthread -lboost_log-mt -lboost_system\
+			   -rdynamic -rdynamic -lpython2.7 \
+			   -L/usr/local/opt/boost/lib
 	CXXFLAGS = -g -std=gnu++11 -O3 -I. -Wall -fPIC $(CLANG_FLAGS) \
-			   -DSTATISTICS -DBOOST_LOG_DYN_LINK $(OMP_FLAG) \
-			   -I/usr/local/include/python2.7/
+			   -DSTATISTICS -DBOOST_LOG_DYN_LINK \
+			   -I/usr/local/include/python2.7 \
+			   -I/usr/local/opt/boost/include
 	CXXFLAGS += -DOSX
 else
+	CC = gcc
+	CXX = g++
 	LDFLAGS = -lnuma -lpthread $(OMP_FLAG) -lboost_log \
 			   -rdynamic -lrt -rdynamic -lhwloc -lpython2.7
 	CXXFLAGS = -g -std=gnu++11 -O3 -I. -Wall -fPIC $(CLANG_FLAGS) \
