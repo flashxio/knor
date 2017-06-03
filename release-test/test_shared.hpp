@@ -25,7 +25,6 @@
 
 #include <boost/log/expressions.hpp>
 #include "io.hpp"
-//#include "config.hpp"
 
 namespace kpmeans { namespace test {
     const std::string TESTDATA_FN = "../test-data/matrix_r50_c5_rrw.bin";

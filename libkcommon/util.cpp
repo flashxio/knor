@@ -53,9 +53,8 @@ void spherical_projection(double* data, const size_t nrow,
         double norm2 = 0;
         for (unsigned col = 0; col < ncol; col++)
             norm2 += (data[row]*data[row]);
-        sqrt(norm2);
         for (unsigned col = 0; col < ncol; col++)
-            data[col] = data[col]/norm2;
+            data[col] = data[col]/sqrt(norm2);
     }
 }
 

@@ -20,6 +20,8 @@
 #ifndef __KPM_BASE_KMEANS_COORDINATOR_HPP__
 #define __KPM_BASE_KMEANS_COORDINATOR_HPP__
 
+#include <pthread.h>
+
 #include <vector>
 #include <unordered_map>
 #include <memory>

@@ -24,7 +24,9 @@
 #include "task_queue.hpp"
 #include "io.hpp"
 #include "util.hpp"
+#ifdef LINUX
 #include "numa.h"
+#endif
 
 void test_queue_get(const unsigned NTHREADS, const unsigned nnodes,
     const size_t nrow=50, const size_t ncol=5,
