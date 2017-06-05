@@ -117,7 +117,9 @@ void kmeans_thread::wake(thread_state_t state) {
 
 void* callback(void* arg) {
     kmeans_thread* t = static_cast<kmeans_thread*>(arg);
+#ifdef LINUX
     t->bind2node_id();
+#endif
 
     while (true) { // So we can receive task after task
         if (t->get_state() == WAIT)

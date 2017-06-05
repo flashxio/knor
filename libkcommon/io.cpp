@@ -29,7 +29,7 @@ void store_cluster(const unsigned id, const double* data,
         const size_t nrow, const size_t ncol, const std::string dir) {
     std::cout << "Storing cluster " << id << std::endl;
 
-    FILE* f;
+    FILE* f = nullptr;
     std::string fn = dir+"cluster_"+std::to_string(id)+
         "_r"+std::to_string(numel)+"_c"+std::to_string(ncol)+".bin";
     assert(f = fopen(fn.c_str(), "wb"));
