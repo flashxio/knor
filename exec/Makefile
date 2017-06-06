@@ -15,11 +15,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
+all:
 ifeq ($(UNAME_S), Linux)
-all: im dist
+	 $(MAKE) im dist
 else
-all: im
+	$(MAKE) im
 endif
 
 im:
