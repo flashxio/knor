@@ -15,9 +15,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+UNAME_S := $(shell uname -s)
+
 all:
 ifeq ($(UNAME_S), Linux)
-	 $(MAKE) im dist
+	$(MAKE) im dist
 else
 	$(MAKE) im
 endif
