@@ -223,15 +223,10 @@ void kmeans_task_thread::run() {
             request_task();
             break;
         case EXIT:
-#ifndef BIND
-            fprintf(stderr, "[FATAL]: Thread state is EXIT but running!\n");
-#endif
-            exit(EXIT_FAILURE);
+            throw kpmbase::thread_exception(
+                    "Thread state is EXIT but running!\n");
         default:
-#ifndef BIND
-            fprintf(stderr, "[FATAL]: Unknown thread state\n");
-#endif
-            exit(EXIT_FAILURE);
+            throw kpmbase::thread_exception("Unknown thread state\n");
     }
 }
 
@@ -307,12 +302,9 @@ void kmeans_task_thread::start(const thread_state_t state=WAIT) {
     //printf("Thread %d started ...\n", thd_id);
     this->state = state;
     int rc = pthread_create(&hw_thd, NULL, callback, this);
-    if (rc) {
-#ifndef BIND
-        fprintf(stderr, "[FATAL]: Thread creation failed with code: %d\n", rc);
-#endif
-        exit(rc);
-    }
+    if (rc)
+        throw kpmbase::thread_exception(
+                "Thread creation (pthread_create) failed!", rc);
 }
 
 const unsigned kmeans_task_thread::

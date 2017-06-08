@@ -25,6 +25,7 @@
 
 #include "kmeans.hpp"
 #include "kcommon.hpp"
+#include "exception.hpp"
 
 #define KM_TEST 0
 #define VERBOSE 0
@@ -350,10 +351,8 @@ kpmbase::kmeans_t compute_min_kmeans(const double* matrix, double* clusters_ptr,
 
     // Check k
     if (K > NUM_ROWS || K < 2 || K == (unsigned)-1) {
-        BOOST_LOG_TRIVIAL(fatal)
-            << "'k' must be between 2 and the number of rows in the matrix" <<
-            "k = " << K;
-        exit(-1);
+        throw kpmbase::parameter_exception("'k' must be between 2 and"
+                " the number of rows in the matrix.", K);
     }
 
     gettimeofday(&start , NULL);
@@ -383,10 +382,8 @@ kpmbase::kmeans_t compute_min_kmeans(const double* matrix, double* clusters_ptr,
     } else if (dist_type == "cos") {
         g_dist_type = kpmbase::dist_type_t::COS;
     } else {
-        BOOST_LOG_TRIVIAL(fatal)
-            << "[ERROR]: param dist_type must be one of: 'eucl', 'cos'.It is '"
-            << dist_type << "'";
-        exit(-1);
+        throw kpmbase::parameter_exception("param `dist_type` must be one of: "
+                "'eucl', 'cos'.", dist_type);
     }
 
     if (init == "random") {
@@ -404,11 +401,8 @@ kpmbase::kmeans_t compute_min_kmeans(const double* matrix, double* clusters_ptr,
         g_init_type = kpmbase::init_type_t::NONE;
         dm->compute_dist(clusters, NUM_COLS);
     } else {
-        BOOST_LOG_TRIVIAL(fatal)
-            << "[ERROR]: param init must be one of: "
-            "'random', 'forgy', 'kmeanspp'.It is '"
-            << init << "'";
-        exit(-1);
+        throw kpmbase::parameter_exception("param `init` must be one of: "
+            "'random', 'forgy', 'kmeanspp'", init);
     }
 
 #if VERBOSE

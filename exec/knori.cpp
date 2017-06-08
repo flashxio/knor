@@ -69,7 +69,6 @@ int main(int argc, char* argv[]) {
 	argv += 3;
 	argc -= 3;
 
-	signal(SIGINT, kpmbase::int_handler);
 	while ((opt = getopt(argc, argv, "l:i:t:T:d:C:PON:o:")) != -1) {
 		num_opts++;
 		switch (opt) {

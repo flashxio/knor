@@ -21,6 +21,7 @@
 #include <gperftools/profiler.h>
 #endif
 
+#include <stdexcept>
 #include <boost/log/trivial.hpp>
 
 #include <random>
@@ -306,10 +307,7 @@ void kmeans_task_coordinator::run_init() {
         case kpmbase::init_type_t::NONE:
             break;
         default:
-#ifndef BIND
-            fprintf(stderr, "[FATAL]: Unknow initialization type\n");
-#endif
-            exit(EXIT_FAILURE);
+            throw std::runtime_error("Unknown initialization type");
     }
 }
 

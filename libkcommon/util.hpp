@@ -31,6 +31,7 @@
 #include <boost/assert.hpp>
 #include <boost/log/trivial.hpp>
 #include "kmeans_types.hpp"
+#include "exception.hpp"
 
 namespace kpmeans { namespace base {
 
@@ -101,9 +102,7 @@ T dist_comp_raw(const T* arg0, const T* arg1,
         return eucl_dist<T>(arg0, arg1, len);
     else if (dt == dist_type_t::COS)
         return cos_dist(arg0, arg1, len);
-    else
-        BOOST_ASSERT_MSG(false, "Unknown distance metric!");
-    exit(EXIT_FAILURE);
+    throw parameter_exception("Unknown distance metric\n");
 }
 
 /**

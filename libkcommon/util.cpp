@@ -109,8 +109,6 @@ bool is_file_exist(const char *fn) {
     return infile.good();
 }
 
-void int_handler(int sig_num) { exit(0); }
-
 size_t filesize(const char* filename) {
     std::ifstream in(filename, std::ifstream::ate
             | std::ifstream::binary);

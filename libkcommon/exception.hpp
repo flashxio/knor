@@ -43,8 +43,29 @@ public:
 class io_exception : public std::runtime_error {
 public:
     io_exception(const std::string msg) :
-        runtime_error(std::string("[ERROR]: IO ") + msg) {
+        runtime_error(std::string("[error]: io ") + msg) {
         }
+
+    io_exception(const std::string msg, const int error_code):
+        io_exception(msg + std::string(". errcode: ") +
+                std::to_string(error_code)) {
+    }
+};
+
+class parameter_exception : public std::runtime_error {
+public:
+    parameter_exception(const std::string msg) :
+        runtime_error(std::string("parameter error: ") + msg) {
+        }
+
+    parameter_exception(const std::string msg, const int error_val):
+        parameter_exception(msg + std::string(". Error value: ") +
+                std::to_string(error_val)) {
+    }
+
+    parameter_exception(const std::string msg, const std::string error_val):
+        parameter_exception(msg + std::string(". Error value: ") + error_val) {
+    }
 };
 
 class mpi_exception : public std::runtime_error {
@@ -58,7 +79,7 @@ public:
 class thread_exception: public std::exception {
 
 private:
-    std::string msg = "[ERROR]: kpm::pthread::thread_exception ==> ";
+    std::string msg = "[ERROR]: thread_exception ==> ";
 
     virtual const char* what() const throw() {
         return this->msg.c_str();
@@ -67,6 +88,12 @@ private:
 public:
     thread_exception(const std::string msg) {
         this->msg += msg;
+    }
+
+    thread_exception(const std::string msg, const int rc) :
+        thread_exception(msg) {
+        this->msg += std::string(". ERRCODE: ") + std::to_string(rc)
+            + std::string(" \n");
     }
 };
 } }

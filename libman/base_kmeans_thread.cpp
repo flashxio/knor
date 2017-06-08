@@ -42,25 +42,18 @@ void base_kmeans_thread::destroy_numa_mem() {
 void base_kmeans_thread::join() {
     void* join_status;
     int rc = pthread_join(hw_thd, &join_status);
-    if (rc) {
-#ifndef BIND
-        fprintf(stderr, "[FATAL]: Return code from pthread_join() "
-                "is %d\n", rc);
-#endif
-        exit(rc);
-    }
+    if (rc)
+        throw base::thread_exception("pthread_join()", rc);
+
     thd_id = INVALID_THD_ID;
 }
 
 // Once the algorithm ends we should deallocate the memory we moved
 void base_kmeans_thread::close_file_handle() {
     int rc = fclose(f);
-    if (rc) {
-#ifndef BIND
-        fprintf(stderr, "[FATAL]: fclose() failed with code: %d\n", rc);
-#endif
-        exit(rc);
-    }
+    if (rc)
+        throw base::io_exception("fclose() failed!", rc);
+
 #if VERBOSE
 #ifndef BIND
     printf("Thread %u closing the file handle.\n",thd_id);
