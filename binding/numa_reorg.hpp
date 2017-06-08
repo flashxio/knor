@@ -81,8 +81,10 @@ public:
             size_t offset = start_rid*ncol;
 
 #if VERBOSE
+#ifndef BIND
             std::cout << "Thread: " <<  tid << ", nbytes: " << nbytes << ", start_rid: "
                 << start_rid << ", node_id: " << node_id << ", global offset: " << offset << "\n\n";
+#endif
 #endif
 
             T* numa_allocd_data = static_cast<T*>(numa_alloc_onnode(nbytes, node_id));
@@ -97,8 +99,10 @@ public:
             const unsigned node_id) const {
         size_t ret = global_rid - (node_id * (gnrow/npart));
 #if VERBOSE
+#ifndef BIND
         std::cout << "Given global_rid: " << global_rid << ", node_id: " << node_id
             << " ==> local_rid: " << ret << "\n";
+#endif
 #endif
         return ret;
     }

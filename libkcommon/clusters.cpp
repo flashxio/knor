@@ -136,10 +136,14 @@ void clusters::num_members_v_peq(const size_t* other) {
 // Begin Helpers //
 const void clusters::print_means() const {
     for (unsigned cl_idx = 0; cl_idx < get_nclust(); cl_idx++) {
+#ifndef BIND
         std::cout << "#memb = " << get_num_members(cl_idx) << " ";
+#endif
         print_arr<double>(&(means[cl_idx*ncol]), ncol);
     }
+#ifndef BIND
     std::cout << "\n";
+#endif
 }
 
 clusters::clusters(const unsigned nclust, const unsigned ncol) {
@@ -167,7 +171,9 @@ const void clusters::print_membership_count() const {
         p += std::to_string(get_num_members(cl_idx)) + " ";
     }
     p += "]\n";
+#ifndef BIND
     std::cout << p;
+#endif
 }
 
 // Pruning clusters //
@@ -180,6 +186,8 @@ const void prune_clusters::print_prev_means_v() const {
     for (unsigned cl_idx = 0; cl_idx < get_nclust(); cl_idx++) {
         print_arr<double>(&(prev_means[cl_idx*ncol]), ncol);
     }
+#ifndef BIND
     std::cout << "\n";
+#endif
 }
 } } // End namespace kpmeans, base

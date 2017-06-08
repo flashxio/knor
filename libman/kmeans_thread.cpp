@@ -78,10 +78,14 @@ void kmeans_thread::run() {
             EM_step();
             break;
         case EXIT:
+#ifndef BIND
             fprintf(stderr, "[FATAL]: Thread state is EXIT but running!\n");
+#endif
             exit(EXIT_FAILURE);
         default:
+#ifndef BIND
             fprintf(stderr, "[FATAL]: Unknown thread state\n");
+#endif
             exit(EXIT_FAILURE);
     }
     sleep();
@@ -142,7 +146,9 @@ void kmeans_thread::start(const thread_state_t state=WAIT) {
     this->state = state;
     int rc = pthread_create(&hw_thd, NULL, callback, this);
     if (rc) {
+#ifndef BIND
         fprintf(stderr, "[FATAL]: Thread creation failed with code: %d\n", rc);
+#endif
         exit(rc);
     }
 }

@@ -152,7 +152,6 @@ public:
     };
 
     void test() {
-        //printf("%u ", get_thd_id());
     }
 
     void set_dist_v_ptr(double* v) {

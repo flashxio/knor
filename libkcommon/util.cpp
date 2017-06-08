@@ -39,7 +39,9 @@ double get_bic(const std::vector<double>& dist_v, const size_t nrow,
     for (unsigned i = 0; i < dist_v.size(); i++) {
         bic += (dist_v[i] );
     }
+#ifndef BIND
     printf("Distance sum: %f\n", bic);
+#endif
 
     return 2*bic + log(nrow)*ncol*k;
 }
@@ -64,12 +66,13 @@ float time_diff(struct timeval time1, struct timeval time2) {
         ((float)(time2.tv_usec - time1.tv_usec))/1000000;
 }
 
-// Verbatim from FlashX
 int get_num_omp_threads() {
     int num_threads = std::thread::hardware_concurrency();
     if (!num_threads) {
+#ifndef BIND
         std::cout << "\n\n[WARNING]: Failed to detect # of CPUs/threads!" <<
             " Using default: 1\n\n";
+#endif
         num_threads = 1;
     }
     return num_threads;

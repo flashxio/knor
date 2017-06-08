@@ -76,9 +76,11 @@ std::vector<double> prune_stats::get_stats() {
     double perc = ((tot_3b + tot_3a + tot_3c + tot_4 + tot_lemma1) /
             ((double)(nrow*iter*nclust)))*100;
 
+#ifndef BIND
     printf("tot_lemma1 = %lu, tot_3a = %lu, tot_3b = %lu,"
             " tot_3c = %lu, tot_4 = %lu\n",
             tot_lemma1, tot_3a, tot_3b, tot_3c, tot_4);
+#endif
 
     BOOST_LOG_TRIVIAL(info) << "\n\nPrune stats total:\n"
         "Tot = " << perc << "\%, 3a = " << perc_3a <<

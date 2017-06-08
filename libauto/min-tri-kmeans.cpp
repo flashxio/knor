@@ -69,7 +69,9 @@ void random_partition_init(unsigned* cluster_assignments,
 
     // NOTE: M-Step called in compute func to update cluster counts & centers
 #if VERBOSE
+#ifndef BIND
     printf("After rand paritions cluster_asgns: ");
+#endif
     print_arr(cluster_assignments, num_rows);
 #endif
     BOOST_LOG_TRIVIAL(info) << "Random init end\n";
@@ -424,7 +426,9 @@ kpmbase::kmeans_t compute_min_kmeans(const double* matrix, double* clusters_ptr,
                 dist_v, dm, true);
     }
 #if KM_TEST
+#ifndef BIND
         printf("Cluster assignment counts: ");
+#endif
         print_arr(cluster_assignment_counts, K);
 #endif
 

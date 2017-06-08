@@ -68,8 +68,10 @@ void random_partition_init(unsigned* cluster_assignments,
 
     // NOTE: M-Step called in compute func to update cluster counts & centers
 #if VERBOSE
+#ifndef BIND
     printf("After rand paritions cluster_asgns: ");
     print_arr(cluster_assignments, num_rows);
+#endif
 #endif
     BOOST_LOG_TRIVIAL(info) << "Random init end\n";
 }
@@ -317,7 +319,9 @@ kpmbase::kmeans_t compute_kmeans(const double* matrix, double* clusters_ptr,
     gettimeofday(&start , NULL);
 
 #if KM_TEST
+#ifndef BIND
     printf("Cluster assignment counts: ");
+#endif
     kpmbase::print_arr(cluster_assignment_counts, K);
 #endif
 
@@ -356,7 +360,9 @@ kpmbase::kmeans_t compute_kmeans(const double* matrix, double* clusters_ptr,
         EM_step(matrix, clusters, cluster_assignments,
                 cluster_assignment_counts);
 #if KM_TEST
+#ifndef BIND
         printf("Cluster assignment counts: ");
+#endif
         kpmbase::print_arr(cluster_assignment_counts, K);
 #endif
 #if VERBOSE
@@ -389,12 +395,16 @@ kpmbase::kmeans_t compute_kmeans(const double* matrix, double* clusters_ptr,
         BOOST_LOG_TRIVIAL(warning) << "[Warning]: K-means failed to converge in "
             << iter << " iterations";
     }
+#ifndef BIND
     printf("Final cluster counts: ");
+#endif
     kpmbase::print_arr(cluster_assignment_counts, K);
     BOOST_LOG_TRIVIAL(info) << "\n******************************************\n";
 
 #if VERBOSE
+#ifndef BIND
     printf("Computed bic: %f\n", get_bic(dist_v, NUM_ROWS, NUM_COLS, K));
+#endif
     size_t max_index = (std::max_element(cluster_assignment_counts,
                 cluster_assignment_counts+K) - cluster_assignment_counts);
 

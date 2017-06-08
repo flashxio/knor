@@ -50,8 +50,10 @@ void kmeans_t::set_computed(const unsigned* assignments_buf,
 }
 
 const void kmeans_t::print() const {
+#ifndef BIND
     std::cout << "Iterations: " <<  iters << std::endl;
     std::cout << "Cluster count: ";
+#endif
     print_vector(assignment_count);
 }
 
@@ -65,12 +67,17 @@ const void kmeans_t::write(const std::string dirname) const {
     int ret =
         std::system((std::string("python exec/python/util.py ")
                     + dirname).c_str());
-    if (ret)
+    if (ret) {
+#ifndef BIND
         fprintf(stderr, "Error with mkdir. Code: %d\n", ret);
-    else
+#endif
+    } else {
         fn = dirname + "/" + fn;
+    }
 
+#ifndef BIND
     printf("Opening '%s' \n", fn.c_str());
+#endif
     std::ofstream f(fn, std::ios::out);
     BOOST_ASSERT_MSG(f.is_open(), "Error opening file for writing!");
     f << "k: " << k << std::endl;

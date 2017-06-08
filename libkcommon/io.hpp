@@ -41,6 +41,7 @@ namespace kpmeans { namespace base {
  */
 template <typename T>
 void print_mat(T* matrix, const unsigned rows, const unsigned cols) {
+#ifndef BIND
     for (unsigned row = 0; row < rows; row++) {
         std::cout << "[";
         for (unsigned col = 0; col < cols; col++) {
@@ -48,21 +49,25 @@ void print_mat(T* matrix, const unsigned rows, const unsigned cols) {
         }
         std::cout <<  " ]\n";
     }
+#endif
 }
 
 template <typename T>
 void print_arr(const T* arr, const unsigned len) {
+#ifndef BIND
     printf("[ ");
     for (unsigned i = 0; i < len; i++) {
         std::cout << arr[i] << " ";
     }
     printf("]\n");
+#endif
 }
 
 template <typename T>
 void print_vector(typename std::vector<T> v, unsigned max_print=100) {
     unsigned print_len = v.size() > max_print ? max_print : v.size();
 
+#ifndef BIND
     std::cout << "[";
     typename std::vector<T>::iterator itr = v.begin();
     for (; itr != v.begin()+print_len; itr++) {
@@ -71,6 +76,7 @@ void print_vector(typename std::vector<T> v, unsigned max_print=100) {
 
     if (v.size() > print_len) std::cout << " ...";
     std::cout <<  " ]\n";
+#endif
 }
 
 template <typename T>
@@ -193,8 +199,10 @@ public:
                 return true;
             }
         } else {
+#ifndef BIND
             std::cout << "ncol: " << this->ncol << "\n";
             fprintf(stderr, "Cannot read a line without `ncol`\n");
+#endif
             assert(false);
         }
         return false;
@@ -214,11 +222,13 @@ class bin_io {
         size_t nrow, ncol;
 
         void cat(const T* arr) {
+#ifndef BIND
             std::cout << "[ ";
             for (size_t i = 0; i < ncol; i++) {
                 std::cout << arr[i] << " ";
             }
             std::cout << "]\n";
+#endif
         }
 
     public:
@@ -289,25 +299,4 @@ void store_cluster(const unsigned id, const double* data,
         const size_t nrow, const size_t ncol, const std::string dir);
 
 } } // End namespace kpmeans, base
-
-#if 0
-ws::S3::S3Client s3Client;
-GetObjectRequest getObjectRequest;
-getObjectRequest.SetBucket("sample_bucket");
-getObjectRequest.SetKey("sample_key");
-getObjectRequest.SetResponseStreamFactory(
-    [](){
-        return Aws::New(ALLOCATION_TAG, DOWNLOADED_FILENAME,
-            std::ios_base::out | std::ios_base::in | std::ios_base::trunc);
-    });
-auto getObjectOutcome = s3Client.GetObject(getObjectRequest);
-if(getObjectOutcome.IsSuccess()) {
-    std::cout << "File downloaded from S3 to location " << DOWNLOADED_FILENAME;
-}
-else {
-    std::cout << "File download failed from s3 with error "
-        << getObjectOutcome.GetError().GetMessage();
-}
-#endif
-
 #endif

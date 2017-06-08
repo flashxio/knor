@@ -70,10 +70,12 @@ public:
         kpmbase::dist_type_t _dist_t = kpmbase::get_dist_type(dist_type);
 
 #if KM_TEST
+#ifndef BIND
         printf("kmeans task coordinator => NUMA nodes: %u, nthreads: %u, "
                 "nrow: %lu, ncol: %lu, init: '%s', dist_t: '%s', fn: '%s'"
                 "\n\n", nnodes, nthreads, nrow, ncol, init.c_str(),
                 dist_type.c_str(), fn.c_str());
+#endif
 #endif
         return base_kmeans_coordinator::ptr(
                 new kmeans_task_coordinator(fn, nrow, ncol, k, max_iters,

@@ -73,7 +73,9 @@ void dist_matrix::set(unsigned row, unsigned col, double val) {
 
 void dist_matrix::print() {
     for (unsigned row = 0; row < rows; row++) {
+#ifndef BIND
         std::cout << row << " ==> ";
+#endif
         kpmeans::base::print_vector<double>(mat[row]);
     }
 }

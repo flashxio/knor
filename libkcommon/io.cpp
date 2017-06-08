@@ -27,14 +27,18 @@ namespace kpmeans { namespace base {
 void store_cluster(const unsigned id, const double* data,
         const unsigned numel, const unsigned* cluster_assignments,
         const size_t nrow, const size_t ncol, const std::string dir) {
+#ifndef BIND
     std::cout << "Storing cluster " << id << std::endl;
+#endif
 
     FILE* f = nullptr;
     std::string fn = dir+"cluster_"+std::to_string(id)+
         "_r"+std::to_string(numel)+"_c"+std::to_string(ncol)+".bin";
     assert(f = fopen(fn.c_str(), "wb"));
+#ifndef BIND
     std::cout << "[Warning]: Writing cluster file '" <<
         fn << "'\n";
+#endif
     unsigned count = 0;
 
     for(unsigned i = 0; i < nrow; i++) {

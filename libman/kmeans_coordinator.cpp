@@ -103,7 +103,9 @@ void kmeans_coordinator::update_clusters() {
         // Summation for cluster centers
 
 #if VERBOSE
+#ifndef BIND
         printf("Thread %ld clusters:\n", (it-threads.begin()));
+#endif
         ((*it)->get_local_clusters())->print_means();
 #endif
 
@@ -118,7 +120,9 @@ void kmeans_coordinator::update_clusters() {
         chk_nmemb += cluster_assignment_counts[clust_idx];
     }
     if (chk_nmemb != nrow)
+#ifndef BIND
         printf("chk_nmemb = %u\n", chk_nmemb);
+#endif
 
     BOOST_VERIFY(chk_nmemb == nrow);
     BOOST_VERIFY(num_changed <= nrow);
@@ -224,7 +228,9 @@ void kmeans_coordinator::random_partition_init() {
     cltrs->finalize_all();
 
 #if VERBOSE
+#ifndef BIND
     printf("After rand paritions cluster_asgns: ");
+#endif
     print_arr<unsigned>(cluster_assignments, nrow);
 #endif
 }
@@ -255,7 +261,9 @@ void kmeans_coordinator::run_init() {
         case kpmbase::init_type_t::NONE:
             break;
         default:
+#ifndef BIND
             fprintf(stderr, "[FATAL]: Unknown initialization type\n");
+#endif
             exit(EXIT_FAILURE);
     }
 }
@@ -298,7 +306,9 @@ kpmbase::kmeans_t kmeans_coordinator::run_kmeans(
         update_clusters();
 
 #if VERBOSE
+#ifndef BIND
         printf("Cluster assignment counts: ");
+#endif
         kpmbase::print_arr(cluster_assignment_counts, k);
 #endif
 
@@ -325,7 +335,9 @@ kpmbase::kmeans_t kmeans_coordinator::run_kmeans(
             << iter << " iterations";
     }
 
+#ifndef BIND
     printf("Final cluster counts: ");
+#endif
     kpmbase::print_arr(cluster_assignment_counts, k);
     BOOST_LOG_TRIVIAL(info) << "\n******************************************\n";
 
@@ -351,7 +363,9 @@ kmeans_coordinator::~kmeans_coordinator() {
 void const kmeans_coordinator::print_thread_data() {
     thread_iter it = threads.begin();
     for (; it != threads.end(); ++it) {
+#ifndef BIND
         std::cout << "\nThd: " << (*it)->get_thd_id() << std::endl;
+#endif
         (*it)->print_local_data();
     }
 }

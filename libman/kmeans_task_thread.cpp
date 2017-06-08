@@ -138,7 +138,9 @@ bool kmeans_task_thread::try_steal_task() {
   int j = 0;
   do {
       one_locked = false;
+#ifndef BIND
       printf("Thread %u running %d try_steal loop!\n", thd_id, j++);
+#endif
       for (unsigned i = 0; i < workers.size(); i++) {
           if (i != get_thd_id()) { // Can't steal from myself & I'm already done
 
@@ -147,21 +149,21 @@ bool kmeans_task_thread::try_steal_task() {
               if (EXIT_SUCCESS == rc) { // Acquired the lock
                   if (workers[i]->get_task_queue()->has_task()) {
                       // TODO: Actually steal task
-                      printf("Thread %u stealing task from thread %u!\n", thd_id, i);
+                      //printf("Thread %u stealing task from thread %u!\n", thd_id, i);
 
                       pthread_mutex_unlock(&workers[i]->get_lock());
-                      printf("T: %u stole & released T: %u's lock\n", thd_id, i);
+                      //printf("T: %u stole & released T: %u's lock\n", thd_id, i);
                       return false; // TODO: change to true
                   } else { // Thread has no tasks to give
                       pthread_mutex_unlock(&workers[i]->get_lock());
-                      printf("T: %u couldn't steal & released T: %u's lock\n", thd_id, i);
+                      //printf("T: %u couldn't steal & released T: %u's lock\n", thd_id, i);
                       continue;
                   }
               }
 
               // Didn't get the lock
               if (rc == EBUSY) { // Move on if you can't get the lock
-                  printf("T: %u says T:%u is busy \n", thd_id, i);
+                  //printf("T: %u says T:%u is busy \n", thd_id, i);
                   if (workers[i]->get_task_queue()->has_task())
                       one_locked = true;
 
@@ -221,10 +223,14 @@ void kmeans_task_thread::run() {
             request_task();
             break;
         case EXIT:
+#ifndef BIND
             fprintf(stderr, "[FATAL]: Thread state is EXIT but running!\n");
+#endif
             exit(EXIT_FAILURE);
         default:
+#ifndef BIND
             fprintf(stderr, "[FATAL]: Unknown thread state\n");
+#endif
             exit(EXIT_FAILURE);
     }
 }
@@ -302,7 +308,9 @@ void kmeans_task_thread::start(const thread_state_t state=WAIT) {
     this->state = state;
     int rc = pthread_create(&hw_thd, NULL, callback, this);
     if (rc) {
+#ifndef BIND
         fprintf(stderr, "[FATAL]: Thread creation failed with code: %d\n", rc);
+#endif
         exit(rc);
     }
 }

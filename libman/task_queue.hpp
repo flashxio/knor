@@ -74,9 +74,11 @@ template <typename T>
             }
 
             const void print(const unsigned ncol) const {
+#ifndef BIND
                 printf("start_rid: %u, nrow: %u\n",
                         get_start_rid(), get_nrow());
                 kpmbase::print_mat<T>(get_data_ptr(), get_nrow(), ncol);
+#endif
             }
     };
 
@@ -125,7 +127,9 @@ class task_queue: public data_container<double>, task_queue_interface<double> {
         // NOTE: This must be called with a lock taken
         task* get_task() {
             if (!has_task()) {
+#ifndef BIND
                 printf("[ERROR]: In get_task() with no task left!!\n");
+#endif
                 return new task(NULL, -1, 0);
             }
             BOOST_VERIFY(curr_rid < get_nrow());
