@@ -118,8 +118,11 @@ static void kmeanspp_init(const double* matrix,
         kpmbase::prune_clusters::ptr clusters,
         unsigned* cluster_assignments) {
 
+    std::default_random_engine generator;
+    std::uniform_int_distribution<size_t> distribution(0, NUM_ROWS-1);
+
     // Choose c1 uniformly at random
-    size_t selected_idx = random() % NUM_ROWS; // 0...(NUM_ROWS-1)
+    size_t selected_idx = distribution(generator);
     std::vector<double> dist_v;
     dist_v.assign(NUM_ROWS, std::numeric_limits<double>::max());
 
@@ -133,6 +136,8 @@ static void kmeanspp_init(const double* matrix,
 #endif
 
     unsigned clust_idx = 0; // The number of clusters assigned
+
+    std::uniform_real_distribution<double> ur_distribution(0.0, 1.0);
 
     // Choose next center c_i with weighted prob
     while (true) {
@@ -151,7 +156,7 @@ static void kmeanspp_init(const double* matrix,
             cum_dist += dist_v[row];
         }
 
-        cum_dist = (cum_dist * ((double)random())) / (RAND_MAX - 1.0);
+        cum_dist = (cum_dist * ur_distribution(generator)) / (RAND_MAX - 1.0);
         if (++clust_idx >= K)  // No more centers needed
             break;
 

@@ -167,8 +167,11 @@ void kmeans_coordinator::kmeanspp_init() {
     dist_v.assign(nrow, std::numeric_limits<double>::max());
     set_thd_dist_v_ptr(&dist_v[0]);
 
+    std::default_random_engine generator;
+    std::uniform_int_distribution<unsigned> distribution(0, nrow-1);
+
     // Choose c1 uniformly at random
-    unsigned selected_idx = random() % nrow; // 0...(nrow-1)
+    unsigned selected_idx = distribution(generator);
     cltrs->set_mean(get_thd_data(selected_idx), 0);
     dist_v[selected_idx] = 0.0;
     cluster_assignments[selected_idx] = 0;
@@ -179,6 +182,8 @@ void kmeans_coordinator::kmeanspp_init() {
 #endif
     unsigned clust_idx = 0; // The number of clusters assigned
 
+    std::uniform_real_distribution<double> ur_distribution(0.0, 1.0);
+
     // Choose next center c_i with weighted prob
     while (true) {
         set_thread_clust_idx(clust_idx); // Set the current cluster index
@@ -186,7 +191,7 @@ void kmeans_coordinator::kmeanspp_init() {
         wait4complete();
         double cuml_dist = reduction_on_cuml_sum(); // Sum the per thread cumulative dists
 
-        cuml_dist = (cuml_dist * ((double)random())) / (RAND_MAX - 1.0);
+        cuml_dist = (cuml_dist * ur_distribution(generator)) / (RAND_MAX - 1.0);
         if (++clust_idx >= k)  // No more centers needed
             break;
 

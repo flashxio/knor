@@ -137,8 +137,11 @@ void dist_coordinator::kmeanspp_init() {
     dist_v.assign(get_nrow(), std::numeric_limits<double>::max()); // local nrow
     set_thd_dist_v_ptr(&dist_v[0]);
 
+    std::default_random_engine generator;
+    std::uniform_int_distribution<unsigned> distribution(0, g_nrow-1);
+
     // Choose c1 uniformly at random
-    unsigned selected_idx = random() % g_nrow; // 0...(g_nrow-1)
+    unsigned selected_idx = distribution(generator);
 
     // If proc owns the row -- get it ...
     if (is_local(selected_idx)) {
@@ -157,6 +160,8 @@ void dist_coordinator::kmeanspp_init() {
 #endif
     unsigned clust_idx = 0; // The number of clusters assigned
 
+    std::uniform_real_distribution<double> ur_distribution(0.0, 1.0);
+
     // Choose next center c_i with weighted prob
     while (true) {
         set_thread_clust_idx(clust_idx); // Set the current cluster index
@@ -168,7 +173,7 @@ void dist_coordinator::kmeanspp_init() {
         kpmmpi::mpi::reduce_double(&local_cuml_dist, &cuml_dist);
 
         // All procs do this ...
-        cuml_dist = (cuml_dist * ((double)random())) / (RAND_MAX - 1.0);
+        cuml_dist = (cuml_dist * ur_distribution(generator)) / (RAND_MAX - 1.0);
         if (++clust_idx >= k)  // No more centers needed
             break;
 
