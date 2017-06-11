@@ -39,11 +39,9 @@ base_kmeans_coordinator::base_kmeans_coordinator(const std::string fn,
     BOOST_ASSERT_MSG(k >= 1, "[FATAL]: 'k' must be >= 1");
     this->max_iters = max_iters;
     this->nnodes = nnodes;
-    this->nthreads = nthreads;
-    if (nthreads >  (unsigned)kpmbase::get_num_omp_threads()) {
-        BOOST_LOG_TRIVIAL(warning) << "[WARNING]: Exceeded system"
-            " #virtual cores of: " << kpmbase::get_num_omp_threads();
-    }
+    this->nthreads = static_cast<unsigned>(
+            std::min(static_cast<size_t>(nthreads), this->nrow));
+
     this->_init_t = it;
     this->tolerance = tolerance;
     this->_dist_t = dt;

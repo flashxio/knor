@@ -55,7 +55,7 @@ namespace kpmeans { namespace omp {
 kpmbase::kmeans_t compute_kmeans(const double* matrix, double* clusters,
 		unsigned* cluster_assignments, size_t* cluster_assignment_counts,
 		const size_t num_rows, const size_t num_cols, const unsigned k,
-		const size_t MAX_ITERS, const int max_threads,
+		const size_t MAX_ITERS, int max_threads,
         const std::string init="kmeanspp", const double tolerance=-1,
         const std::string dist_type="eucl");
 
@@ -64,7 +64,7 @@ kpmbase::kmeans_t compute_min_kmeans
     (const double* matrix, double* clusters_ptr,
         unsigned* cluster_assignments, size_t* cluster_assignment_counts,
 		const size_t num_rows, const size_t num_cols, const unsigned k,
-        const size_t MAX_ITERS, const int max_threads,
+        const size_t MAX_ITERS, int max_threads,
         const std::string init="kmeanspp", const double tolerance=-1,
         const std::string dist_type="eucl");
 } }

@@ -340,7 +340,7 @@ namespace kpmeans { namespace omp {
 kpmbase::kmeans_t compute_min_kmeans(const double* matrix, double* clusters_ptr,
         unsigned* cluster_assignments, size_t* cluster_assignment_counts,
         const size_t num_rows, const size_t num_cols, const unsigned k,
-        const size_t MAX_ITERS, const int max_threads, const std::string init,
+        const size_t MAX_ITERS, int max_threads, const std::string init,
         const double tolerance, const std::string dist_type) {
 #ifdef PROFILER
     ProfilerStart("matrix/min-tri-kmeans.perf");
@@ -348,7 +348,8 @@ kpmbase::kmeans_t compute_min_kmeans(const double* matrix, double* clusters_ptr,
     NUM_COLS = num_cols;
     K = k;
     NUM_ROWS = num_rows;
-    assert(max_threads > 0);
+    if (!max_threads)
+        max_threads = 1;
 
     OMP_MAX_THREADS = std::min(max_threads, kpmbase::get_num_omp_threads());
     omp_set_num_threads(OMP_MAX_THREADS);
