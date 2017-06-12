@@ -65,9 +65,8 @@ void print_arr(const T* arr, const unsigned len) {
 
 template <typename T>
 void print_vector(typename std::vector<T> v, unsigned max_print=100) {
-    unsigned print_len = v.size() > max_print ? max_print : v.size();
-
 #ifndef BIND
+    unsigned print_len = v.size() > max_print ? max_print : v.size();
     std::cout << "[";
     typename std::vector<T>::iterator itr = v.begin();
     for (; itr != v.begin()+print_len; itr++) {
