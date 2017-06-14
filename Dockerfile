@@ -26,6 +26,7 @@ RUN make -j8
 # To ingest example
 RUN pip install --upgrade pip
 RUN pip install pyyaml
+RUN pip install cython
 
 # Enter bash shell
 ENTRYPOINT ["bash"]
