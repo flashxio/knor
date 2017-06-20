@@ -4,4 +4,4 @@
 	branch = knors
 [submodule "python"]
 	path = python
-	url = https://github.com/flashxio/knorR.git
+	url = https://github.com/flashxio/knorPy.git
