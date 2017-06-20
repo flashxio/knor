@@ -23,7 +23,9 @@ cd $HOME
 apt-get update
 apt-get sudo apt-get -o Dpkg::Options::="--force-confold" --force-yes -y upgrade
 
-apt-get install -y build-essential
+apt-get install -y python-pip python-dev build-essential
+pip install --upgrade pip
+pip install cython==0.23.5
 # In memory dependencies
 apt-get install -y libboost-all-dev
 # NUMA
