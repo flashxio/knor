@@ -84,6 +84,7 @@ protected:
     kpmeans::thread_state_t state;
     double* dist_v;
     double cuml_dist;
+    bool preallocd_data; // Is our data pre-allocated?
 
     friend void* callback(void* arg);
 
@@ -101,11 +102,14 @@ protected:
         this->ncol = ncol;
         this->cluster_assignments = cluster_assignments;
         this->start_rid = start_rid;
+        this->preallocd_data = false;
 
         if (!fn.empty())
             BOOST_VERIFY(this->f = fopen(fn.c_str(), "rb"));
-        else
+        else {
             this->f = NULL;
+            preallocd_data = true;
+        }
 
         meta.num_changed = 0; // Same as meta.clust_idx = 0;
         set_thread_state(WAIT);
