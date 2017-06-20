@@ -19,6 +19,7 @@
 
 #ifdef LINUX
 #include <omp.h>
+#include <numa.h>
 #endif
 
 #include <atomic>
@@ -114,4 +115,13 @@ size_t filesize(const char* filename) {
             | std::ifstream::binary);
     return in.tellg();
 }
-} }
+
+
+unsigned get_num_nodes() {
+#ifdef LINUX
+    return static_cast<unsigned>(numa_num_task_nodes());
+#else
+    return 1;
+#endif
+}
+} } // End namespace kpmeans::base

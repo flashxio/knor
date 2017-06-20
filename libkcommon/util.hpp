@@ -175,6 +175,7 @@ public:
 
 float time_diff(struct timeval time1, struct timeval time2);
 int get_num_omp_threads();
+unsigned get_num_nodes();
 
 init_type_t get_init_type(const std::string init);
 dist_type_t get_dist_type(const std::string dist_type);
