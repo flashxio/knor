@@ -1,8 +1,7 @@
 [submodule "libsem"]
 	path = libsem/FlashX
-    #url = git@github.com:flashxio/FlashX.git
 	url = https://github.com/flashxio/FlashX.git
 	branch = knors
 [submodule "python"]
 	path = python
-	url = git@github.com:flashxio/knorPy.git
+	url = https://github.com/flashxio/knorR.git
