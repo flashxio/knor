@@ -16,6 +16,7 @@ script:
 - cd binding/unit-test && make test && cd -
 - cd libsem/FlashX/flash-graph/utils/test/ && make test && cd -
 - cd release-test && make test && cd -
+group: edge
 #env:
   #global:
     #DOCKER_USER:
