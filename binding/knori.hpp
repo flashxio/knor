@@ -41,11 +41,7 @@ namespace kpmeans { namespace base {
 kpmbase::kmeans_t kmeans(double* data, const size_t nrow,
         const size_t ncol, const unsigned k,
         size_t max_iters=std::numeric_limits<size_t>::max(),
-#ifdef LINUX
-        unsigned nnodes=numa_num_task_nodes(),
-#else
-        unsigned nnodes=1,
-#endif
+        unsigned nnodes=get_num_nodes(),
         unsigned nthread=kpmbase::get_num_omp_threads(),
         double* p_centers=NULL, std::string init="kmeanspp",
         double tolerance=-1, std::string dist_type="eucl",
@@ -102,12 +98,7 @@ kpmbase::kmeans_t kmeans(double* data, const size_t nrow,
 kpmbase::kmeans_t kmeans(const std::string datafn, const size_t nrow,
         const size_t ncol, const unsigned k,
         size_t max_iters=std::numeric_limits<size_t>::max(),
-
-#ifdef LINUX
-        unsigned nnodes=numa_num_task_nodes(),
-#else
-        unsigned nnodes=1,
-#endif
+        unsigned nnodes=get_num_nodes(),
         unsigned nthread=kpmbase::get_num_omp_threads(),
         double* p_centers=NULL, std::string init="kmeanspp",
         double tolerance=-1, std::string dist_type="eucl",
