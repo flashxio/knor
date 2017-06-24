@@ -135,12 +135,8 @@ bool kmeans_task_thread::try_steal_task() {
     (static_cast<kmeans_task_coordinator*>(driver))->get_threads(); // Me included
 
   bool one_locked;
-  int j = 0;
   do {
       one_locked = false;
-#ifndef BIND
-      printf("Thread %u running %d try_steal loop!\n", thd_id, j++);
-#endif
       for (unsigned i = 0; i < workers.size(); i++) {
           if (i != get_thd_id()) { // Can't steal from myself & I'm already done
 
