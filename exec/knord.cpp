@@ -25,6 +25,7 @@
 #include "dist_task_coordinator.hpp"
 #include "dist_coordinator.hpp"
 #include "io.hpp"
+#include "util.hpp"
 
 static int rank;
 static int nprocs;
@@ -52,7 +53,7 @@ int main(int argc, char* argv[]) {
 	int num_opts = 0;
 	double tolerance = -1;
     bool no_prune = false;
-    unsigned nnodes = numa_num_task_nodes();
+    unsigned nnodes = kpmbase::get_num_nodes();
     std::string outdir = "";
 
     // Increase by 3 -- getopt ignores argv[0]

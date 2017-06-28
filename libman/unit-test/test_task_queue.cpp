@@ -68,11 +68,7 @@ int main(int argc, char* argv[]) {
         exit(EXIT_FAILURE);
     }
 
-#ifdef LINUX
-    unsigned nnodes = numa_num_task_nodes();
-#else
-    unsigned nnodes = 1;
-#endif
+    unsigned nnodes = kpmbase::get_num_nodes();
     if (argc > 2) {
         if (atol(argv[2]) <= nnodes) {
             std::cout << "[NOTE]: Setting NUMA nodes to: " << argv[2] <<

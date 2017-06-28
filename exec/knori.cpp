@@ -58,11 +58,7 @@ int main(int argc, char* argv[]) {
     bool no_prune = false;
     bool omp = false;
     if (omp) { }
-#ifdef LINUX
-    unsigned nnodes = numa_num_task_nodes();
-#else
-    unsigned nnodes = 1;
-#endif
+    unsigned nnodes = kpmbase::get_num_nodes();
     std::string outdir = "";
 
     // Increase by 3 -- getopt ignores argv[0]

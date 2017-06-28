@@ -33,12 +33,7 @@ kpmbase::kmeans_t run_test(const std::string datafn, double* p_centers,
         size_t* p_clust_asgn_cnt, unsigned* p_clust_asgns, const bool prune,
         const std::string init, const unsigned max_iter) {
     constexpr unsigned NTHREADS = 2;
-
-#ifdef LINUX
-    unsigned nnodes = numa_num_task_nodes();
-#else
-    unsigned nnodes = 1;
-#endif
+    unsigned nnodes = kpmbase::get_num_nodes();
 
     if (init == "none") {
             kpmbase::bin_io<double> br(TEST_INIT_CLUSTERS, TEST_K, TEST_NCOL);

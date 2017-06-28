@@ -28,12 +28,7 @@ int main(int argc, char* argv[]) {
     constexpr unsigned nthread = 4;
     const std::string fn = "../../test-data/matrix_r50_c5_rrw.bin";
     const std::string centroidfn = "../../test-data/init_clusters_k8_c5.bin";
-
-#ifdef LINUX
-    const unsigned nnodes = numa_num_task_nodes();
-#else
-    const unsigned nnodes = 1;
-#endif
+    const unsigned nnodes = kpmbase::get_num_nodes();
 
     // Read from disk
     std::cout << "Testing read from disk ..\n";

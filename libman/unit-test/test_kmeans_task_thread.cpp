@@ -125,12 +125,8 @@ int main(int argc, char* argv[]) {
     pthread_mutexattr_settype(&mutex_attr, PTHREAD_MUTEX_ERRORCHECK);
     pthread_mutex_init(&mutex, &mutex_attr);
     pthread_cond_init(&cond, NULL);
+    unsigned nnodes = kpmbase::get_num_nodes();
 
-#ifdef OSX
-    unsigned nnodes = 1;
-#else
-    unsigned nnodes = numa_num_task_nodes();
-#endif
     if (argc < 2) {
         fprintf(stderr, "usage: ./test_kmeans_task_thread nthreads [nnodes]\n");
         exit(EXIT_FAILURE);
