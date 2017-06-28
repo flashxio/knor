@@ -18,10 +18,11 @@
 
 # Ubuntu bootstrap script
 
-NPROC=`nproc`
 ./install.sh
 git clone --recursive https://github.com/flashxio/knor.git
 cd knor
 git checkout master
-make -j$NPROC
+#NPROC=`nproc`
+#make -j$NPROC
+make
 echo "done"
