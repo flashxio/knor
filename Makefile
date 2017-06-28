@@ -17,7 +17,7 @@
 
 include Makefile.common
 
-all: build_common build_libs exec release-test binding python
+all: build_common build_libs exec release-test binding
 
 build_common:
 	$(MAKE) -C libkcommon
