@@ -57,6 +57,6 @@ clean:
 	make --ignore-errors -C libdist clean
 	make --ignore-errors -C release-test clean
 	make --ignore-errors -C binding clean
-	make --ignore-errors -C python clean
+	make --ignore-errors -C python/knor clean
 
 -include $(DEPS)

@@ -11,7 +11,7 @@ from distutils.core import setup, Extension
 from Cython.Build import cythonize
 import sys, re
 from exceptions import NotImplementedError
-from python.Exceptions.runtime import UnsupportedError
+from python.knor.Exceptions.runtime import UnsupportedError
 from glob import glob
 from distutils.command.build_clib import build_clib
 from Cython.Distutils import build_ext
@@ -71,9 +71,6 @@ class knor_clib(build_clib, object):
             # pass flasgs to compiler
             extra_preargs = ["-std=c++11", "-O3", "-Wno-unused-function"]
 
-            # dirty hack to get clang++
-            self.compiler.compiler[0] = self.compiler.compiler_cxx[0]
-
             objects = self.compiler.compile(sources,
                                             output_dir=self.build_temp,
                                             macros=macros,
@@ -97,10 +94,10 @@ libman = ('man',
         {'sources': glob(os.path.join("libman/", "*.cpp"))})
 
 sources = glob(os.path.join("binding/", "*.cpp"))
-sources.append("python/knor.pyx")
+sources.append("python/knor/knor.pyx")
 
 ext_modules = cythonize(Extension(
-        "knor",                                # the extension name
+        "knor.knor",                                # the extension name
         sources=sources,
         language="c++",
         extra_compile_args=["-std=c++11", "-O3",
@@ -141,7 +138,8 @@ elif OS == _OS_SUPPORTED_["mac"]:
             "Cython==0.23.5",
             "cython==0.23.5",
             ],
-        packages=["python/Exceptions", "python"],
+        package_dir = {"knor": os.path.join("python", "knor")},
+        packages=["knor.Exceptions"],
         libraries = [libkcommon, libman],
         cmdclass = {'build_clib': knor_clib, 'build_ext': build_ext},
         ext_modules = ext_modules,
