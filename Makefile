@@ -45,6 +45,7 @@ python: build_libs
 	$(MAKE) -C python
 
 clean:
+	rm -rf build
 	rm -f *.d
 	rm -f *.o
 	rm -f *~
