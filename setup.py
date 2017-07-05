@@ -1,21 +1,15 @@
 #!/usr/bin/env python
 
 import os
-from setuptools import setup
-from setuptools.command.install import install
-from distutils.command.build import build
-from subprocess import call
-from multiprocessing import cpu_count
-
+import sys, re
+from glob import glob
+from exceptions import NotImplementedError
+from exceptions import RuntimeError
+from distutils.errors import DistutilsSetupError
+from distutils.command.build_clib import build_clib
 from distutils.core import setup, Extension
 from Cython.Build import cythonize
-import sys, re
-from exceptions import NotImplementedError
-from python.knor.Exceptions.runtime import UnsupportedError
-from glob import glob
-from distutils.command.build_clib import build_clib
 from Cython.Distutils import build_ext
-from distutils.errors import DistutilsSetupError
 
 _REPO_ISSUES_ = "https://github.com/flashxio/knorPy/issues"
 _OS_SUPPORTED_ = {"linux":"linux", "mac":"darwin"}
@@ -113,7 +107,7 @@ ext_modules = cythonize(Extension(
             ]))
 
 if OS is None:
-    raise UnsupportedError("Operating system {}\n." +\
+    raise RuntimeError("Operating system {}\n." +\
             "Please post an issue at {}\n".format(raw_os, _REPO_ISSUES_))
 
 elif OS == _OS_SUPPORTED_["linux"]:
@@ -122,7 +116,7 @@ elif OS == _OS_SUPPORTED_["mac"]:
 
     setup(
         name="knor",
-        version="0.0.1a2",
+        version="0.0.1a8",
         description="A fast parallel k-means library for Linux and Mac",
         long_description="The k-means NUMA Optimized Routine library or " +\
         "knor is a highly optimized and fast library for computing " +\
@@ -139,7 +133,7 @@ elif OS == _OS_SUPPORTED_["mac"]:
             "cython==0.23.5",
             ],
         package_dir = {"knor": os.path.join("python", "knor")},
-        packages=["knor.Exceptions"],
+        packages=["knor", "knor.Exceptions"],
         libraries = [libkcommon, libman],
         cmdclass = {'build_clib': knor_clib, 'build_ext': build_ext},
         ext_modules = ext_modules,
