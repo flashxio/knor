@@ -21,3 +21,4 @@ release-test/test_man
 binding/unit-test/test_knori
 MANIFEST
 dist/
+build/
