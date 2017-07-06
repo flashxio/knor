@@ -44,10 +44,21 @@ release-test: exec
 python: build_libs
 	$(MAKE) -C python
 
+py-dist:
+	python setup.py sdist
+
+py-up:
+	twine upload dist/*
+
+py-up-test:
+	twine upload dist/* -r testpypi
+	pip install -i https://testpypi.python.org/pypi knor
+
 clean:
 	rm -f *.d
 	rm -f *.o
 	rm -f *~
+	rm -rf build dist *.egg-info # python
 	make --ignore-errors -C libkcommon clean
 	make --ignore-errors -C libauto clean
 	make --ignore-errors -C libman clean
@@ -56,6 +67,6 @@ clean:
 	make --ignore-errors -C libdist clean
 	make --ignore-errors -C release-test clean
 	make --ignore-errors -C binding clean
-	make --ignore-errors -C python clean
+	make --ignore-errors -C python/knor clean
 
 -include $(DEPS)
