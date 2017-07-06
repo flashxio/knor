@@ -28,7 +28,7 @@ for patt in patts:
         OS = res.groups()[1]
         break
 
-if OS not in _OS_SUPPORTED_:
+if OS not in _OS_SUPPORTED_.values():
     raise RuntimeError("Operating system {}\n." +\
             "Please post an issue at {}\n".format(raw_os, _REPO_ISSUES_))
 
