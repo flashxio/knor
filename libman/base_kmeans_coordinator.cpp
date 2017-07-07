@@ -17,12 +17,13 @@
  * limitations under the License.
  */
 
-#include <boost/assert.hpp>
-#include <boost/log/trivial.hpp>
+#include <cassert>
 
 #include "kcommon.hpp"
 #include "base_kmeans_coordinator.hpp"
 #include "base_kmeans_thread.hpp"
+
+namespace kpmbase = kpmeans::base;
 
 namespace kpmeans {
 base_kmeans_coordinator::base_kmeans_coordinator(const std::string fn,
@@ -36,7 +37,7 @@ base_kmeans_coordinator::base_kmeans_coordinator(const std::string fn,
     this->nrow = nrow;
     this->ncol = ncol;
     this->k = k;
-    BOOST_ASSERT_MSG(k >= 1, "[FATAL]: 'k' must be >= 1");
+    kpmbase::assert_msg(k >= 1, "[FATAL]: 'k' must be >= 1");
     this->max_iters = max_iters;
     this->nnodes = nnodes;
     this->nthreads = static_cast<unsigned>(
@@ -48,8 +49,8 @@ base_kmeans_coordinator::base_kmeans_coordinator(const std::string fn,
     num_changed = 0;
     pending_threads = 0;
 
-    BOOST_VERIFY(cluster_assignments = new unsigned [nrow]);
-    BOOST_VERIFY(cluster_assignment_counts = new size_t [k]);
+    assert(cluster_assignments = new unsigned [nrow]);
+    assert(cluster_assignment_counts = new size_t [k]);
 
     clear_cluster_assignments();
     std::fill(cluster_assignment_counts,

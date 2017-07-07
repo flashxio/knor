@@ -21,10 +21,9 @@
 #include <numa.h>
 #endif
 
-#include <boost/log/trivial.hpp>
-
 #include "base_kmeans_thread.hpp"
 #include "exception.hpp"
+#include "util.hpp"
 
 #define VERBOSE 0
 #define INVALID_THD_ID -1
@@ -66,7 +65,7 @@ void base_kmeans_thread::close_file_handle() {
 
 // Move data ~equally to all nodes
 void base_kmeans_thread::numa_alloc_mem() {
-    BOOST_ASSERT_MSG(f, "File handle invalid, can only alloc once!");
+    kpmbase::assert_msg(f, "File handle invalid, can only alloc once!");
     size_t blob_size = get_data_size();
 #ifdef LINUX
     local_data = static_cast<double*>(numa_alloc_onnode(blob_size, node_id));
@@ -74,7 +73,7 @@ void base_kmeans_thread::numa_alloc_mem() {
     local_data = new double [blob_size/sizeof(double)];
 #endif
     fseek(f, start_rid*ncol*sizeof(double), SEEK_SET); // start position
-    BOOST_VERIFY(1 == fread(local_data, blob_size, 1, f));
+    assert(1 == fread(local_data, blob_size, 1, f));
     close_file_handle();
 }
 
