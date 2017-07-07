@@ -26,8 +26,8 @@
 #include <vector>
 #include <memory>
 #include <iostream>
+#include <cassert>
 
-#include <boost/assert.hpp>
 #include "../libman/base_kmeans_thread.hpp"
 
 namespace kpmeans { namespace binding {
@@ -56,12 +56,12 @@ private:
         this->ncol = ncol;
         this->gnrow = nrow;
         this->mallocd_data = mallocd_data;
-        BOOST_VERIFY(mallocd_data);
+        assert(mallocd_data);
 
         part_size = std::pair<size_t, unsigned>(nrow/npart,
                 (nrow/npart + nrow%npart));
 
-        BOOST_VERIFY(nrow ==
+        assert(nrow ==
                 ((part_size.first*(npart-1)) + part_size.second));
     }
 
@@ -88,7 +88,7 @@ public:
 #endif
 
             T* numa_allocd_data = static_cast<T*>(numa_alloc_onnode(nbytes, node_id));
-            BOOST_VERIFY(numa_allocd_data);
+            assert(numa_allocd_data);
             std::copy(&mallocd_data[offset], &mallocd_data[offset+(nbytes/sizeof(T))],
                 numa_allocd_data); // TODO: Limit mem
             threads[tid]->set_local_data_ptr(numa_allocd_data, false);
