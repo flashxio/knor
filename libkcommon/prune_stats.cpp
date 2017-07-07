@@ -17,8 +17,10 @@
  * limitations under the License.
  */
 
-#include <boost/log/trivial.hpp>
+#include <cassert>
+
 #include "prune_stats.hpp"
+#include "util.hpp"
 
 namespace kpmeans { namespace base {
 
@@ -45,17 +47,23 @@ prune_stats& prune_stats::operator+=(prune_stats& other) {
 
 void prune_stats::finalize() {
     iter++;
-    BOOST_VERIFY((lemma1 + _3a + _3b + _3c + _4) <=  nrow*nclust);
-    BOOST_LOG_TRIVIAL(info) << "\n\nPrune stats count:\n"
+    assert((lemma1 + _3a + _3b + _3c + _4) <=  nrow*nclust);
+#ifndef BIND
+    std::cout << "\n\nPrune stats count:\n"
         "lemma1 = " << lemma1 << ", 3a = " << _3a
-        << ", 3b = " << _3b << ", 3c = " << _3c << ", 4 = " << _4;
+        << ", 3b = " << _3b << ", 3c = " << _3c << ", 4 = " << _4 <<
+        std::endl;
+#endif
 
-    BOOST_LOG_TRIVIAL(info) << "\n\nPrune stats \%s:\n"
+#ifndef BIND
+    std::cout << "\n\nPrune stats \%s:\n"
         "lemma1 = " << (lemma1 == 0 ? 0 : ((double)lemma1/(nrow*nclust))*100) <<
         "\%, 3a = " << (_3a == 0 ? 0 : ((double)_3a/(nrow*nclust))*100) <<
         "\%, 3b = " << (_3b == 0 ? 0 : ((double) _3b/(nrow*nclust))*100) <<
         "\%, 3c = " << (_3c == 0 ? 0 : ((double) _3c/(nrow*nclust))*100) <<
-        "\%, 4 = " << (_4 == 0 ? 0 : ((double) _4/(nrow*nclust))*100) << "\%";
+        "\%, 4 = " << (_4 == 0 ? 0 : ((double) _4/(nrow*nclust))*100) << "\%"
+        << std::endl;
+#endif
 
     tot_lemma1 += lemma1;
     tot_3a += _3a;
@@ -82,10 +90,13 @@ std::vector<double> prune_stats::get_stats() {
             tot_lemma1, tot_3a, tot_3b, tot_3c, tot_4);
 #endif
 
-    BOOST_LOG_TRIVIAL(info) << "\n\nPrune stats total:\n"
+#ifndef BIND
+    std::cout << "\n\nPrune stats total:\n"
         "Tot = " << perc << "\%, 3a = " << perc_3a <<
         "\%, 3b = " << perc_3b << "\%, 3c = " << perc_3c
-        << "\%, 4 = " << perc_4 << "\%, lemma1 = " << perc_lemma1 << "\%";
+        << "\%, 4 = " << perc_4 << "\%, lemma1 = " << perc_lemma1 << "\%"
+        << std::endl;
+#endif
 
     std::vector<double> ret {
         perc_lemma1, perc_3a, perc_3b, perc_3c, perc_4, perc };
@@ -120,7 +131,7 @@ void active_counter::init_iter() {
 
 void active_counter::is_active(const size_t row, const bool val) {
     if (active.size() == 1 && was_active(row))
-        BOOST_ASSERT_MSG(false, "In first iter the row cannot"
+        kpmeans::base::assert_msg(false, "In first iter the row cannot"
                 " be active previously");
 
     if (val && was_active(row)) {

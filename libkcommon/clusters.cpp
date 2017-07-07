@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-#include <boost/assert.hpp>
+#include <cassert>
 
 #include "io.hpp"
 #include "util.hpp"
@@ -115,7 +115,7 @@ clusters& clusters::operator+=(clusters& rhs) {
 }
 
 void clusters::peq(ptr rhs) {
-    BOOST_VERIFY(rhs->size() == size());
+    assert(rhs->size() == size());
     for (unsigned i = 0; i < size(); i++)
         this->means[i] += rhs->get(i);
 

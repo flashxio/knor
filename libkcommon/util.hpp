@@ -27,9 +27,8 @@
 #include <vector>
 #include <iostream>
 #include <random>
+#include <cassert>
 
-#include <boost/assert.hpp>
-#include <boost/log/trivial.hpp>
 #include "kmeans_types.hpp"
 #include "exception.hpp"
 
@@ -182,6 +181,13 @@ dist_type_t get_dist_type(const std::string dist_type);
 void int_handler(int sig_num);
 bool is_file_exist(const char *fn);
 size_t filesize(const char* filename);
+
+void assert_msg(bool expr, const std::string msg) {
+
+    if (!expr)
+        std::cerr << msg << std::endl;
+    assert(0);
+}
 
 } } // End namespace kpmeans::base
 
