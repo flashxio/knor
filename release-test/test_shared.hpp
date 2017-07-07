@@ -23,7 +23,6 @@
 #include <string>
 #include <iostream>
 
-#include <boost/log/expressions.hpp>
 #include "io.hpp"
 
 namespace kpmeans { namespace test {
@@ -41,12 +40,5 @@ namespace kpmeans { namespace test {
         kpmbase::bin_io<double> br(TEST_CONVERGED_INIT_RES, TEST_K, TEST_NCOL);
         br.read(buff);
     }
-
-void init_log() {
-    namespace logging = boost::log;
-
-    logging::core::get()->set_filter(
-         logging::trivial::severity > logging::trivial::info);
-}
 } }
 #endif

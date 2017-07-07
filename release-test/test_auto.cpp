@@ -73,7 +73,7 @@ int main(int argc, char* argv[]) {
             kpmbase::kmeans_t ret = kpmeans::test::run_test(&p_centers[0],
                     &p_data[0], &p_clust_asgn_cnt[0], &p_clust_asgns[0], false,
                     "none", 10);
-            BOOST_VERIFY(kpmtest::check_collection_equal(
+            assert(kpmtest::check_collection_equal(
                         ret.centroids.begin(), ret.centroids.end(),
                         res.begin(), res.end(),
                         kpmtest::TEST_TOL));
@@ -85,7 +85,7 @@ int main(int argc, char* argv[]) {
             kpmbase::kmeans_t ret = kpmeans::test::run_test(&p_centers[0],
                     &p_data[0], &p_clust_asgn_cnt[0], &p_clust_asgns[0], true,
                     "none", 10);
-            BOOST_VERIFY(kpmtest::check_collection_equal(
+            assert(kpmtest::check_collection_equal(
                         ret.centroids.begin(), ret.centroids.end(),
                         res.begin(), res.end(),
                         kpmtest::TEST_TOL));
@@ -114,11 +114,11 @@ int main(int argc, char* argv[]) {
                 &p_data[0], &p_clust_asgn_cnt[0], &p_clust_asgns[0], true,
                 *it, 4);
 
-            BOOST_VERIFY(std::equal(ret_auto.assignment_count.begin(),
+            assert(std::equal(ret_auto.assignment_count.begin(),
                         ret_auto.assignment_count.end(),
                         ret_min_auto.assignment_count.begin()
                         ));
-            BOOST_VERIFY(kpmtest::check_collection_equal(
+            assert(kpmtest::check_collection_equal(
                         ret_auto.centroids.begin(), ret_auto.centroids.end(),
                         ret_min_auto.centroids.begin(),
                         ret_min_auto.centroids.end(),
