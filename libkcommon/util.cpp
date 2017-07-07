@@ -25,6 +25,7 @@
 #include <atomic>
 #include <fstream>
 #include <thread>
+#include <cassert>
 
 #include "util.hpp"
 #include "exception.hpp"
@@ -123,5 +124,11 @@ unsigned get_num_nodes() {
 #else
     return 1;
 #endif
+}
+
+void assert_msg(bool expr, const std::string msg) {
+    if (!expr)
+        std::cerr << msg << std::endl;
+    assert(0);
 }
 } } // End namespace kpmeans::base

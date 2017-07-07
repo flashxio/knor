@@ -27,7 +27,6 @@
 #include <vector>
 #include <iostream>
 #include <random>
-#include <cassert>
 
 #include "kmeans_types.hpp"
 #include "exception.hpp"
@@ -182,13 +181,7 @@ void int_handler(int sig_num);
 bool is_file_exist(const char *fn);
 size_t filesize(const char* filename);
 
-void assert_msg(bool expr, const std::string msg) {
-
-    if (!expr)
-        std::cerr << msg << std::endl;
-    assert(0);
-}
-
+void assert_msg(bool expr, const std::string msg);
 } } // End namespace kpmeans::base
 
 namespace kpmeans { namespace test {
