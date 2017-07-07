@@ -31,9 +31,6 @@
 #include <iostream>
 #include <algorithm>
 
-#include <boost/assert.hpp>
-#include <boost/log/trivial.hpp>
-
 #include "kmeans_types.hpp"
 #include "util.hpp"
 
