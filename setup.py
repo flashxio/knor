@@ -68,14 +68,13 @@ if OS == _OS_SUPPORTED_["linux"]:
             "-Wno-attributes", "-Wno-unused-variable",
             "-Wno-unused-function", "-I.","-Ilibman", "-Ilibauto",
             "-Ibinding", "-Ilibkcommon",
-            "-DBOOST_LOG_DYN_LINK", "-fopenmp",
+            "-fopenmp",
             "-I/usr/local/lib/python2.7/dist-packages/numpy/core/include",
             "-I/usr/include/python2.7",
             "-DBIND", "-DLINUX"]
 
     extra_link_args=["-Llibman", "-lman", "-Llibauto", "-lauto",
             "-Llibkcommon", "-lkcommon", "-lpthread", "-lnuma", "-fopenmp",
-            "-lboost_log", "-lboost_system"
             ]
 
 elif OS == _OS_SUPPORTED_["mac"]:
@@ -83,12 +82,10 @@ elif OS == _OS_SUPPORTED_["mac"]:
             "-Wno-unused-function", "-I.","-Ilibman",
             "-Ibinding", "-Ilibkcommon",
             "-I/usr/local/lib/python2.7/site-packages/numpy/core/include",
-            "-DBOOST_LOG_DYN_LINK", "-I/usr/local/opt/boost/include",
             "-DBIND", "-DOSX"]
 
     extra_link_args=["-Llibman", "-lman", "-Llibkcommon",
-            "-lkcommon", "-lpthread", "-lboost_log-mt",
-            "-lboost_system", "-L/usr/local/opt/boost/lib",
+            "-lkcommon", "-lpthread"
             ]
 else:
     raise RuntimeError("Unsupported OS {}".format(raw_os))
@@ -111,18 +108,15 @@ class knor_clib(build_clib, object):
                 "libman", "libauto", "binding", "libkcommon",
                 ]
             self.define = [
-                    ("BOOST_LOG_DYN_LINK", None),
                     ("BIND", None), ("LINUX", None)
                     ]
         elif OS == _OS_SUPPORTED_["mac"]:
             self.include_dirs = [
                 "libman", "binding", "libkcommon",
-                "/usr/local/opt/boost/include",
                 "/usr/local/lib/python2.7/site-packages/numpy/core/include",
                 ]
 
             self.define = [
-                    ("BOOST_LOG_DYN_LINK", None),
                     ("BIND", None), ("OSX", None)
                     ]
 

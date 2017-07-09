@@ -26,21 +26,17 @@ OMP_FLAG = -fopenmp
 ifeq ($(UNAME_S), Darwin)
 	CC = clang
 	CXX = clang++
-	LDFLAGS = -lpthread -lboost_log-mt -lboost_system\
-			   -rdynamic -lpython2.7 \
-			   -L/usr/local/opt/boost/lib
+	LDFLAGS = -lpthread -rdynamic -lpython2.7 \
 	CXXFLAGS = -g -std=c++11 -O3 -I. -Wall -fPIC $(CLANG_FLAGS) \
-			   -DSTATISTICS -DBOOST_LOG_DYN_LINK \
-			   -I/usr/local/include/python2.7 \
-			   -I/usr/local/opt/boost/include
+			   -DSTATISTICS -I/usr/local/include/python2.7
 	CXXFLAGS += -DOSX
 else
 	CC = gcc
 	CXX = g++
-	LDFLAGS = -lnuma -lpthread $(OMP_FLAG) -lboost_log \
+	LDFLAGS = -lnuma -lpthread $(OMP_FLAG) \
 			   -rdynamic -lrt -rdynamic -lhwloc -lpython2.7
 	CXXFLAGS = -g -std=c++11 -O3 -I. -Wall -fPIC $(CLANG_FLAGS) \
-			   -DSTATISTICS -DBOOST_LOG_DYN_LINK $(OMP_FLAG) \
+			   -DSTATISTICS $(OMP_FLAG) \
 			   -I/usr/include/python2.7
 	CXXFLAGS += -DLINUX
 endif

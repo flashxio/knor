@@ -27,8 +27,6 @@ apt-get install -y python-pip python-dev build-essential
 pip install --upgrade pip
 pip install cython==0.23.5
 pip install Cython
-# In memory dependencies
-apt-get install -y libboost-all-dev
 # NUMA
 apt-get install -y libnuma-dbg libnuma-dev libnuma1
 
