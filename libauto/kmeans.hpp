@@ -20,21 +20,13 @@
 #ifndef __KPM_OMP_KMEANS_HPP__
 #define __KPM_OMP_KMEANS_HPP__
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <math.h>
-#include <string.h>
-#ifdef PROFILER
-#include <gperftools/profiler.h>
-#endif
-#include <vector>
-#include <iostream>
-#include <algorithm>
+#include <cstdlib>
+#include <string>
 
-#include "kmeans_types.hpp"
-#include "util.hpp"
+namespace kpmeans { namespace base {
+    class kmeans_t;
+}}
 
-namespace kpmbase = kpmeans::base;
 
 namespace kpmeans { namespace omp {
 /**
@@ -49,7 +41,7 @@ namespace kpmeans { namespace omp {
  * \param max_iters The maximum number of iterations of K-means to perform.
  * \param init The type of initilization ["random", "forgy", "kmeanspp"]
  **/
-kpmbase::kmeans_t compute_kmeans(const double* matrix, double* clusters,
+kpmeans::base::kmeans_t compute_kmeans(const double* matrix, double* clusters,
 		unsigned* cluster_assignments, size_t* cluster_assignment_counts,
 		const size_t num_rows, const size_t num_cols, const unsigned k,
 		const size_t MAX_ITERS, int max_threads,
@@ -57,7 +49,7 @@ kpmbase::kmeans_t compute_kmeans(const double* matrix, double* clusters,
         const std::string dist_type="eucl");
 
 /** See `compute_kmeans` for argument list */
-kpmbase::kmeans_t compute_min_kmeans
+kpmeans::base::kmeans_t compute_min_kmeans
     (const double* matrix, double* clusters_ptr,
         unsigned* cluster_assignments, size_t* cluster_assignment_counts,
 		const size_t num_rows, const size_t num_cols, const unsigned k,

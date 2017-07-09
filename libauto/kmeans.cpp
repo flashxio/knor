@@ -24,13 +24,13 @@
 #ifdef LINUX
 #include <omp.h>
 #endif
-#include <random>
+#include <vector>
 
 #include "kmeans.hpp"
 #include "clusters.hpp"
 #include "io.hpp"
-#include "util.hpp"
 #include "exception.hpp"
+#include "util.hpp"
 
 #define KM_TEST 0
 #define VERBOSE 0

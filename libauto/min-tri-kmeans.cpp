@@ -27,7 +27,10 @@
 #include <cassert>
 
 #include "kmeans.hpp"
-#include "kcommon.hpp"
+#include "clusters.hpp"
+#include "dist_matrix.hpp"
+#include "thd_safe_bool_vector.hpp"
+#include "io.hpp"
 #include "exception.hpp"
 
 #define KM_TEST 0
