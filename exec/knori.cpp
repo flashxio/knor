@@ -23,6 +23,8 @@
 #include <numa.h>
 #endif
 
+#include <getopt.h>
+
 #include "signal.h"
 #include "io.hpp"
 #ifdef LINUX

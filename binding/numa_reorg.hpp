@@ -28,7 +28,7 @@
 #include <iostream>
 #include <cassert>
 
-#include "../libman/base_kmeans_thread.hpp"
+#include "base_kmeans_thread.hpp"
 
 namespace kpmeans { namespace binding {
 

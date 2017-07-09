@@ -19,6 +19,7 @@
 
 
 #include <numa.h>
+#include <getopt.h>
 
 #include "signal.h"
 
