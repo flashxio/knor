@@ -21,7 +21,7 @@ ifeq ($(UNAME_S), Darwin)
 LDFLAGS := -L../../libman -lman -L../../libkcommon -lkcommon $(LDFLAGS)
 CXXFLAGS += -I.. -I../../libman -I../../libkcommon
 else
-LDFLAGS := -L../../libauto -lauto -L../../libman -lman \
+LDFLAGS := -L.. -L../../libauto -lauto -L../../libman -lman \
 	-L../../libkcommon -lkcommon $(LDFLAGS)
 CXXFLAGS += -I.. -I../../libauto -I../../libman -I../../libkcommon
 endif

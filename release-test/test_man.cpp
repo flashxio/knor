@@ -27,6 +27,7 @@
 #include "util.hpp"
 
 namespace kpmtest = kpmeans::test;
+namespace kpmprune = kpmeans::prune;
 
 namespace kpmeans { namespace test {
 kpmbase::kmeans_t run_test(const std::string datafn, double* p_centers,
@@ -64,8 +65,6 @@ int main(int argc, char* argv[]) {
     std::vector<double> p_data(kpmtest::TEST_NROW*kpmtest::TEST_NCOL);
     std::vector<size_t> p_clust_asgn_cnt(kpmtest::TEST_K);
     std::vector<unsigned> p_clust_asgns(kpmtest::TEST_NROW);
-
-    kpmtest::init_log();
 
     {
         std::vector<double>res(kpmtest::TEST_K*kpmtest::TEST_NCOL);

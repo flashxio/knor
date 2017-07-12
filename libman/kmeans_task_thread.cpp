@@ -20,7 +20,9 @@
 #include "kmeans_task_thread.hpp"
 #include "task_queue.hpp"
 #include "kmeans_task_coordinator.hpp"
-#include "kcommon.hpp"
+#include "clusters.hpp"
+#include "thd_safe_bool_vector.hpp"
+#include "dist_matrix.hpp"
 
 namespace kpmeans { namespace prune {
 

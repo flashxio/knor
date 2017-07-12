@@ -36,6 +36,8 @@
 #include "util.hpp"
 
 static void print_usage();
+namespace kpmbase = kpmeans::base;
+namespace kpmprune = kpmeans::prune;
 
 int main(int argc, char* argv[]) {
 

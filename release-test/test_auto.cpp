@@ -62,8 +62,6 @@ int main(int argc, char* argv[]) {
     std::vector<size_t> p_clust_asgn_cnt(kpmtest::TEST_K);
     std::vector<unsigned> p_clust_asgns(kpmtest::TEST_NROW);
 
-    kpmtest::init_log();
-
     {
         std::vector<double>res(kpmtest::TEST_K*kpmtest::TEST_NCOL);
         kpmtest::load_result(&res[0]);

@@ -20,10 +20,13 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <atomic>
+#include <iostream>
 
 #include "kmeans_thread.hpp"
 #include "thread_state.hpp"
-#include "kcommon.hpp"
+#include "clusters.hpp"
+#include "io.hpp"
+#include "util.hpp"
 
 #ifdef LINUX
 #include "numa.h"

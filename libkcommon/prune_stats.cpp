@@ -20,7 +20,7 @@
 #include <cassert>
 
 #include "prune_stats.hpp"
-#include "util.hpp"
+#include <iostream>
 
 namespace kpmeans { namespace base {
 
@@ -130,9 +130,10 @@ void active_counter::init_iter() {
 }
 
 void active_counter::is_active(const size_t row, const bool val) {
-    if (active.size() == 1 && was_active(row))
-        kpmeans::base::assert_msg(false, "In first iter the row cannot"
-                " be active previously");
+    if (active.size() == 1 && was_active(row)) {
+        //kpmeans::base::assert_msg(false, "In first iter the row cannot"
+                //" be active previously");
+    }
 
     if (val && was_active(row)) {
         // 1. Grow the rows active vec, to add a true

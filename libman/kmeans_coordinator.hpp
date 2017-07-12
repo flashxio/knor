@@ -26,26 +26,26 @@
 #include <gperftools/profiler.h>
 #endif
 
-namespace kpmbase = kpmeans::base;
 namespace kpmeans {
-class base_kmeans_thread;
-    namespace base {
-    class clusters;
-} }
 
-namespace kpmeans {
-class kmeans_coordinator : public kpmeans::base_kmeans_coordinator {
+namespace base {
+    class clusters;
+}
+
+class base_kmeans_thread;
+
+class kmeans_coordinator : public base_kmeans_coordinator {
     protected:
         // Metadata
         // max index stored within each threads partition
         std::vector<unsigned> thd_max_row_idx;
-        std::shared_ptr<kpmbase::clusters> cltrs;
+        std::shared_ptr<base::clusters> cltrs;
 
         kmeans_coordinator(const std::string fn, const size_t nrow,
                 const size_t ncol, const unsigned k, const unsigned max_iters,
                 const unsigned nnodes, const unsigned nthreads,
-                const double* centers, const kpmbase::init_type_t it,
-                const double tolerance, const kpmbase::dist_type_t dt);
+                const double* centers, const base::init_type_t it,
+                const double tolerance, const base::dist_type_t dt);
 
     public:
         static base_kmeans_coordinator::ptr create(const std::string fn,
@@ -55,8 +55,8 @@ class kmeans_coordinator : public kpmeans::base_kmeans_coordinator {
                 const double* centers=NULL, const std::string init="kmeanspp",
                 const double tolerance=-1, const std::string dist_type="eucl") {
 
-            kpmbase::init_type_t _init_t = kpmbase::get_init_type(init);
-            kpmbase::dist_type_t _dist_t = kpmbase::get_dist_type(dist_type);
+            base::init_type_t _init_t = base::get_init_type(init);
+            base::dist_type_t _dist_t = base::get_dist_type(dist_type);
 #if KM_TEST
             printf("kmeans coordinator => NUMA nodes: %u, nthreads: %u, "
                     "nrow: %lu, ncol: %lu, init: '%s', dist_t: '%s', fn: '%s'"
@@ -68,13 +68,13 @@ class kmeans_coordinator : public kpmeans::base_kmeans_coordinator {
                     nnodes, nthreads, centers, _init_t, tolerance, _dist_t));
         }
 
-        std::shared_ptr<kpmbase::clusters> get_gcltrs() {
+        std::shared_ptr<base::clusters> get_gcltrs() {
             return cltrs;
         }
 
         std::pair<unsigned, unsigned> get_rid_len_tup(const unsigned thd_id);
         // Pass file handle to threads to read & numa alloc
-        virtual kpmbase::kmeans_t run_kmeans(double* allocd_data,
+        virtual base::kmeans_t run_kmeans(double* allocd_data,
                 const bool numa_opt) override;
         void update_clusters();
         void kmeanspp_init() override;

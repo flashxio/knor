@@ -32,7 +32,7 @@ namespace kpmeans {
 
 void base_kmeans_thread::destroy_numa_mem() {
     if (!preallocd_data) {
-#if LINUX
+#ifdef LINUX
     numa_free(local_data, get_data_size());
 #else
     delete [] local_data;

@@ -17,7 +17,13 @@
  * limitations under the License.
  */
 
-#include "kcommon.hpp"
+#include <cassert>
+#include <iostream>
+
+#include "dist_matrix.hpp"
+#include "clusters.hpp"
+#include "io.hpp"
+#include "util.hpp"
 
 namespace kpmeans { namespace prune {
 

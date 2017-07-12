@@ -19,9 +19,9 @@
 
 #include <cassert>
 
-#include "kcommon.hpp"
 #include "base_kmeans_coordinator.hpp"
 #include "base_kmeans_thread.hpp"
+#include "util.hpp"
 
 namespace kpmbase = kpmeans::base;
 

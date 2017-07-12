@@ -22,7 +22,6 @@
 
 #include "kmeans_coordinator.hpp"
 #include "kmeans_thread.hpp"
-#include "util.hpp"
 #include "io.hpp"
 #include "clusters.hpp"
 
@@ -41,7 +40,7 @@ kmeans_coordinator::kmeans_coordinator(const std::string fn, const size_t nrow,
                 cltrs->set_mean(centers);
             else
                 printf("[WARNING]: Both init centers "
-                    "provided & non-NONE init method specified");
+                    "provided & non-NONE init method specified\n");
         }
         build_thread_state();
     }
@@ -82,11 +81,6 @@ const double* kmeans_coordinator::get_thd_data(const unsigned row_id) const {
             thd_max_row_idx.end(), row_id) - thd_max_row_idx.begin();
     unsigned rows_per_thread = nrow/nthreads; // All but the last thread
 
-#if 0
-    printf("Global row %u, row in parent thd: %u --> %u\n", row_id,
-            parent_thd, (row_id-(parent_thd*rows_per_thread)));
-#endif
-
     return &((threads[parent_thd]->get_local_data())
             [(row_id-(parent_thd*rows_per_thread))*ncol]);
 }
@@ -101,13 +95,6 @@ void kmeans_coordinator::update_clusters() {
         num_changed += (*it)->get_num_changed();
         // Summation for cluster centers
 
-#if VERBOSE
-#ifndef BIND
-        printf("Thread %ld clusters:\n", (it-threads.begin()));
-#endif
-        ((*it)->get_local_clusters())->print_means();
-#endif
-
         cltrs->peq((*it)->get_local_clusters());
     }
 
@@ -119,17 +106,9 @@ void kmeans_coordinator::update_clusters() {
         chk_nmemb += cluster_assignment_counts[clust_idx];
     }
     if (chk_nmemb != nrow)
-#ifndef BIND
-        printf("chk_nmemb = %u\n", chk_nmemb);
-#endif
 
     assert(chk_nmemb == nrow);
     assert(num_changed <= nrow);
-
-#if KM_TEST
-#ifndef BIND
-    printf("Global number of changes: %lu\n", num_changed);
-#endif
 }
 
 double kmeans_coordinator::reduction_on_cuml_sum() {
@@ -175,11 +154,6 @@ void kmeans_coordinator::kmeanspp_init() {
     dist_v[selected_idx] = 0.0;
     cluster_assignments[selected_idx] = 0;
 
-#if KM_TEST
-#ifndef BIND
-    printf("Choosing %lu as center k = 0\n", selected_idx);
-#endif
-#endif
     unsigned clust_idx = 0; // The number of clusters assigned
 
     std::uniform_real_distribution<double> ur_distribution(0.0, 1.0);
@@ -198,12 +172,6 @@ void kmeans_coordinator::kmeanspp_init() {
         for (size_t row = 0; row < nrow; row++) {
             cuml_dist -= dist_v[row];
             if (cuml_dist <= 0) {
-#if KM_TEST
-#ifndef BIND
-                printf("Choosing %lu as center k = %u\n",
-                        row, clust_idx);
-#endif
-#endif
                 cltrs->set_mean(get_thd_data(row), clust_idx);
                 cluster_assignments[row] = clust_idx;
                 break;
@@ -212,18 +180,7 @@ void kmeans_coordinator::kmeanspp_init() {
         assert(cuml_dist <= 0);
     }
 
-#if VERBOSE
-#ifndef BIND
-    printf("\nCluster centers after kmeans++\n");
-    cltrs->print_means();
-#endif
-#endif
-
     gettimeofday(&end, NULL);
-#ifndef BIND
-    printf("Initialization time: %.6f sec\n",
-        kpmbase::time_diff(start, end));
-#endif
 }
 
 void kmeans_coordinator::random_partition_init() {
@@ -239,30 +196,16 @@ void kmeans_coordinator::random_partition_init() {
     }
 
     cltrs->finalize_all();
-
-#if VERBOSE
-#ifndef BIND
-    printf("After rand paritions cluster_asgns: ");
-#endif
-    print_arr<unsigned>(cluster_assignments, nrow);
-#endif
-#endif
 }
 
 void kmeans_coordinator::forgy_init() {
     std::default_random_engine generator;
     std::uniform_int_distribution<unsigned> distribution(0, nrow-1);
 
-#ifndef BIND
-    printf("Forgy init start\n");
-#endif
     for (unsigned clust_idx = 0; clust_idx < k; clust_idx++) { // 0...k
         unsigned rand_idx = distribution(generator);
         cltrs->set_mean(get_thd_data(rand_idx), clust_idx);
     }
-#ifndef BIND
-    printf("Forgy init end\n");
-#endif
 }
 
 void kmeans_coordinator::run_init() {
@@ -314,9 +257,6 @@ kpmbase::kmeans_t kmeans_coordinator::run_kmeans(
         if (iter == 1)
             clear_cluster_assignments();
 
-#ifndef BIND
-        printf("E-step Iteration: %lu\n", iter);
-#endif
         wake4run(EM);
         wait4complete();
 

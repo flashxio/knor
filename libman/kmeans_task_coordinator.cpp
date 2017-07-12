@@ -26,8 +26,13 @@
 #include <random>
 #include "kmeans_task_coordinator.hpp"
 #include "kmeans_task_thread.hpp"
-#include "kcommon.hpp"
+#include "dist_matrix.hpp"
+#include "clusters.hpp"
+#include "thd_safe_bool_vector.hpp"
+
 #include "task_queue.hpp"
+
+namespace kpmbase = kpmeans::base;
 
 namespace kpmeans { namespace prune {
 kmeans_task_coordinator::kmeans_task_coordinator(const std::string fn, const size_t nrow,
@@ -431,18 +436,18 @@ kpmbase::kmeans_t kmeans_task_coordinator::run_kmeans(
 #endif
     gettimeofday(&end, NULL);
 
-#if BIND
+#ifdef BIND
     printf("\n\nAlgorithmic time taken = %.6f sec\n",
         kpmbase::time_diff(start, end));
     printf("\n******************************************\n");
 #endif
 
     if (converged) {
-#if BIND
+#ifdef BIND
         printf("K-means converged in %lu iterations\n", iter);
 #endif
     } else {
-#if BIND
+#ifdef BIND
         printf("[Warning]: K-means failed to converge in %lu iterations\n",
                 iter);
 #endif

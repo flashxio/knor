@@ -25,6 +25,8 @@
 
 #include "io.hpp"
 
+namespace kpmbase = kpmeans::base;
+
 namespace kpmeans { namespace test {
     const std::string TESTDATA_FN = "../test-data/matrix_r50_c5_rrw.bin";
     const std::string TEST_INIT_CLUSTERS =

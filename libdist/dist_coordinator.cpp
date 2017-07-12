@@ -100,7 +100,7 @@ void dist_coordinator::shift_thread_start_rid() {
     for (thread_iter it = threads.begin(); it != threads.end(); ++it) {
         size_t shift = (*it)->get_start_rid() - ((g_nrow / nprocs) * mpi_rank);
 #if VERBOSE
-#if BIND
+#ifdef BIND
         printf("P: %u, T: %lu, start_rid: %lu\n", mpi_rank, c++, shift);
 #endif
 #endif

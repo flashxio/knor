@@ -18,6 +18,9 @@
  */
 
 #include "knori.hpp"
+#include "util.hpp"
+
+namespace kpmbase = kpmeans::base;
 
 int main(int argc, char* argv[]) {
 

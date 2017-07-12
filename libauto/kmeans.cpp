@@ -21,9 +21,7 @@
 #include <gperftools/profiler.h>
 #endif
 
-#ifdef LINUX
 #include <omp.h>
-#endif
 #include <vector>
 
 #include "kmeans.hpp"

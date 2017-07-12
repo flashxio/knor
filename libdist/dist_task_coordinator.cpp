@@ -28,6 +28,7 @@
 #include "mpi.hpp"
 #include "util.hpp"
 #include "kmeans_types.hpp"
+#include "dist_matrix.hpp"
 
 namespace kpmmpi = kpmeans::mpi;
 

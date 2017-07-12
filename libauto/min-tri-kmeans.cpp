@@ -21,9 +21,7 @@
 #include <gperftools/profiler.h>
 #endif
 
-#ifdef LINUX
 #include <omp.h>
-#endif
 #include <cassert>
 
 #include "kmeans.hpp"
@@ -32,6 +30,7 @@
 #include "thd_safe_bool_vector.hpp"
 #include "io.hpp"
 #include "exception.hpp"
+#include "util.hpp"
 
 #define KM_TEST 0
 #define VERBOSE 0

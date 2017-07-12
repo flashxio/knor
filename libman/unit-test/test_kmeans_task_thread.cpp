@@ -18,12 +18,17 @@
  */
 
 #include <stdlib.h>
-#include <pthread.h>
-#include <atomic>
 
-#include "kcommon.hpp"
-#include "kmeans_task_thread.hpp"
+#include <atomic>
+#include <pthread.h>
+#include <iostream>
+
+#include "kmeans_thread.hpp"
 #include "thread_state.hpp"
+#include "clusters.hpp"
+#include "io.hpp"
+#include "util.hpp"
+#include "kmeans_task_thread.hpp"
 
 #ifdef LINUX
 #include "numa.h"
