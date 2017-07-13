@@ -31,10 +31,10 @@
 
 #ifdef LINUX
 #include "numa_reorg.hpp"
-
 namespace kpmbind = kpmeans::binding;
-namespace kpmprune = kpmeans::prune;
 #endif
+
+namespace kpmprune = kpmeans::prune;
 
 namespace kpmeans { namespace base {
     // NOTE: It is the callers job to allocate/free data & p_centers
