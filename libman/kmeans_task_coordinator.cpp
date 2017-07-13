@@ -46,13 +46,14 @@ kmeans_task_coordinator::kmeans_task_coordinator(const std::string fn, const siz
         cltrs = kpmbase::prune_clusters::create(k, ncol);
 
         if (centers) {
-            if (kpmbase::init_type_t::NONE)
+            if (kpmbase::init_type_t::NONE) {
                 cltrs->set_mean(centers);
-            else
+            } else {
 #ifndef BIND
                 printf("[WARNING]: Both init centers"
-                    "provided & non-NONE init method specified\n");
+                        "provided & non-NONE init method specified\n");
 #endif
+            }
         }
 
         // For pruning
