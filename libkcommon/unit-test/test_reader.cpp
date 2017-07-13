@@ -47,9 +47,9 @@ void test_text_reader(std::string fn, const size_t NROW, const size_t NCOL) {
 
     kpmbase::print_mat<double>(&v2[0], rdr2.get_nrow(), rdr2.get_ncol());
 
-    BOOST_VERIFY(m.size() == NROW * NCOL);
-    BOOST_VERIFY(m.size() == v2.size());
-    BOOST_VERIFY(kpmbase::eq_all<double>(&m[0], &v2[0], m.size()));
+    assert(m.size() == NROW * NCOL);
+    assert(m.size() == v2.size());
+    assert(kpmbase::eq_all<double>(&m[0], &v2[0], m.size()));
 }
 
 void test_bin_rm_reader(std::string fn, const size_t NROW, const size_t NCOL) {

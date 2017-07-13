@@ -7,7 +7,6 @@ RUN apt-get -o Dpkg::Options::="--force-confold" --force-yes -y upgrade
 
 RUN apt-get -y install \
         build-essential \
-        libboost-all-dev \
         libssl-dev libxml2-dev\
         libcurl4-openssl-dev\
         libnuma-dbg libnuma-dev libnuma1\

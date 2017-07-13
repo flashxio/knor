@@ -18,6 +18,9 @@
  */
 
 #include "knori.hpp"
+#include "util.hpp"
+
+namespace kpmbase = kpmeans::base;
 
 int main(int argc, char* argv[]) {
 
@@ -94,7 +97,7 @@ int main(int argc, char* argv[]) {
                 "none", -1, "eucl", true, true);
 
         ret_numa_full.print();
-        BOOST_VERIFY(ret_full == ret_numa_full);
+        assert(ret_full == ret_numa_full);
         std::cout << "SUCCESS FULL. Data + Centroids in-mem (numa_opt)!\n\n";
 
         //////////////////////////////////*****////////////////////////////
@@ -116,12 +119,12 @@ int main(int argc, char* argv[]) {
                 "none", -1, "eucl", false, true);
 
         ret_numa.print();
-        BOOST_VERIFY(ret == ret_numa);
+        assert(ret == ret_numa);
         std::cout << "SUCCESS PRUNED. Data + Centroids in-mem (numa_opt)!\n\n";
 
         //////////////////////////////////*****////////////////////////////
         //////////////////////////////////*****////////////////////////////
-        // BOOST_VERIFY(ret_full == ret_numa); // FIXME: Fails but is the same ...
+        // assert(ret_full == ret_numa); // FIXME: Fails but is the same ...
         // std::cout << "SUCCESS PRUNED v FULL. Data + Centroids in-mem (numa_opt)!\n\n";
     }
 

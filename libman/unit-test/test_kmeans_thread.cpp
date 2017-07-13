@@ -20,10 +20,13 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <atomic>
+#include <iostream>
 
 #include "kmeans_thread.hpp"
 #include "thread_state.hpp"
-#include "kcommon.hpp"
+#include "clusters.hpp"
+#include "io.hpp"
+#include "util.hpp"
 
 #ifdef LINUX
 #include "numa.h"
@@ -113,7 +116,7 @@ void test_numa_populate_data(const unsigned NTHREADS, const unsigned nnodes,
     // Print it back
     for (it = threads.begin(); it != threads.end(); ++it) {
         double *dp = &data[(*it)->get_thd_id()*ncol*nprocrows];
-        BOOST_VERIFY(kpmbase::eq_all(dp, (*it)->get_local_data(),
+        assert(kpmbase::eq_all(dp, (*it)->get_local_data(),
                     nprocrows*ncol));
         printf("Thread %u PASSED numa_mem_alloc()\n", (*it)->get_thd_id());
     }

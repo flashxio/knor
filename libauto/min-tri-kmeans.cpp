@@ -22,10 +22,15 @@
 #endif
 
 #include <omp.h>
+#include <cassert>
 
 #include "kmeans.hpp"
-#include "kcommon.hpp"
+#include "clusters.hpp"
+#include "dist_matrix.hpp"
+#include "thd_safe_bool_vector.hpp"
+#include "io.hpp"
 #include "exception.hpp"
+#include "util.hpp"
 
 #define KM_TEST 0
 #define VERBOSE 0
@@ -55,7 +60,9 @@ void random_partition_init(unsigned* cluster_assignments,
         std::shared_ptr<kpmbase::clusters> clusters,
         const size_t num_rows,
         const size_t num_cols, const unsigned k) {
-    BOOST_LOG_TRIVIAL(info) << "Random init start";
+#ifndef BIND
+    printf("Random init start\n");
+#endif
 
     std::default_random_engine generator;
     std::uniform_int_distribution<unsigned> distribution(0, k-1);
@@ -71,11 +78,14 @@ void random_partition_init(unsigned* cluster_assignments,
     // NOTE: M-Step called in compute func to update cluster counts & centers
 #if VERBOSE
 #ifndef BIND
-    printf("After rand paritions cluster_asgns: ");
+    printf("After rand paritions cluster_asgns: \n");
 #endif
     print_arr(cluster_assignments, num_rows);
 #endif
-    BOOST_LOG_TRIVIAL(info) << "Random init end\n";
+
+#ifndef BIND
+    printf("Random init end\n");
+#endif
 }
 
 /**
@@ -91,14 +101,18 @@ void forgy_init(const double* matrix,
     std::default_random_engine generator;
     std::uniform_int_distribution<size_t> distribution(0, num_rows-1);
 
-    BOOST_LOG_TRIVIAL(info) << "Forgy init start";
+#ifndef BIND
+    printf("Forgy init start\n");
+#endif
 
     for (unsigned clust_idx = 0; clust_idx < k; clust_idx++) { // 0...K
         size_t rand_idx = distribution(generator);
         clusters->set_mean(&matrix[rand_idx*num_cols], clust_idx);
     }
 
-    BOOST_LOG_TRIVIAL(info) << "Forgy init end";
+#ifndef BIND
+    printf("Forgy init end\n");
+#endif
 }
 
 #if KM_TEST
@@ -131,8 +145,9 @@ static void kmeanspp_init(const double* matrix,
     cluster_assignments[selected_idx] = 0;
 
 #if KM_TEST
-    BOOST_LOG_TRIVIAL(info) << "\nChoosing "
-        << selected_idx << " as center K = 0";
+#ifndef BIND
+    printf("\nChoosing %lu as center K = 0\n", selected_idx);
+#endif
 #endif
 
     unsigned clust_idx = 0; // The number of clusters assigned
@@ -164,8 +179,9 @@ static void kmeanspp_init(const double* matrix,
             cum_dist -= dist_v[i];
             if (cum_dist <= 0) {
 #if KM_TEST
-                BOOST_LOG_TRIVIAL(info) << "Choosing "
-                    << i << " as center K = " << clust_idx;
+#ifndef BIND
+                printf("Choosing %lu as center K = %u\n", i, clust_idx);
+#endif
 #endif
                 cluster_assignments[i] = clust_idx;
                 clusters->set_mean(&(matrix[i*NUM_COLS]), clust_idx);
@@ -176,7 +192,9 @@ static void kmeanspp_init(const double* matrix,
     }
 
 #if VERBOSE
-    BOOST_LOG_TRIVIAL(info) << "\nCluster centers after kmeans++";
+#ifndef BIND
+    printf("\nCluster centers after kmeans++\n");
+#endif
     clusters->print_means();
 #endif
 }
@@ -260,7 +278,7 @@ static void EM_step(const double* matrix, kpmbase::prune_clusters::ptr cls,
             }
         }
 
-        BOOST_VERIFY(cluster_assignments[row] >= 0 &&
+        assert(cluster_assignments[row] >= 0 &&
                 cluster_assignments[row] < K);
 
         if (prune_init) {
@@ -275,7 +293,9 @@ static void EM_step(const double* matrix, kpmbase::prune_clusters::ptr cls,
     }
 
 #if VERBOSE
-    BOOST_LOG_TRIVIAL(info) << "Clearing/unfinalizing cluster centers ...";
+#ifndef BIND
+    printf("Clearing/unfinalizing cluster centers ...\n");
+#endif
 #endif
 
     if (prune_init) {
@@ -302,17 +322,21 @@ static void EM_step(const double* matrix, kpmbase::prune_clusters::ptr cls,
                     &(cls->get_prev_means()[clust_idx*NUM_COLS]),
                     NUM_COLS), clust_idx);
 #if VERBOSE
-        BOOST_LOG_TRIVIAL(info) << "Dist to prev mean for c:" << clust_idx
-            << " is " << cls->get_prev_dist(clust_idx);
+#ifndef BIND
+        printf("Dist to prev mean for c: %u is %.5f\n", clust_idx,
+                cls->get_prev_dist(clust_idx));
+#endif
 #endif
 
         cluster_assignment_counts[clust_idx] = cls->get_num_members(clust_idx);
         chk_nmemb += cluster_assignment_counts[clust_idx];
     }
-    BOOST_VERIFY(chk_nmemb == NUM_ROWS);
+    assert(chk_nmemb == NUM_ROWS);
 
 #if KM_TEST
-    BOOST_LOG_TRIVIAL(info) << "Global number of changes: " << g_num_changed;
+#ifndef BIND
+    printf("Global number of changes: %lu\n", g_num_changed);
+#endif
 #endif
 }
 
@@ -353,7 +377,9 @@ kpmbase::kmeans_t compute_min_kmeans(const double* matrix, double* clusters_ptr,
 
     OMP_MAX_THREADS = std::min(max_threads, kpmbase::get_num_omp_threads());
     omp_set_num_threads(OMP_MAX_THREADS);
-    BOOST_LOG_TRIVIAL(info) << "Running on " << OMP_MAX_THREADS << " threads!";
+#ifndef BIND
+    printf("Running on %i threads!\n", OMP_MAX_THREADS);
+#endif
 
     // Check k
     if (K > NUM_ROWS || K < 2 || K == (unsigned)-1) {
@@ -382,7 +408,7 @@ kpmbase::kmeans_t compute_min_kmeans(const double* matrix, double* clusters_ptr,
     kpmprune::dist_matrix::ptr dm = kpmprune::dist_matrix::create(K);
 
     /*** End VarInit ***/
-    BOOST_LOG_TRIVIAL(info) << "Dist_type is " << dist_type;
+    printf("Dist_type is %s \n", dist_type.c_str());
     if (dist_type == "eucl") {
         g_dist_type = kpmbase::dist_type_t::EUCL;
     } else if (dist_type == "cos") {
@@ -413,14 +439,14 @@ kpmbase::kmeans_t compute_min_kmeans(const double* matrix, double* clusters_ptr,
 
 #if VERBOSE
     dm->compute_dist(clusters, NUM_COLS);
-    BOOST_LOG_TRIVIAL(info) << "Cluster distance matrix after init ...";
+    printf("Cluster distance matrix after init ...";
     dm->print();
 #endif
 
-    BOOST_LOG_TRIVIAL(info) << "Init is '" << init << "'";
+    printf("Init is '%s'\n", init.c_str());
 
     if (MAX_ITERS > 0) {
-        BOOST_LOG_TRIVIAL(info) << "Running INIT engine:";
+        printf("Running INIT engine:\n");
         EM_step(matrix, clusters, cluster_assignments,
                 cluster_assignment_counts, recalculated_v,
                 dist_v, dm, true);
@@ -433,13 +459,13 @@ kpmbase::kmeans_t compute_min_kmeans(const double* matrix, double* clusters_ptr,
 #endif
 
     g_num_changed = 0;
-    BOOST_LOG_TRIVIAL(info) << "Matrix K-means starting ...";
+    printf("Matrix K-means starting ...\n");
 
     bool converged = false;
     std::string str_iters = MAX_ITERS == std::numeric_limits<size_t>::max() ?
         "until convergence ...":
         std::to_string(MAX_ITERS) + " iterations ...";
-    BOOST_LOG_TRIVIAL(info) << "Computing " << str_iters;
+    printf("Computing %s\n", str_iters.c_str());
 
     size_t iter = 0;
     if (MAX_ITERS > 0)
@@ -447,26 +473,30 @@ kpmbase::kmeans_t compute_min_kmeans(const double* matrix, double* clusters_ptr,
 
     while (iter < MAX_ITERS) {
         // Hold cluster assignment counter
-        BOOST_LOG_TRIVIAL(info) << "E-step Iteration " << iter <<
-            ". Computing cluster assignments ...";
+        printf("E-step Iteration %lu "
+            ". Computing cluster assignments ...\n", iter);
 
 #if VERBOSE
-        BOOST_LOG_TRIVIAL(info) << "Main: Computing cluster distance matrix ...";
+#ifndef BIND
+        printf("Main: Computing cluster distance matrix ...";
+#endif
 #endif
         dm->compute_dist(clusters, NUM_COLS);
 #if VERBOSE
-        BOOST_LOG_TRIVIAL(info) << "Before: Cluster distance matrix ...";
+        printf("Before: Cluster distance matrix ...";
         dm->print();
 #endif
 
         EM_step(matrix, clusters, cluster_assignments,
                 cluster_assignment_counts, recalculated_v, dist_v, dm);
 #if VERBOSE
-        BOOST_LOG_TRIVIAL(info) << "Before: Printing clusters:";
+        printf("Before: Printing clusters:";
         clusters->print_means();
 #endif
 #if KM_TEST
-        BOOST_LOG_TRIVIAL(info) << "Printing cluster counts ...";
+#ifndef BIND
+        printf("Printing cluster counts ...";
+#endif
         print_arr(cluster_assignment_counts, K);
 #endif
 
@@ -481,24 +511,27 @@ kpmbase::kmeans_t compute_min_kmeans(const double* matrix, double* clusters_ptr,
     }
 
     gettimeofday(&end, NULL);
-    BOOST_LOG_TRIVIAL(info) << "\n\nAlgorithmic time taken = " <<
-        kpmbase::time_diff(start, end) << " sec\n";
+#ifndef BIND
+    printf("\n\nAlgorithmic time taken = %.5f sec\n",
+        kpmbase::time_diff(start, end));
+#endif
 
 #ifdef PROFILER
     ProfilerStop();
 #endif
-    BOOST_LOG_TRIVIAL(info) << "\n******************************************\n";
+    printf("\n******************************************\n");
 
     if (converged) {
-        BOOST_LOG_TRIVIAL(info) <<
-            "K-means converged in " << iter << " iterations";
+        printf("K-means converged in %lu iterations\n", iter);
     } else {
-        BOOST_LOG_TRIVIAL(warning) << "[Warning]: K-means failed to converge in "
-            << iter << " iterations";
-    }
-    BOOST_LOG_TRIVIAL(info) << "Final cluster counts ...";
+        printf("[Warning]: K-means failed to converge in "
+                "%lu iterations", iter);
+        }
+    printf("Final cluster counts ...\n");
     kpmbase::print_arr(cluster_assignment_counts, K);
-    BOOST_LOG_TRIVIAL(info) << "\n******************************************\n";
+#ifndef BIND
+    printf("\n******************************************\n");
+#endif
 
     return kpmbase::kmeans_t (NUM_ROWS, NUM_COLS, iter, K,
             cluster_assignments, cluster_assignment_counts,

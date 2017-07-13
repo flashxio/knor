@@ -20,7 +20,7 @@
 #include <stdio.h>
 #include <iostream>
 
-#include <boost/assert.hpp>
+#include <cassert>
 
 #include "clusters.hpp"
 
@@ -51,7 +51,7 @@ void test_clusters() {
 
     cls->clear();
     printf("After clear test:\n");
-    BOOST_VERIFY(*cls == *empty);
+    assert(*cls == *empty);
     printf("Success ...\n");
 
     cls->set_mean(kv);
@@ -64,7 +64,7 @@ void test_clusters() {
 
     printf("Clearing all means & adding all data to all clusters:\n");
     cls->clear();
-    BOOST_VERIFY(*cls == *empty);
+    assert(*cls == *empty);
     printf("Success ...\n");
 
     for (unsigned cl = 0; cl < NCLUST; cl++)
@@ -82,7 +82,7 @@ void test_clusters() {
 
     printf("Test unfinalize should return to original:\n");
     cls->unfinalize_all();
-    BOOST_VERIFY(*old == *cls);
+    assert(*old == *cls);
     printf("Success ...\n");
 
     printf("Removing members:\n");
@@ -91,11 +91,11 @@ void test_clusters() {
             cls->remove_member(&(data[i][0]), cl);
 
     cls->print_means();
-    BOOST_VERIFY(*cls == *empty);
+    assert(*cls == *empty);
     printf("Success ...\n");
 
     cls->peq(empty);
-    BOOST_VERIFY(*cls == *empty);
+    assert(*cls == *empty);
     printf("Success ...\n");
 }
 
@@ -106,12 +106,12 @@ void test_prune_clusters() {
     pcl->set_mean(arr);
 
     printf("Testing set_mean == create(nclust, ncol, kv)");
-    BOOST_VERIFY(*pcl == *(kpmbase::prune_clusters::create(NCLUST, NCOL, kv)));
+    assert(*pcl == *(kpmbase::prune_clusters::create(NCLUST, NCOL, kv)));
     printf("Success ...\n");
 
     kpmbase::clusters::ptr cl = kpmbase::clusters::create(NCLUST, NCOL, kv);
     printf("Test *cl == *pcl after cast...\n");
-    BOOST_VERIFY(*cl == *(std::static_pointer_cast<kpmbase::clusters,
+    assert(*cl == *(std::static_pointer_cast<kpmbase::clusters,
                 kpmbase::prune_clusters>(pcl)));
     pcl->clear();
 
@@ -131,7 +131,7 @@ void test_prune_clusters() {
         kpmbase::kmsvector v = pcl->get_prev_means();
         kpmbase::kmsiterator it = v.begin() + (i*NCOL);
         for (unsigned col = 0; col < NCOL; col++) {
-            BOOST_VERIFY(*(it++) == data[i][col]);
+            assert(*(it++) == data[i][col]);
         }
     }
     printf("Success ...\n");

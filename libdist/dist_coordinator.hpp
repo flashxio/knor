@@ -22,6 +22,8 @@
 #include "exception.hpp"
 #include "kmeans_coordinator.hpp"
 
+namespace kpmbase = kpmeans::base;
+
 namespace kpmeans { namespace dist {
 
 constexpr unsigned root = 0;

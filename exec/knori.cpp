@@ -23,6 +23,8 @@
 #include <numa.h>
 #endif
 
+#include <getopt.h>
+
 #include "signal.h"
 #include "io.hpp"
 #ifdef LINUX
@@ -34,6 +36,8 @@
 #include "util.hpp"
 
 static void print_usage();
+namespace kpmbase = kpmeans::base;
+namespace kpmprune = kpmeans::prune;
 
 int main(int argc, char* argv[]) {
 
@@ -90,7 +94,7 @@ int main(int argc, char* argv[]) {
 				break;
 			case 'C':
 				centersfn = std::string(optarg);
-                BOOST_ASSERT_MSG(kpmbase::is_file_exist(centersfn.c_str()),
+                kpmbase::assert_msg(kpmbase::is_file_exist(centersfn.c_str()),
                         "Centers file name doesn't exit!");
                 init = "none"; // Ignore whatever you pass in
 				num_opts++;
@@ -120,7 +124,7 @@ int main(int argc, char* argv[]) {
         fprintf(stderr, "\n\n**[WARNING]**: No output dir specified with '-o' "
                 " flag means no output will be saved!\n\n");
 
-    BOOST_ASSERT_MSG(!(init=="none" && centersfn.empty()),
+    kpmbase::assert_msg(!(init == "none" && centersfn.empty()),
             "Centers file name doesn't exit!");
 
     if (kpmbase::filesize(datafn.c_str()) != (sizeof(double)*nrow*ncol))

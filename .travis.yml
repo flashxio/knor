@@ -17,6 +17,9 @@ script:
 - cd libsem/FlashX/flash-graph/utils/test/ && make test && cd -
 - cd release-test && make test && cd -
 group: edge
+branches:
+    except:
+        - linkerror
 #env:
   #global:
     #DOCKER_USER:

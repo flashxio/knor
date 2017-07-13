@@ -19,7 +19,7 @@
 
 #include <stdlib.h>
 #include <iostream>
-#include <boost/assert.hpp>
+#include <cassert>
 
 #include "thd_safe_bool_vector.hpp"
 #include "util.hpp"
@@ -37,7 +37,7 @@ void build_state(std::vector<short> &verifier,
             verifier[i] = rand_val;
             data->set(i, true);
         } else {
-            BOOST_VERIFY(0);
+            assert(0);
         }
     }
     printf("Built state successfully ...\n");
@@ -46,21 +46,21 @@ void build_state(std::vector<short> &verifier,
 template <typename T>
 void test_correctness(const std::vector<T> &verifier,
         const kpmbase::thd_safe_bool_vector::ptr data) {
-    BOOST_VERIFY(verifier.size() == data->size());
+    assert(verifier.size() == data->size());
 
     for (unsigned i = 0; i < verifier.size(); i++)
-        BOOST_VERIFY((bool)verifier[i] == data->get(i));
+        assert((bool)verifier[i] == data->get(i));
 }
 
 void test_init_ctor(const unsigned len) {
     kpmbase::thd_safe_bool_vector::ptr data =
         kpmbase::thd_safe_bool_vector::create(len, true);
     for (unsigned i = 0; i < len; i++)
-        BOOST_VERIFY(data->get(i) == true);
+        assert(data->get(i) == true);
 
     data = kpmbase::thd_safe_bool_vector::create(len, false);
     for (unsigned i = 0; i < len; i++)
-        BOOST_VERIFY(data->get(i) == false);
+        assert(data->get(i) == false);
 
     printf("Successfully init ctor ...\n");
 }

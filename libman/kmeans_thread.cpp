@@ -18,7 +18,7 @@
  */
 
 #include <iostream>
-#include <boost/assert.hpp>
+#include <cassert>
 
 #include "kmeans_thread.hpp"
 #include "kmeans_types.hpp"
@@ -41,10 +41,12 @@ kmeans_thread::kmeans_thread(const int node_id, const unsigned thd_id,
 
             set_data_size(sizeof(double)*nprocrows*ncol);
 #if VERBOSE
-            BOOST_LOG_TRIVIAL(info) << "Initializing thread. Metadata: thd_id: "
+#ifndef
+            std::cout << "Initializing thread. Metadata: thd_id: "
                 << this->thd_id << ", start_rid: " << this->start_rid <<
                 ", node_id: " << this->node_id << ", nprocrows: " <<
-                this->nprocrows << ", ncol: " << this->ncol;
+                this->nprocrows << ", ncol: " << this->ncol << std::endl;
+#endif
 #endif
         }
 
@@ -171,7 +173,7 @@ void kmeans_thread::EM_step() {
             }
         }
 
-        BOOST_VERIFY(asgnd_clust != kpmbase::INVALID_CLUSTER_ID);
+        assert(asgnd_clust != kpmbase::INVALID_CLUSTER_ID);
         unsigned true_row_id = get_global_data_id(row);
 
         if (asgnd_clust != cluster_assignments[true_row_id])

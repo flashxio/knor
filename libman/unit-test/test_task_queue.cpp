@@ -51,7 +51,7 @@ void test_queue_get(const unsigned NTHREADS, const unsigned nnodes,
         q.reset();
         while(q.has_task()) {
             kpmeans::task* t = q.get_task();
-            BOOST_VERIFY(kpmbase::eq_all<double>(
+            assert(kpmbase::eq_all<double>(
                         t->get_data_ptr(), &(data[t->get_start_rid()*ncol]),
                         t->get_nrow()*ncol));
             delete t;

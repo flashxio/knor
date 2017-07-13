@@ -1,5 +1,0 @@
-include libkcommon/*.hpp
-include libman/*.hpp
-include libauto/*.hpp
-include python/knor/*.pyx
-include binding/*.hpp

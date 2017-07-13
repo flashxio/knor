@@ -79,7 +79,7 @@ const void kmeans_t::write(const std::string dirname) const {
     printf("Opening '%s' \n", fn.c_str());
 #endif
     std::ofstream f(fn, std::ios::out);
-    BOOST_ASSERT_MSG(f.is_open(), "Error opening file for writing!");
+    //assert_msg(f.is_open(), "Error opening file for writing!");
     f << "k: " << k << std::endl;
     f << "niter: " << iters << std::endl;
     f << "nsamples: " << nrow << std::endl;

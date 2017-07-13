@@ -20,7 +20,9 @@
 #include "kmeans_task_thread.hpp"
 #include "task_queue.hpp"
 #include "kmeans_task_coordinator.hpp"
-#include "kcommon.hpp"
+#include "clusters.hpp"
+#include "thd_safe_bool_vector.hpp"
+#include "dist_matrix.hpp"
 
 namespace kpmeans { namespace prune {
 
@@ -46,10 +48,12 @@ kmeans_task_thread::kmeans_task_thread(const int node_id, const unsigned thd_id,
 
             set_data_size(sizeof(double)*nlocal_rows*ncol);
 #if VERBOSE
-            BOOST_LOG_TRIVIAL(info) << "Initializing thread. Metadata: thd_id: "
+#ifndef
+            std::cout << "Initializing thread. Metadata: thd_id: "
                 << this->thd_id << ", start_rid: " << this->start_rid <<
                 ", node_id: " << this->node_id << ", nlocal_rows: " <<
-                nlocal_rows << ", ncol: " << this->ncol;
+                nlocal_rows << ", ncol: " << this->ncol << std::endl;
+#endif
 #endif
         }
 
@@ -67,11 +71,11 @@ void kmeans_task_thread::request_task() {
             get_thd_id(), tasks->get_nxt_rid());*/
 
         curr_task = tasks->get_task();
-        BOOST_VERIFY(curr_task->get_nrow() <= tasks->get_nrow());
+        assert(curr_task->get_nrow() <= tasks->get_nrow());
 
         // FIXME: someone got the last task
         //printf("request_task: Thd: %u, Task ==> ", get_thd_id()); curr_task.print();
-        BOOST_ASSERT_MSG(curr_task->get_nrow(), "FIXME: Empty task");
+        kpmbase::assert_msg(curr_task->get_nrow(), "FIXME: Empty task");
         pthread_mutex_unlock(&mutex);
     }
 #if 0
@@ -252,7 +256,7 @@ void kmeans_task_thread::wake(thread_state_t state) {
         // Threads only sleep if they AND all other threads have no tasks
         tasks->reset(); // NOTE: Only place this is reset
         curr_task = tasks->get_task();
-        BOOST_VERIFY(curr_task->get_nrow() <= tasks->get_nrow());
+        assert(curr_task->get_nrow() <= tasks->get_nrow());
 
         // TODO: These are exceptions to the rule & therefore not good
         if (state == thread_state_t::EM)
@@ -376,7 +380,7 @@ void kmeans_task_thread::EM_step() {
             }
         }
 
-        BOOST_VERIFY(cluster_assignments[true_row_id] >= 0 &&
+        assert(cluster_assignments[true_row_id] >= 0 &&
                 cluster_assignments[true_row_id] < g_clusters->get_nclust());
 
         if (prune_init) {

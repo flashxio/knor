@@ -26,6 +26,7 @@
 #include "clusters.hpp"
 #include "io.hpp"
 #include "mpi.hpp"
+#include "util.hpp"
 #include "kmeans_types.hpp"
 
 namespace kpmmpi = kpmeans::mpi;
@@ -82,7 +83,9 @@ void dist_coordinator::random_partition_init() {
     }
 
 #if VERBOSE
-    printf("After rand paritions cluster_asgns: ");
+#ifndef BIND
+    printf("After rand paritions cluster_asgns: \n");
+#endif
     kpmbase::print_arr<unsigned>(cluster_assignments, nrow);
 #endif
 }
@@ -97,7 +100,9 @@ void dist_coordinator::shift_thread_start_rid() {
     for (thread_iter it = threads.begin(); it != threads.end(); ++it) {
         size_t shift = (*it)->get_start_rid() - ((g_nrow / nprocs) * mpi_rank);
 #if VERBOSE
+#ifdef BIND
         printf("P: %u, T: %lu, start_rid: %lu\n", mpi_rank, c++, shift);
+#endif
 #endif
         (*it)->set_start_rid(shift);
     }
@@ -155,8 +160,9 @@ void dist_coordinator::kmeanspp_init() {
     cltrs->set_mean(&buff[0]);
 
 #if VERBOSE
-    BOOST_LOG_TRIVIAL(info) << "Choosing "
-        << selected_idx << " as center k = 0";
+#ifndef BIND
+    printf("Choosing %u as center k = 0\n", selected_idx);
+#endif
 #endif
     unsigned clust_idx = 0; // The number of clusters assigned
 
@@ -198,8 +204,9 @@ void dist_coordinator::kmeanspp_init() {
             if (cuml_dist <= 0) {
 #if VERBOSE
                 if (mpi_rank == 0)
-                    BOOST_LOG_TRIVIAL(info) << "Choosing "
-                        << row << " as center k = " << clust_idx;
+#ifndef BIND
+                    printf("Choosing %lu as center k = %u\n", row, clust_idx);
+#endif
 #endif
 
                 if (is_local(row)) {
@@ -216,19 +223,23 @@ void dist_coordinator::kmeanspp_init() {
         kpmmpi::mpi::reduce_double(&(cltrs->get_means()[0]),
                 &buff[0], cltrs->size());
         cltrs->set_mean(&buff[0]);
-        BOOST_VERIFY(cuml_dist <= 0);
+        assert(cuml_dist <= 0);
     }
 
 #if VERBOSE
     if (mpi_rank == 0) {
-        BOOST_LOG_TRIVIAL(info) << "\nCluster centers after kmeans++";
+#ifndef BIND
+        printf("\nCluster centers after kmeans++\n");
+#endif
         cltrs->print_means();
     }
 #endif
     gettimeofday(&end, NULL);
     if (mpi_rank == 0)
-        BOOST_LOG_TRIVIAL(info) << "Initialization time: " <<
-            kpmbase::time_diff(start, end) << " sec\n";
+#ifndef BIND
+        printf("Initialization time: %.6f sec\n",
+                kpmbase::time_diff(start, end));
+#endif
 }
 
 void dist_coordinator::forgy_init() {
@@ -249,7 +260,9 @@ void dist_coordinator::run_kmeans(kpmbase::kmeans_t& ret,
             fprintf(stderr, "\n**[WARNING]**: No output dir specified with "
                     "'-o' flag means no output will be saved!\n");
 
-        BOOST_LOG_TRIVIAL(info) << "Running FULL kmeans\n";
+#ifndef BIND
+        printf("Running FULL kmeans\n");
+#endif
     }
 
     // Give processes their data
@@ -290,10 +303,12 @@ void dist_coordinator::run_kmeans(kpmbase::kmeans_t& ret,
             // End Init
 
 #ifdef VERBOSE
-            BOOST_VERIFY((size_t)std::accumulate(cltrs_ptr->get_num_members_v().begin(),
+            assert((size_t)std::accumulate(cltrs_ptr->get_num_members_v().begin(),
                         cltrs_ptr->get_num_members_v().end(), 0) == g_nrow);
             if (mpi_rank == root) {
+#ifndef BIND
                 printf("New finalized centers for Proc: %d ==> \n", mpi_rank);
+#endif
                 cltrs_ptr->print_means();
             }
 #endif
@@ -307,7 +322,9 @@ void dist_coordinator::run_kmeans(kpmbase::kmeans_t& ret,
 
         // Init iteration
         if (mpi_rank == root)
+#ifndef BIND
             printf("Running iteration %lu ...\n", iters);
+#endif
 
         wake4run(kpmeans::thread_state_t::EM);
         wait4complete();
@@ -331,11 +348,13 @@ void dist_coordinator::run_kmeans(kpmbase::kmeans_t& ret,
         kpmmpi::mpi::reduce_size_t(&pp_num_changed, &nchanged);
 
         if (mpi_rank == root) {
+#ifndef BIND
             printf("Global nchanged: %lu ...\n", nchanged);
+#endif
             cltrs_ptr->print_membership_count();
         }
 
-        BOOST_VERIFY((size_t)std::accumulate(
+        assert((size_t)std::accumulate(
                     cltrs_ptr->get_num_members_v().begin(),
                     cltrs_ptr->get_num_members_v().end(), 0) == g_nrow);
 
@@ -345,7 +364,9 @@ void dist_coordinator::run_kmeans(kpmbase::kmeans_t& ret,
         if (nchanged == 0 || perc_changed <= tolerance) {
             converged = true;
             if (mpi_rank == root)
+#ifndef BIND
                 printf("Algorithm converged in %lu iterations!\n", (++iters));
+#endif
             break;
         }
 
@@ -354,12 +375,16 @@ void dist_coordinator::run_kmeans(kpmbase::kmeans_t& ret,
     }
 
     if (!converged && mpi_rank == root)
+#ifndef BIND
         printf("Algorithm failed to converge in %lu iterations\n", iters);
+#endif
 
     gettimeofday(&end, NULL);
     if (mpi_rank == root)
+#ifndef BIND
         printf("\nAlgorithmic time taken = %.5f sec\n",
                 kpmbase::time_diff(start, end));
+#endif
 
     if (!outdir.empty()) {
         // Collect cluster assignments
@@ -368,7 +393,8 @@ void dist_coordinator::run_kmeans(kpmbase::kmeans_t& ret,
         if (mpi_rank != root) {
             int rc = MPI_Ssend(local_assignments, get_nrow(),
                     MPI::UNSIGNED, root, 0, MPI_COMM_WORLD);
-            BOOST_ASSERT_MSG(!rc, "Failure to send local assignments to root");
+            kpmbase::assert_msg(!rc,
+                    "Failure to send local assignments to root");
         } else {
             std::vector<unsigned> assignments(g_nrow);
             std::copy(local_assignments, local_assignments+get_nrow(),
@@ -385,7 +411,8 @@ void dist_coordinator::run_kmeans(kpmbase::kmeans_t& ret,
                 int rc = MPI_Recv(&assignments[pid*(g_nrow/nprocs)],
                         count, MPI::UNSIGNED, pid,
                         0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-                BOOST_ASSERT_MSG(!rc, "Root Failure receive local assignments");
+                kpmbase::assert_msg(!rc,
+                        "Root Failure receive local assignments");
             }
 
             ret = kpmbase::kmeans_t(g_nrow, ncol, iters, k, &assignments[0],
@@ -393,7 +420,9 @@ void dist_coordinator::run_kmeans(kpmbase::kmeans_t& ret,
                     cltrs_ptr->get_means());
 
             if (!outdir.empty()) {
+#ifndef BIND
                 printf("\nWriting output to '%s'\n", outdir.c_str());
+#endif
                 ret.write(outdir);
             }
         }

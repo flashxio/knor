@@ -26,8 +26,8 @@
 #include <utility>
 #include <atomic>
 #include <string>
+#include <cassert>
 
-#include <boost/assert.hpp>
 #include "thread_state.hpp"
 #include "exception.hpp"
 
@@ -105,7 +105,7 @@ protected:
         this->preallocd_data = false;
 
         if (!fn.empty())
-            BOOST_VERIFY(this->f = fopen(fn.c_str(), "rb"));
+            assert(this->f = fopen(fn.c_str(), "rb"));
         else {
             this->f = NULL;
             preallocd_data = true;

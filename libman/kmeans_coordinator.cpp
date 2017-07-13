@@ -20,11 +20,8 @@
 #include <random>
 #include <stdexcept>
 
-#include <boost/log/trivial.hpp>
-
 #include "kmeans_coordinator.hpp"
 #include "kmeans_thread.hpp"
-#include "util.hpp"
 #include "io.hpp"
 #include "clusters.hpp"
 
@@ -42,8 +39,8 @@ kmeans_coordinator::kmeans_coordinator(const std::string fn, const size_t nrow,
             if (kpmbase::init_type_t::NONE)
                 cltrs->set_mean(centers);
             else
-                BOOST_LOG_TRIVIAL(warning) << "[WARNING]: Both init centers" <<
-                    "provided & non-NONE init method specified";
+                printf("[WARNING]: Both init centers "
+                    "provided & non-NONE init method specified\n");
         }
         build_thread_state();
     }
@@ -84,11 +81,6 @@ const double* kmeans_coordinator::get_thd_data(const unsigned row_id) const {
             thd_max_row_idx.end(), row_id) - thd_max_row_idx.begin();
     unsigned rows_per_thread = nrow/nthreads; // All but the last thread
 
-#if 0
-    printf("Global row %u, row in parent thd: %u --> %u\n", row_id,
-            parent_thd, (row_id-(parent_thd*rows_per_thread)));
-#endif
-
     return &((threads[parent_thd]->get_local_data())
             [(row_id-(parent_thd*rows_per_thread))*ncol]);
 }
@@ -103,13 +95,6 @@ void kmeans_coordinator::update_clusters() {
         num_changed += (*it)->get_num_changed();
         // Summation for cluster centers
 
-#if VERBOSE
-#ifndef BIND
-        printf("Thread %ld clusters:\n", (it-threads.begin()));
-#endif
-        ((*it)->get_local_clusters())->print_means();
-#endif
-
         cltrs->peq((*it)->get_local_clusters());
     }
 
@@ -121,16 +106,9 @@ void kmeans_coordinator::update_clusters() {
         chk_nmemb += cluster_assignment_counts[clust_idx];
     }
     if (chk_nmemb != nrow)
-#ifndef BIND
-        printf("chk_nmemb = %u\n", chk_nmemb);
-#endif
 
-    BOOST_VERIFY(chk_nmemb == nrow);
-    BOOST_VERIFY(num_changed <= nrow);
-
-#if KM_TEST
-    BOOST_LOG_TRIVIAL(info) << "Global number of changes: " << num_changed;
-#endif
+    assert(chk_nmemb == nrow);
+    assert(num_changed <= nrow);
 }
 
 double kmeans_coordinator::reduction_on_cuml_sum() {
@@ -176,10 +154,6 @@ void kmeans_coordinator::kmeanspp_init() {
     dist_v[selected_idx] = 0.0;
     cluster_assignments[selected_idx] = 0;
 
-#if KM_TEST
-    BOOST_LOG_TRIVIAL(info) << "Choosing "
-        << selected_idx << " as center k = 0";
-#endif
     unsigned clust_idx = 0; // The number of clusters assigned
 
     std::uniform_real_distribution<double> ur_distribution(0.0, 1.0);
@@ -198,25 +172,15 @@ void kmeans_coordinator::kmeanspp_init() {
         for (size_t row = 0; row < nrow; row++) {
             cuml_dist -= dist_v[row];
             if (cuml_dist <= 0) {
-#if KM_TEST
-                BOOST_LOG_TRIVIAL(info) << "Choosing "
-                    << row << " as center k = " << clust_idx;
-#endif
                 cltrs->set_mean(get_thd_data(row), clust_idx);
                 cluster_assignments[row] = clust_idx;
                 break;
             }
         }
-        BOOST_VERIFY(cuml_dist <= 0);
+        assert(cuml_dist <= 0);
     }
 
-#if VERBOSE
-    BOOST_LOG_TRIVIAL(info) << "\nCluster centers after kmeans++";
-    cltrs->print_means();
-#endif
     gettimeofday(&end, NULL);
-    BOOST_LOG_TRIVIAL(info) << "Initialization time: " <<
-        kpmbase::time_diff(start, end) << " sec\n";
 }
 
 void kmeans_coordinator::random_partition_init() {
@@ -232,25 +196,16 @@ void kmeans_coordinator::random_partition_init() {
     }
 
     cltrs->finalize_all();
-
-#if VERBOSE
-#ifndef BIND
-    printf("After rand paritions cluster_asgns: ");
-#endif
-    print_arr<unsigned>(cluster_assignments, nrow);
-#endif
 }
 
 void kmeans_coordinator::forgy_init() {
     std::default_random_engine generator;
     std::uniform_int_distribution<unsigned> distribution(0, nrow-1);
 
-    BOOST_LOG_TRIVIAL(info) << "Forgy init start";
     for (unsigned clust_idx = 0; clust_idx < k; clust_idx++) { // 0...k
         unsigned rand_idx = distribution(generator);
         cltrs->set_mean(get_thd_data(rand_idx), clust_idx);
     }
-    BOOST_LOG_TRIVIAL(info) << "Forgy init end";
 }
 
 void kmeans_coordinator::run_init() {
@@ -302,7 +257,6 @@ kpmbase::kmeans_t kmeans_coordinator::run_kmeans(
         if (iter == 1)
             clear_cluster_assignments();
 
-        BOOST_LOG_TRIVIAL(info) << "E-step Iteration: " << iter;
         wake4run(EM);
         wait4complete();
 
@@ -310,7 +264,7 @@ kpmbase::kmeans_t kmeans_coordinator::run_kmeans(
 
 #if VERBOSE
 #ifndef BIND
-        printf("Cluster assignment counts: ");
+        printf("Cluster assignment counts: \n");
 #endif
         kpmbase::print_arr(cluster_assignment_counts, k);
 #endif
@@ -326,23 +280,28 @@ kpmbase::kmeans_t kmeans_coordinator::run_kmeans(
     ProfilerStop();
 #endif
     gettimeofday(&end, NULL);
-    BOOST_LOG_TRIVIAL(info) << "\n\nAlgorithmic time taken = " <<
-        kpmbase::time_diff(start, end) << " sec\n";
+    printf("\n\nAlgorithmic time taken = %.6f sec\n",
+        kpmbase::time_diff(start, end));
 
-    BOOST_LOG_TRIVIAL(info) << "\n******************************************\n";
+#ifndef BIND
+    printf("\n******************************************\n");
+#endif
     if (converged) {
-        BOOST_LOG_TRIVIAL(info) <<
-            "K-means converged in " << iter << " iterations";
+#ifndef BIND
+        printf("K-means converged in %lu iterations\n", iter);
+#endif
     } else {
-        BOOST_LOG_TRIVIAL(warning) << "[Warning]: K-means failed to converge in "
-            << iter << " iterations";
+#ifndef BIND
+        printf("[Warning]: K-means failed to converge in %lu"
+            " iterations\n", iter);
+#endif
     }
 
 #ifndef BIND
-    printf("Final cluster counts: ");
-#endif
+    printf("Final cluster counts: \n");
     kpmbase::print_arr(cluster_assignment_counts, k);
-    BOOST_LOG_TRIVIAL(info) << "\n******************************************\n";
+    printf("\n******************************************\n");
+#endif
 
     return kpmbase::kmeans_t(this->nrow, this->ncol, iter, this->k,
             cluster_assignments, cluster_assignment_counts,
@@ -377,8 +336,8 @@ void const kmeans_coordinator::print_thread_data() {
 void const kmeans_coordinator::print_thread_start_rids() {
     thread_iter it = threads.begin();
     for (; it != threads.end(); ++it) {
-        BOOST_LOG_TRIVIAL(info) << "\nThd: " << (*it)->get_thd_id()
-            << ", start_rid: " << (*it)->get_start_rid() << std::endl;
+        printf("\nThd: %u, start_rid: %lu\n", (*it)->get_thd_id(),
+            (*it)->get_start_rid());
     }
 }
 }

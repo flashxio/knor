@@ -22,11 +22,13 @@
 #include "kmeans_task_coordinator.hpp"
 #include "exception.hpp"
 
+namespace kpmbase = kpmeans::base;
+
 namespace kpmeans { namespace prune {
 
 constexpr unsigned root = 0;
 
-class dist_task_coordinator : public kpmprune::kmeans_task_coordinator {
+class dist_task_coordinator : public kmeans_task_coordinator {
 private:
     dist_task_coordinator(int argc, char* argv[],
             const std::string fn, const size_t nrow,

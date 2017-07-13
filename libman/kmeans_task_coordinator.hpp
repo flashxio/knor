@@ -25,38 +25,30 @@
 namespace kpmeans {
 class task;
 
-    namespace base {
+namespace base {
     class prune_clusters;
     class thd_safe_bool_vector;
-    }
-
-    namespace prune {
-    //class dist_matrix;
-    class kmeans_task_thread;
-    }
 }
 
-#include "dist_matrix.hpp" // FIXME: Unnecessitate this
-namespace kpmbase = kpmeans::base;
-namespace kpmprune = kpmeans::prune;
-
-namespace kpmeans { namespace prune {
+namespace prune {
+class kmeans_task_thread;
+class dist_matrix;
 
 class kmeans_task_coordinator : public kpmeans::base_kmeans_coordinator {
 protected: // So lazy ..
     // Metadata
     // max index stored within each threads partition
     std::vector<unsigned> thd_max_row_idx;
-    std::shared_ptr<kpmbase::prune_clusters> cltrs;
-    std::shared_ptr<kpmbase::thd_safe_bool_vector> recalculated_v;
+    std::shared_ptr<base::prune_clusters> cltrs;
+    std::shared_ptr<base::thd_safe_bool_vector> recalculated_v;
     double* dist_v; // global
-    std::shared_ptr<kpmprune::dist_matrix> dm;
+    std::shared_ptr<dist_matrix> dm;
 
     kmeans_task_coordinator(const std::string fn, const size_t nrow,
             const size_t ncol, const unsigned k, const unsigned max_iters,
             const unsigned nnodes, const unsigned nthreads,
-            const double* centers, const kpmbase::init_type_t it,
-            const double tolerance, const kpmbase::dist_type_t dt);
+            const double* centers, const base::init_type_t it,
+            const double tolerance, const base::dist_type_t dt);
 
 public:
     static base_kmeans_coordinator::ptr create(
@@ -66,8 +58,8 @@ public:
             const double* centers=NULL, const std::string init="kmeanspp",
             const double tolerance=-1, const std::string dist_type="eucl") {
 
-        kpmbase::init_type_t _init_t = kpmbase::get_init_type(init);
-        kpmbase::dist_type_t _dist_t = kpmbase::get_dist_type(dist_type);
+        base::init_type_t _init_t = base::get_init_type(init);
+        base::dist_type_t _dist_t = base::get_dist_type(dist_type);
 
 #if KM_TEST
 #ifndef BIND
@@ -82,11 +74,11 @@ public:
                     nnodes, nthreads, centers, _init_t, tolerance, _dist_t));
     }
 
-    std::shared_ptr<kpmbase::prune_clusters> get_gcltrs() {
+    std::shared_ptr<base::prune_clusters> get_gcltrs() {
         return cltrs;
     }
 
-    std::shared_ptr<kpmprune::dist_matrix> get_dm() {
+    std::shared_ptr<dist_matrix> get_dm() {
         return dm;
     }
 
@@ -104,7 +96,7 @@ public:
     virtual void kmeanspp_init() override;
     virtual void random_partition_init() override;
     virtual void forgy_init() override;
-    virtual kpmbase::kmeans_t run_kmeans(double* allocd_data,
+    virtual base::kmeans_t run_kmeans(double* allocd_data,
             const bool numa_opt) override;
 
     const double* get_thd_data(const unsigned row_id) const override;

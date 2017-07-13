@@ -21,7 +21,7 @@
 #define __KNORI_HPP__
 
 #include "io.hpp"
-#if LINUX
+#ifdef LINUX
 #include "kmeans.hpp"
 #endif
 
@@ -29,20 +29,21 @@
 #include "kmeans_task_coordinator.hpp"
 #include "util.hpp"
 
-#if LINUX
+#ifdef LINUX
 #include "numa_reorg.hpp"
 
 namespace kpmbind = kpmeans::binding;
+namespace kpmprune = kpmeans::prune;
 #endif
 
 namespace kpmeans { namespace base {
     // NOTE: It is the callers job to allocate/free data & p_centers
 
-kpmbase::kmeans_t kmeans(double* data, const size_t nrow,
+kmeans_t kmeans(double* data, const size_t nrow,
         const size_t ncol, const unsigned k,
         size_t max_iters=std::numeric_limits<size_t>::max(),
         unsigned nnodes=get_num_nodes(),
-        unsigned nthread=kpmbase::get_num_omp_threads(),
+        unsigned nthread=get_num_omp_threads(),
         double* p_centers=NULL, std::string init="kmeanspp",
         double tolerance=-1, std::string dist_type="eucl",
         bool omp=false, bool numa_opt=false) {
@@ -50,7 +51,7 @@ kpmbase::kmeans_t kmeans(double* data, const size_t nrow,
     if (p_centers)
         init = "none";
 
-    kpmbase::kmeans_t ret;
+    kmeans_t ret;
 
 #ifdef LINUX
     if (omp) {
@@ -95,11 +96,11 @@ kpmbase::kmeans_t kmeans(double* data, const size_t nrow,
     return ret;
 }
 
-kpmbase::kmeans_t kmeans(const std::string datafn, const size_t nrow,
+kmeans_t kmeans(const std::string datafn, const size_t nrow,
         const size_t ncol, const unsigned k,
         size_t max_iters=std::numeric_limits<size_t>::max(),
         unsigned nnodes=get_num_nodes(),
-        unsigned nthread=kpmbase::get_num_omp_threads(),
+        unsigned nthread=get_num_omp_threads(),
         double* p_centers=NULL, std::string init="kmeanspp",
         double tolerance=-1, std::string dist_type="eucl",
         bool omp=false) {
@@ -107,7 +108,7 @@ kpmbase::kmeans_t kmeans(const std::string datafn, const size_t nrow,
     if (p_centers)
         init = "none";
 
-    kpmbase::kmeans_t ret;
+    kmeans_t ret;
 
 #ifdef LINUX
     if (omp) {

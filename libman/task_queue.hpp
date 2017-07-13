@@ -21,7 +21,7 @@
 #define __KPM_KMEANS_TASK_QUEUE_HPP__
 
 #include <memory>
-#include <boost/assert.hpp>
+#include <cassert>
 #include "io.hpp"
 
 namespace kpmbase = kpmeans::base;
@@ -132,7 +132,7 @@ class task_queue: public data_container<double>, task_queue_interface<double> {
 #endif
                 return new task(NULL, -1, 0);
             }
-            BOOST_VERIFY(curr_rid < get_nrow());
+            assert(curr_rid < get_nrow());
 
             // TODO: Make better for when there are only
             //  a few left rows if we give away a task
@@ -147,7 +147,7 @@ class task_queue: public data_container<double>, task_queue_interface<double> {
                 curr_rid = get_nrow()-1;
                 _has_task = false;
             }
-            BOOST_VERIFY(t->get_nrow() > 0);
+            assert(t->get_nrow() > 0);
             return t;
         }
 

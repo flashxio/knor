@@ -17,12 +17,18 @@
  * limitations under the License.
  */
 
-#include "kcommon.hpp"
+#include <cassert>
+#include <iostream>
+
+#include "dist_matrix.hpp"
+#include "clusters.hpp"
+#include "io.hpp"
+#include "util.hpp"
 
 namespace kpmeans { namespace prune {
 
 dist_matrix::dist_matrix(const unsigned rows) {
-    BOOST_VERIFY(rows > 1);
+    assert(rows > 1);
 
     this->rows = rows-1;
     // Distance to everyone other than yourself
@@ -39,9 +45,9 @@ void dist_matrix::translate(unsigned& row, unsigned& col) {
         std::swap(row, col);
     }
 
-    BOOST_VERIFY(row < rows);
+    assert(row < rows);
     col = col - row - 1; // Translation
-    BOOST_VERIFY(col < (rows - row));
+    assert(col < (rows - row));
 }
 
 /* Do a translation from raw id's to indexes in the distance matrix */
@@ -60,13 +66,13 @@ double dist_matrix::get_min_dist(const unsigned row) {
             if (val < best) best = val;
         }
     }
-    BOOST_VERIFY(best < std::numeric_limits<double>::max());
+    assert(best < std::numeric_limits<double>::max());
     return best;
 }
 
 
 void dist_matrix::set(unsigned row, unsigned col, double val) {
-    BOOST_VERIFY(row != col);
+    assert(row != col);
     translate(row, col);
     mat[row][col] = val;
 }
@@ -84,7 +90,7 @@ void dist_matrix::compute_dist(kpmeans::base::prune_clusters::ptr cls,
         const unsigned ncol) {
     if (cls->get_nclust() <= 1) return;
 
-    BOOST_VERIFY(get_num_rows() == cls->get_nclust()-1);
+    assert(get_num_rows() == cls->get_nclust()-1);
     cls->reset_s_val_v();
     //#pragma omp parallel for collapse(2) // FIXME: Opt Coalese perhaps
     for (unsigned i = 0; i < cls->get_nclust(); i++) {
@@ -105,9 +111,10 @@ void dist_matrix::compute_dist(kpmeans::base::prune_clusters::ptr cls,
     }
 #if VERBOSE
     for (unsigned cl = 0; cl < cls->get_nclust(); cl++) {
-        BOOST_VERIFY(cls->get_s_val(cl) == get_min_dist(cl));
-        BOOST_LOG_TRIVIAL(info) << "cl:" << cl << " get_s_val: "
-            << cls->get_s_val(cl);
+        assert(cls->get_s_val(cl) == get_min_dist(cl));
+#ifndef BIND
+        printf("cl: %u get_s_val: %.6f\n", cl, cls->get_s_val(cl));
+#endif
     }
 #endif
 }

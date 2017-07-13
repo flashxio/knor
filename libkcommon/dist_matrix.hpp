@@ -24,9 +24,6 @@
 #include <limits>
 #include <vector>
 
-#include "util.hpp"
-
-namespace kpmbase = kpmeans::base;
 
 namespace kpmeans {
 
@@ -67,7 +64,7 @@ public:
     void set(unsigned row, unsigned col, double val);
 
     void print();
-    void compute_dist(std::shared_ptr<kpmbase::prune_clusters> cl,
+    void compute_dist(std::shared_ptr<base::prune_clusters> cl,
             const unsigned ncol);
 };
 } } // End namespace kpmeans, prune
