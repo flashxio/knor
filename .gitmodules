@@ -2,6 +2,3 @@
 	path = libsem/FlashX
 	url = https://github.com/flashxio/FlashX.git
 	branch = knors
-[submodule "python"]
-	path = python
-	url = https://github.com/flashxio/knorPy.git
