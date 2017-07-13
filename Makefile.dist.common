@@ -23,7 +23,7 @@ CFLAGS = -g -O3 -fno-inline-functions -DSTATISTICS -DPROFILER $(LIB_PATHS)
 CLANG_FLAGS = -Wno-attributes -Wno-unused-variable
 OMP_FLAG = -fopenmp
 LDFLAGS =  -lnuma -lpthread $(OMP_FLAG) \
-		    -rdynamic -lrt -rdynamic -lhwloc
+		    -rdynamic -lrt -rdynamic
 CXXFLAGS = -g -std=c++11 -O3 -I. -Wall -fPIC $(CLANG_FLAGS) \
 		   -DSTATISTICS $(OMP_FLAG)
 ifdef PROF

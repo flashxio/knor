@@ -33,8 +33,7 @@ Elkan's algorithm.
 
 - [p-threads](https://computing.llnl.gov/tutorials/pthreads/) for
 multithreading.
-- [numa](https://linux.die.net/man/3/numa) and
-[hwloc](https://linux.die.net/man/7/hwloc) for NUMA optimization.
+- [numa](https://linux.die.net/man/3/numa) for NUMA optimization.
 - [FlashGraph](https://github.com/flashxio/FlashX) for a semi-external memory
 vertex-centric interface.
 
