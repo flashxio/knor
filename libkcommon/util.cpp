@@ -127,8 +127,9 @@ unsigned get_num_nodes() {
 }
 
 void assert_msg(bool expr, const std::string msg) {
-    if (!expr)
+    if (!expr) {
         std::cerr << msg << std::endl;
-    assert(0);
+        assert(0);
+    }
 }
 } } // End namespace kpmeans::base
