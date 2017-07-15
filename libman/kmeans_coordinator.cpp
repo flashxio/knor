@@ -53,7 +53,7 @@ void kmeans_coordinator::build_thread_state() {
         thd_max_row_idx.push_back((thd_id*thds_row) + tup.second);
         threads.push_back(kmeans_thread::create((thd_id % nnodes),
                     thd_id, tup.first, tup.second,
-                    ncol, cltrs, cluster_assignments, fn));
+                    ncol, cltrs, &cluster_assignments[0], fn));
         threads[thd_id]->set_parent_cond(&cond);
         threads[thd_id]->set_parent_pending_threads(&pending_threads);
         threads[thd_id]->start(WAIT); // Thread puts itself to sleep
@@ -266,7 +266,7 @@ kpmbase::kmeans_t kmeans_coordinator::run_kmeans(
 #ifndef BIND
         printf("Cluster assignment counts: \n");
 #endif
-        kpmbase::print_arr(cluster_assignment_counts, k);
+        kpmbase::print_vector(cluster_assignment_counts);
 #endif
 
         if (num_changed == 0 ||
@@ -299,12 +299,12 @@ kpmbase::kmeans_t kmeans_coordinator::run_kmeans(
 
 #ifndef BIND
     printf("Final cluster counts: \n");
-    kpmbase::print_arr(cluster_assignment_counts, k);
+    kpmbase::print_vector(cluster_assignment_counts);
     printf("\n******************************************\n");
 #endif
 
     return kpmbase::kmeans_t(this->nrow, this->ncol, iter, this->k,
-            cluster_assignments, cluster_assignment_counts,
+            &cluster_assignments[0], &cluster_assignment_counts[0],
             cltrs->get_means());
 }
 
@@ -312,9 +312,6 @@ kmeans_coordinator::~kmeans_coordinator() {
     thread_iter it = threads.begin();
     for (; it != threads.end(); ++it)
         (*it)->destroy_numa_mem();
-
-    delete [] cluster_assignments;
-    delete [] cluster_assignment_counts;
 
     pthread_cond_destroy(&cond);
     pthread_mutex_destroy(&mutex);

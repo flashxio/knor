@@ -44,8 +44,8 @@ protected:
     unsigned nthreads, nnodes;
     size_t nrow, ncol;
     std::string fn; // file on disk
-    unsigned* cluster_assignments;
-    size_t* cluster_assignment_counts;
+    std::vector<unsigned> cluster_assignments;
+    std::vector<size_t>cluster_assignment_counts;
     unsigned k;
     kpmeans::base::init_type_t _init_t;
     kpmeans::base::dist_type_t _dist_t;
@@ -101,12 +101,12 @@ public:
     };
     virtual void build_thread_state() { throw kpmeans::base::abstract_exception(); };
     const unsigned* get_cluster_assignments() const {
-        return cluster_assignments;
+        return &cluster_assignments[0];
     }
 
     void clear_cluster_assignments() {
-        std::fill(cluster_assignments,
-                cluster_assignments+nrow, kpmeans::base::INVALID_CLUSTER_ID);
+        std::fill(&cluster_assignments[0],
+                &cluster_assignments[nrow], kpmeans::base::INVALID_CLUSTER_ID);
     }
     const size_t get_nrow() { return nrow; }
     const size_t get_ncol() { return ncol; }

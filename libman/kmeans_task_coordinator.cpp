@@ -58,8 +58,8 @@ kmeans_task_coordinator::kmeans_task_coordinator(const std::string fn, const siz
 
         // For pruning
         recalculated_v = kpmbase::thd_safe_bool_vector::create(nrow, false);
-        dist_v = new double[nrow];
-        std::fill(dist_v, dist_v+nrow, std::numeric_limits<double>::max());
+        dist_v.resize(nrow);
+        std::fill(&dist_v[0], &dist_v[nrow], std::numeric_limits<double>::max());
         dm = prune::dist_matrix::create(k);
         build_thread_state();
 }
@@ -72,7 +72,7 @@ void kmeans_task_coordinator::build_thread_state() {
         thd_max_row_idx.push_back((thd_id*thds_row) + tup.second);
         threads.push_back(prune::kmeans_task_thread::create((thd_id % nnodes),
                     thd_id, tup.first, tup.second,
-                    ncol, cltrs, cluster_assignments, fn));
+                    ncol, cltrs, &cluster_assignments[0], fn));
         threads[thd_id]->set_parent_cond(&cond);
         threads[thd_id]->set_parent_pending_threads(&pending_threads);
         threads[thd_id]->start(WAIT); // Thread puts itself to sleep
@@ -96,16 +96,9 @@ kmeans_task_coordinator::~kmeans_task_coordinator() {
     for (; it != threads.end(); ++it)
         (*it)->destroy_numa_mem();
 
-    delete [] cluster_assignments;
-    delete [] cluster_assignment_counts;
-    delete [] dist_v;
-
     pthread_cond_destroy(&cond);
     pthread_mutex_destroy(&mutex);
     pthread_mutexattr_destroy(&mutex_attr);
-#if 0
-    delete [] g_data;
-#endif
     destroy_threads();
 }
 
@@ -117,7 +110,7 @@ void kmeans_task_coordinator::set_prune_init(const bool prune_init) {
 void kmeans_task_coordinator::set_global_ptrs() {
     for (thread_iter it = threads.begin(); it != threads.end(); ++it) {
         pthread_mutex_lock(&mutex);
-        (*it)->set_dist_v_ptr(dist_v);
+        (*it)->set_dist_v_ptr(&dist_v[0]);
         (*it)->set_recalc_v_ptr(recalculated_v);
         (*it)->set_dist_mat_ptr(dm);
         pthread_mutex_unlock(&mutex);
@@ -221,7 +214,7 @@ void kmeans_task_coordinator::set_thread_data_ptr(double* allocd_data) {
 void kmeans_task_coordinator::kmeanspp_init() {
     struct timeval start, end;
     gettimeofday(&start , NULL);
-    set_thd_dist_v_ptr(dist_v);
+    set_thd_dist_v_ptr(&dist_v[0]);
 
     std::default_random_engine generator;
 
@@ -300,7 +293,7 @@ void kmeans_task_coordinator::random_partition_init() {
 #if VERBOSE
 #ifndef BIND
     printf("After rand paritions cluster_asgns: \n");
-    print_arr<unsigned>(cluster_assignments, nrow);
+    print_vector<unsigned>(cluster_assignments);
 #endif
 #endif
 }
@@ -420,7 +413,7 @@ kpmbase::kmeans_t kmeans_task_coordinator::run_kmeans(
 #ifndef BIND
         printf("Cluster assignment counts: \n");
 #endif
-        kpmbase::print_arr(cluster_assignment_counts, k);
+        kpmbase::print_vector(cluster_assignment_counts);
 #endif
 
         if (num_changed == 0 ||
@@ -457,11 +450,11 @@ kpmbase::kmeans_t kmeans_task_coordinator::run_kmeans(
 #ifndef BIND
     printf("Final cluster counts: \n");
 #endif
-    kpmbase::print_arr(cluster_assignment_counts, k);
+    kpmbase::print_vector(cluster_assignment_counts);
     printf("\n******************************************\n");
 
     return kpmbase::kmeans_t(this->nrow, this->ncol, iter, this->k,
-            cluster_assignments, cluster_assignment_counts,
+            &cluster_assignments[0], &cluster_assignment_counts[0],
             cltrs->get_means());
 }
 } } // End namespace kpmeans, prune

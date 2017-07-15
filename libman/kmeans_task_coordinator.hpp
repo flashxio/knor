@@ -41,7 +41,7 @@ protected: // So lazy ..
     std::vector<unsigned> thd_max_row_idx;
     std::shared_ptr<base::prune_clusters> cltrs;
     std::shared_ptr<base::thd_safe_bool_vector> recalculated_v;
-    double* dist_v; // global
+    std::vector<double> dist_v; // global
     std::shared_ptr<dist_matrix> dm;
 
     kmeans_task_coordinator(const std::string fn, const size_t nrow,

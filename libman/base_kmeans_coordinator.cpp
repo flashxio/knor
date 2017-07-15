@@ -49,12 +49,12 @@ base_kmeans_coordinator::base_kmeans_coordinator(const std::string fn,
     num_changed = 0;
     pending_threads = 0;
 
-    assert(cluster_assignments = new unsigned [nrow]);
-    assert(cluster_assignment_counts = new size_t [k]);
+    cluster_assignments.resize(nrow);
+    cluster_assignment_counts.resize(k);
 
     clear_cluster_assignments();
-    std::fill(cluster_assignment_counts,
-            cluster_assignment_counts+k, 0);
+    std::fill(&cluster_assignment_counts[0],
+            &cluster_assignment_counts[k], 0);
 
     // Threading
     pending_threads = 0; // NOTE: This must be initialized
