@@ -26,7 +26,7 @@ OMP_FLAG = -fopenmp
 ifeq ($(UNAME_S), Darwin)
 	CC = clang
 	CXX = clang++
-	LDFLAGS = -lpthread -rdynamic \
+	LDFLAGS = -lpthread
 	CXXFLAGS = -g -std=c++11 -O3 -I. -Wall -fPIC $(CLANG_FLAGS) \
 			   -DSTATISTICS
 	CXXFLAGS += -DOSX
