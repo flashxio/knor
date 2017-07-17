@@ -156,7 +156,7 @@ public:
     }
 
     bool readline(std::vector<T>& data) override {
-        assert(bool(data.size()));
+        assert(static_cast<bool>(data.size()));
         std::string line;
         size_t pos = 0;
         if (std::getline(this->f, line)) {
@@ -247,7 +247,11 @@ class bin_io {
         void read_cat() {
             T arr [ncol];
             for (size_t i = 0; i < nrow; i++) {
+#ifdef NDEBUG
+                fread(&arr[0], sizeof(T)*ncol, 1, f);
+#else
                 assert(fread(&arr[0], sizeof(T)*ncol, 1, f) == 1);
+#endif
                 cat(arr);
             }
         }
@@ -255,26 +259,46 @@ class bin_io {
         std::vector<T> readline() {
             std::vector<T> v;
             v.resize(ncol);
+#ifdef NDEBUG
+            fread(&v[0], sizeof(T)*ncol, 1, f);
+#else
             assert(fread(&v[0], sizeof(T)*ncol, 1, f) == 1);
+#endif
             return v;
         }
 
         void readline(T* v) {
+#ifdef NDEBUG
+            fread(&v[0], sizeof(T)*ncol, 1, f);
+#else
             assert(fread(&v[0], sizeof(T)*ncol, 1, f) == 1);
+#endif
         }
 
         // Read all the data!
         void read(std::vector<T>* v) {
+#ifdef NDEBUG
+            fread(&((*v)[0]), sizeof(T)*ncol*nrow, 1, f);
+#else
             assert(fread(&((*v)[0]), sizeof(T)*ncol*nrow, 1, f) == 1);
+#endif
         }
 
         // Read all the data!
         void read(T* v) {
+#ifdef NDEBUG
+            fread(&v[0], sizeof(T)*ncol*nrow, 1, f);
+#else
             assert(fread(&v[0], sizeof(T)*ncol*nrow, 1, f) == 1);
+#endif
         }
 
         void write(const T* data, const size_t numel) {
+#ifdef NDEBUG
+            fwrite(data, sizeof(T)*numel, 1, f);
+#else
             assert(fwrite(data, sizeof(T)*numel, 1, f) == 1);
+#endif
         }
 
         void write(const std::vector<T>& data, const size_t numel) {

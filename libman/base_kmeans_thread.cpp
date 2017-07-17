@@ -73,7 +73,11 @@ void base_kmeans_thread::numa_alloc_mem() {
     local_data = new double [blob_size/sizeof(double)];
 #endif
     fseek(f, start_rid*ncol*sizeof(double), SEEK_SET); // start position
-    assert(1 == fread(local_data, blob_size, 1, f));
+#ifdef NDEBUG
+    fread(local_data, blob_size, 1, f);
+#else
+    assert(fread(local_data, blob_size, 1, f) == 1);
+#endif
     close_file_handle();
 }
 

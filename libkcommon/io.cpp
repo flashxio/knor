@@ -34,7 +34,8 @@ void store_cluster(const unsigned id, const double* data,
     FILE* f = nullptr;
     std::string fn = dir+"cluster_"+std::to_string(id)+
         "_r"+std::to_string(numel)+"_c"+std::to_string(ncol)+".bin";
-    assert(f = fopen(fn.c_str(), "wb"));
+    f = fopen(fn.c_str(), "wb");
+    assert(f);
 #ifndef BIND
     std::cout << "[Warning]: Writing cluster file '" <<
         fn << "'\n";
@@ -44,8 +45,13 @@ void store_cluster(const unsigned id, const double* data,
     for(unsigned i = 0; i < nrow; i++) {
         if (count == numel) { break; }
         if (cluster_assignments[i] == id) {
-            assert(fwrite(&data[i*ncol],
+#ifdef NDEBUG
+            fwrite(&data[i*ncol],
+                        (ncol*sizeof(double)), 1, f);
+#else
+           assert(fwrite(&data[i*ncol],
                         (ncol*sizeof(double)), 1, f));
+#endif
             count++;
         }
     }

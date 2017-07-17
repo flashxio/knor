@@ -349,8 +349,8 @@ kpmbase::kmeans_t compute_kmeans(const double* matrix, double* clusters_ptr,
 
 #if 0
     FILE* f;
-    assert(f =
-            fopen("/mnt/nfs/disa/data/big/friendster-8-10centers", "wb"));
+    f = fopen("/mnt/nfs/disa/data/big/friendster-8-10centers", "wb");
+    assert(f);
     fwrite(&((clusters->get_means())[0]),
             sizeof(double)*NUM_COLS*K, 1, f);
     fclose(f);

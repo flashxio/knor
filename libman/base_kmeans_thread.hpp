@@ -104,8 +104,10 @@ protected:
         this->start_rid = start_rid;
         this->preallocd_data = false;
 
-        if (!fn.empty())
-            assert(this->f = fopen(fn.c_str(), "rb"));
+        if (!fn.empty()) {
+            this->f = fopen(fn.c_str(), "rb");
+            assert(this->f);
+        }
         else {
             this->f = NULL;
             preallocd_data = true;
