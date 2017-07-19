@@ -37,7 +37,7 @@ else
 			   -rdynamic -lrt -rdynamic
 	CXXFLAGS = -g -std=c++11 -O3 -I. -Wall -fPIC $(CLANG_FLAGS) \
 			   -DSTATISTICS $(OMP_FLAG)
-	CXXFLAGS += -DLINUX
+	CXXFLAGS += -DLINUX -DUSE_NUMA
 endif
 
 ifdef PROF

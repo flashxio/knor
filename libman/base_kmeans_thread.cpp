@@ -32,7 +32,7 @@ namespace kpmeans {
 
 void base_kmeans_thread::destroy_numa_mem() {
     if (!preallocd_data) {
-#ifdef LINUX
+#if defined(LINUX) && defined(USE_NUMA)
     numa_free(local_data, get_data_size());
 #else
     delete [] local_data;
@@ -67,7 +67,7 @@ void base_kmeans_thread::close_file_handle() {
 void base_kmeans_thread::numa_alloc_mem() {
     kpmbase::assert_msg(f, "File handle invalid, can only alloc once!");
     size_t blob_size = get_data_size();
-#ifdef LINUX
+#if defined(LINUX) && defined(USE_NUMA)
     local_data = static_cast<double*>(numa_alloc_onnode(blob_size, node_id));
 #else
     local_data = new double [blob_size/sizeof(double)];
