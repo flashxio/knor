@@ -19,7 +19,7 @@
 
 
 #include <limits>
-#ifdef LINUX
+#ifdef USE_NUMA
 #include <numa.h>
 #endif
 
@@ -27,7 +27,7 @@
 
 #include "signal.h"
 #include "io.hpp"
-#ifdef LINUX
+#ifdef __linux
 #include "kmeans.hpp"
 #endif
 
@@ -140,7 +140,7 @@ int main(int argc, char* argv[]) {
         printf("Read centers!\n");
     } else
         printf("No centers to read ..\n");
-#ifdef LINUX
+#ifdef __linux
     if (omp) {
         kpmbase::bin_io<double> br(datafn, nrow, ncol);
         double* p_data = new double [nrow*ncol];
@@ -181,7 +181,7 @@ int main(int argc, char* argv[]) {
                     init, tolerance, dist_type);
             ret = kc->run_kmeans();
         }
-#ifdef LINUX
+#ifdef __linux
     }
 #endif
 

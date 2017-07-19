@@ -17,8 +17,11 @@
  * limitations under the License.
  */
 
-#ifdef LINUX
+#ifdef __linux
 #include <omp.h>
+#endif
+
+#ifdef USE_NUMA
 #include <numa.h>
 #endif
 
@@ -35,7 +38,7 @@ double get_bic(const std::vector<double>& dist_v, const size_t nrow,
         const size_t ncol, const unsigned k) {
         double bic = 0;
 
-#ifdef LINUX
+#ifdef __linux
 #pragma omp parallel for reduction(+:bic) shared (dist_v)
 #endif
     for (unsigned i = 0; i < dist_v.size(); i++) {
@@ -50,7 +53,7 @@ double get_bic(const std::vector<double>& dist_v, const size_t nrow,
 
 void spherical_projection(double* data, const size_t nrow,
         const size_t ncol) {
-#ifdef LINUX
+#ifdef __linux
 #pragma omp parallel for shared (data)
 #endif
     for (unsigned row = 0; row < nrow; row++) {
@@ -119,7 +122,7 @@ size_t filesize(const char* filename) {
 
 
 unsigned get_num_nodes() {
-#ifdef LINUX
+#ifdef USE_NUMA
     return static_cast<unsigned>(numa_num_task_nodes());
 #else
     return 1;

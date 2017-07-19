@@ -30,7 +30,7 @@
 #include "util.hpp"
 #include "kmeans_task_thread.hpp"
 
-#ifdef LINUX
+#ifdef USE_NUMA
 #include "numa.h"
 #endif
 

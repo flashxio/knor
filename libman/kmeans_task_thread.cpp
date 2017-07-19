@@ -277,7 +277,7 @@ void kmeans_task_thread::wake(thread_state_t state) {
 
 void* callback(void* arg) {
     kmeans_task_thread* t = static_cast<kmeans_task_thread*>(arg);
-#ifdef LINUX
+#ifdef USE_NUMA
     t->bind2node_id();
 #endif
 

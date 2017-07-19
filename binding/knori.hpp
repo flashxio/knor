@@ -21,7 +21,7 @@
 #define __KNORI_HPP__
 
 #include "io.hpp"
-#ifdef LINUX
+#ifdef __linux
 #include "kmeans.hpp"
 #endif
 
@@ -29,7 +29,7 @@
 #include "kmeans_task_coordinator.hpp"
 #include "util.hpp"
 
-#ifdef LINUX
+#ifdef USE_NUMA
 #include "numa_reorg.hpp"
 namespace kpmbind = kpmeans::binding;
 #endif
@@ -53,7 +53,7 @@ kmeans_t kmeans(double* data, const size_t nrow,
 
     kmeans_t ret;
 
-#ifdef LINUX
+#ifdef __linux
     if (omp) {
         kpmeans::kmeans_coordinator::ptr kc =
             kpmeans::kmeans_coordinator::create("",
@@ -77,7 +77,7 @@ kmeans_t kmeans(double* data, const size_t nrow,
                     "", nrow, ncol, k, max_iters, nnodes,
                     nthread, p_centers,
                     init, tolerance, dist_type);
-#ifdef LINUX
+#ifdef USE_NUMA
         if (numa_opt) {
             kpmbind::memory_distributor<double>::ptr md =
                 kpmbind::memory_distributor<double>::create(data,
@@ -88,7 +88,7 @@ kmeans_t kmeans(double* data, const size_t nrow,
         } else {
 #endif
             ret = kc->run_kmeans(data);
-#ifdef LINUX
+#ifdef USE_NUMA
         }
     }
 #endif
@@ -110,7 +110,7 @@ kmeans_t kmeans(const std::string datafn, const size_t nrow,
 
     kmeans_t ret;
 
-#ifdef LINUX
+#ifdef __linux
     if (omp) {
         kpmeans::kmeans_coordinator::ptr kc =
             kpmeans::kmeans_coordinator::create(datafn,
@@ -124,7 +124,7 @@ kmeans_t kmeans(const std::string datafn, const size_t nrow,
                     datafn, nrow, ncol, k, max_iters, nnodes, nthread, p_centers,
                     init, tolerance, dist_type);
         ret = kc->run_kmeans();
-#ifdef LINUX
+#ifdef __linux
     }
 #endif
 

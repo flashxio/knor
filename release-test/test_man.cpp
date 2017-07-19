@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-#ifdef LINUX
+#ifdef USE_NUMA
 #include <numa.h>
 #endif
 

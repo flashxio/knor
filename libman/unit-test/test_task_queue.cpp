@@ -24,7 +24,7 @@
 #include "task_queue.hpp"
 #include "io.hpp"
 #include "util.hpp"
-#ifdef LINUX
+#ifdef USE_NUMA
 #include "numa.h"
 #endif
 
