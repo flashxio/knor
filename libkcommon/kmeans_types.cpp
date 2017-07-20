@@ -131,5 +131,5 @@ bool kmeans_t::operator==(const kmeans_t& other) {
             v_eq(this->assignment_count, other.assignment_count) &&
             v_eq(this->centroids, other.centroids));
 
-};
-} }
+}
+}}

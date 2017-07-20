@@ -213,5 +213,5 @@ bool check_collection_equal(It1 arg0first, It1 arg0last,
     }
     return all_eq;
 }
-}}; // End namespace kpmeans::test
+}} // End namespace kpmeans::test
 #endif
