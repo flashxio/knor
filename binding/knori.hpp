@@ -61,12 +61,15 @@ kmeans_t kmeans(double* data, const size_t nrow,
                     init, tolerance, dist_type);
 
         if (numa_opt) {
+#ifdef USE_NUMA
             kpmbind::memory_distributor<double>::ptr md =
                 kpmbind::memory_distributor<double>::create(data,
                         nnodes, nrow, ncol);
-
             md->numa_reorg(kc->get_threads());
             ret = kc->run_kmeans(NULL, true);
+#else
+            ret = kc->run_kmeans(data);
+#endif
         } else {
             ret = kc->run_kmeans(data);
         }
@@ -77,19 +80,21 @@ kmeans_t kmeans(double* data, const size_t nrow,
                     "", nrow, ncol, k, max_iters, nnodes,
                     nthread, p_centers,
                     init, tolerance, dist_type);
-#ifdef USE_NUMA
         if (numa_opt) {
+#ifdef USE_NUMA
             kpmbind::memory_distributor<double>::ptr md =
                 kpmbind::memory_distributor<double>::create(data,
                         nnodes, nrow, ncol);
 
             md->numa_reorg(kc->get_threads());
             ret = kc->run_kmeans(NULL, true);
-        } else {
-#endif
+#else
             ret = kc->run_kmeans(data);
-#ifdef USE_NUMA
+#endif
+        } else {
+            ret = kc->run_kmeans(data);
         }
+#if __linux
     }
 #endif
 
