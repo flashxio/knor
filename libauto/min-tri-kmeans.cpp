@@ -439,14 +439,20 @@ kpmbase::kmeans_t compute_min_kmeans(const double* matrix, double* clusters_ptr,
 
 #if VERBOSE
     dm->compute_dist(clusters, NUM_COLS);
+#ifndef BIND
     printf("Cluster distance matrix after init ...";
+#endif
     dm->print();
 #endif
 
+#ifndef BIND
     printf("Init is '%s'\n", init.c_str());
+#endif
 
     if (MAX_ITERS > 0) {
+#ifndef BIND
         printf("Running INIT engine:\n");
+#endif
         EM_step(matrix, clusters, cluster_assignments,
                 cluster_assignment_counts, recalculated_v,
                 dist_v, dm, true);
@@ -459,13 +465,17 @@ kpmbase::kmeans_t compute_min_kmeans(const double* matrix, double* clusters_ptr,
 #endif
 
     g_num_changed = 0;
+#ifndef BIND
     printf("Matrix K-means starting ...\n");
+#endif
 
     bool converged = false;
     std::string str_iters = MAX_ITERS == std::numeric_limits<size_t>::max() ?
         "until convergence ...":
         std::to_string(MAX_ITERS) + " iterations ...";
+#ifndef BIND
     printf("Computing %s\n", str_iters.c_str());
+#endif
 
     size_t iter = 0;
     if (MAX_ITERS > 0)
@@ -473,8 +483,10 @@ kpmbase::kmeans_t compute_min_kmeans(const double* matrix, double* clusters_ptr,
 
     while (iter < MAX_ITERS) {
         // Hold cluster assignment counter
+#ifndef BIND
         printf("E-step Iteration %lu "
             ". Computing cluster assignments ...\n", iter);
+#endif
 
 #if VERBOSE
 #ifndef BIND
@@ -483,14 +495,18 @@ kpmbase::kmeans_t compute_min_kmeans(const double* matrix, double* clusters_ptr,
 #endif
         dm->compute_dist(clusters, NUM_COLS);
 #if VERBOSE
+#ifndef BIND
         printf("Before: Cluster distance matrix ...";
+#endif
         dm->print();
 #endif
 
         EM_step(matrix, clusters, cluster_assignments,
                 cluster_assignment_counts, recalculated_v, dist_v, dm);
 #if VERBOSE
+#ifndef BIND
         printf("Before: Printing clusters:";
+#endif
         clusters->print_means();
 #endif
 #if KM_TEST
@@ -519,15 +535,24 @@ kpmbase::kmeans_t compute_min_kmeans(const double* matrix, double* clusters_ptr,
 #ifdef PROFILER
     ProfilerStop();
 #endif
+
+#ifndef BIND
     printf("\n******************************************\n");
+#endif
 
     if (converged) {
+#ifndef BIND
         printf("K-means converged in %lu iterations\n", iter);
+#endif
     } else {
+#ifndef BIND
         printf("[Warning]: K-means failed to converge in "
                 "%lu iterations", iter);
+#endif
         }
+#ifndef BIND
     printf("Final cluster counts ...\n");
+#endif
     kpmbase::print_arr(cluster_assignment_counts, K);
 #ifndef BIND
     printf("\n******************************************\n");

@@ -274,7 +274,9 @@ kpmbase::kmeans_t compute_kmeans(const double* matrix, double* clusters_ptr,
 
     OMP_MAX_THREADS = std::min(max_threads, kpmbase::get_num_omp_threads());
     omp_set_num_threads(OMP_MAX_THREADS);
+#ifndef BIND
     printf("Running on %i threads!\n", OMP_MAX_THREADS);
+#endif
 
     // Check k
     if (K > NUM_ROWS || K < 2 || K == (unsigned)-1) {
