@@ -79,8 +79,8 @@ void random_partition_init(unsigned* cluster_assignments,
 #if VERBOSE
 #ifndef BIND
     printf("After rand paritions cluster_asgns: \n");
-#endif
     print_arr(cluster_assignments, num_rows);
+#endif
 #endif
 
 #ifndef BIND
@@ -194,8 +194,8 @@ static void kmeanspp_init(const double* matrix,
 #if VERBOSE
 #ifndef BIND
     printf("\nCluster centers after kmeans++\n");
-#endif
     clusters->print_means();
+#endif
 #endif
 }
 
@@ -408,7 +408,9 @@ kpmbase::kmeans_t compute_min_kmeans(const double* matrix, double* clusters_ptr,
     kpmprune::dist_matrix::ptr dm = kpmprune::dist_matrix::create(K);
 
     /*** End VarInit ***/
+#ifndef BIND
     printf("Dist_type is %s \n", dist_type.c_str());
+#endif
     if (dist_type == "eucl") {
         g_dist_type = kpmbase::dist_type_t::EUCL;
     } else if (dist_type == "cos") {
@@ -441,8 +443,8 @@ kpmbase::kmeans_t compute_min_kmeans(const double* matrix, double* clusters_ptr,
     dm->compute_dist(clusters, NUM_COLS);
 #ifndef BIND
     printf("Cluster distance matrix after init ...";
-#endif
     dm->print();
+#endif
 #endif
 
 #ifndef BIND
@@ -460,8 +462,8 @@ kpmbase::kmeans_t compute_min_kmeans(const double* matrix, double* clusters_ptr,
 #if KM_TEST
 #ifndef BIND
         printf("Cluster assignment counts: ");
-#endif
         print_arr(cluster_assignment_counts, K);
+#endif
 #endif
 
     g_num_changed = 0;
@@ -497,8 +499,8 @@ kpmbase::kmeans_t compute_min_kmeans(const double* matrix, double* clusters_ptr,
 #if VERBOSE
 #ifndef BIND
         printf("Before: Cluster distance matrix ...";
-#endif
         dm->print();
+#endif
 #endif
 
         EM_step(matrix, clusters, cluster_assignments,
@@ -506,14 +508,15 @@ kpmbase::kmeans_t compute_min_kmeans(const double* matrix, double* clusters_ptr,
 #if VERBOSE
 #ifndef BIND
         printf("Before: Printing clusters:";
-#endif
         clusters->print_means();
 #endif
+#endif
+
 #if KM_TEST
 #ifndef BIND
         printf("Printing cluster counts ...";
-#endif
         print_arr(cluster_assignment_counts, K);
+#endif
 #endif
 
         if (g_num_changed == 0 || ((g_num_changed/(double)NUM_ROWS))
@@ -552,8 +555,9 @@ kpmbase::kmeans_t compute_min_kmeans(const double* matrix, double* clusters_ptr,
         }
 #ifndef BIND
     printf("Final cluster counts ...\n");
-#endif
     kpmbase::print_arr(cluster_assignment_counts, K);
+#endif
+
 #ifndef BIND
     printf("\n******************************************\n");
 #endif
