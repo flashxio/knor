@@ -131,7 +131,9 @@ unsigned get_num_nodes() {
 
 void assert_msg(bool expr, const std::string msg) {
     if (!expr) {
+#ifndef BIND
         std::cerr << msg << std::endl;
+#endif
         assert(0);
     }
 }

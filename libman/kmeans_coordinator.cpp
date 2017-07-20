@@ -38,9 +38,12 @@ kmeans_coordinator::kmeans_coordinator(const std::string fn, const size_t nrow,
         if (centers) {
             if (kpmbase::init_type_t::NONE)
                 cltrs->set_mean(centers);
-            else
+            else {
+#ifndef BIND
                 printf("[WARNING]: Both init centers "
-                    "provided & non-NONE init method specified\n");
+                        "provided & non-NONE init method specified\n");
+#endif
+            }
         }
         build_thread_state();
     }
@@ -279,11 +282,11 @@ kpmbase::kmeans_t kmeans_coordinator::run_kmeans(
 #ifdef PROFILER
     ProfilerStop();
 #endif
+
     gettimeofday(&end, NULL);
+#ifndef BIND
     printf("\n\nAlgorithmic time taken = %.6f sec\n",
         kpmbase::time_diff(start, end));
-
-#ifndef BIND
     printf("\n******************************************\n");
 #endif
     if (converged) {
@@ -333,8 +336,10 @@ void const kmeans_coordinator::print_thread_data() {
 void const kmeans_coordinator::print_thread_start_rids() {
     thread_iter it = threads.begin();
     for (; it != threads.end(); ++it) {
+#ifndef BIND
         printf("\nThd: %u, start_rid: %lu\n", (*it)->get_thd_id(),
             (*it)->get_start_rid());
+#endif
     }
 }
 }

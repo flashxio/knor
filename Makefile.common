@@ -29,7 +29,6 @@ ifeq ($(UNAME_S), Darwin)
 	LDFLAGS = -lpthread
 	CXXFLAGS = -g -std=c++11 -O3 -I. -Wall -fPIC $(CLANG_FLAGS) \
 			   -DSTATISTICS
-	CXXFLAGS += -DOSX
 else
 	CC = gcc
 	CXX = g++

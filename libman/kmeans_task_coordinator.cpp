@@ -127,11 +127,6 @@ const double* kmeans_task_coordinator::get_thd_data(const unsigned row_id) const
             thd_max_row_idx.end(), row_id) - thd_max_row_idx.begin();
     unsigned rows_per_thread = nrow/nthreads; // All but the last thread
 
-#if 0
-    printf("Global row %u, row in parent thd: %u --> %u\n", row_id,
-            parent_thd, (row_id-(parent_thd*rows_per_thread)));
-#endif
-
     return &((threads[parent_thd]->get_local_data())
             [(row_id-(parent_thd*rows_per_thread))*ncol]);
 }
@@ -266,8 +261,8 @@ void kmeans_task_coordinator::kmeanspp_init() {
 #if VERBOSE
 #ifndef BIND
     printf("\nCluster centers after kmeans++\n");
-#endif
     cltrs->print_means();
+#endif
 #endif
     gettimeofday(&end, NULL);
 #ifndef BIND
@@ -302,12 +297,16 @@ void kmeans_task_coordinator::forgy_init() {
     std::default_random_engine generator;
     std::uniform_int_distribution<unsigned> distribution(0, nrow-1);
 
+#ifndef BIND
     printf("Forgy init start\n");
+#endif
     for (unsigned clust_idx = 0; clust_idx < k; clust_idx++) { // 0...k
         unsigned rand_idx = distribution(generator);
         cltrs->set_mean(get_thd_data(rand_idx), clust_idx);
     }
+#ifndef BIND
     printf("Forgy init end\n");
+#endif
 }
 
 void kmeans_task_coordinator::run_init() {
@@ -334,8 +333,8 @@ void const kmeans_task_coordinator::print_thread_data() {
     for (; it != threads.end(); ++it) {
 #ifndef BIND
         std::cout << "\nThd: " << (*it)->get_thd_id() << std::endl;
-#endif
         (*it)->print_local_data();
+#endif
     }
 }
 
@@ -372,11 +371,6 @@ kpmbase::kmeans_t kmeans_task_coordinator::run_kmeans(
     gettimeofday(&start , NULL);
     run_init(); // Initialize clusters
 
-#if 0
-    printf("printing clusters:\n");
-    cltrs->print_means();
-#endif
-
     size_t iter = 0;
 
     if (max_iters > 0) {
@@ -412,8 +406,8 @@ kpmbase::kmeans_t kmeans_task_coordinator::run_kmeans(
 #if VERBOSE
 #ifndef BIND
         printf("Cluster assignment counts: \n");
-#endif
         kpmbase::print_vector(cluster_assignment_counts);
+#endif
 #endif
 
         if (num_changed == 0 ||
@@ -430,18 +424,18 @@ kpmbase::kmeans_t kmeans_task_coordinator::run_kmeans(
 #endif
     gettimeofday(&end, NULL);
 
-#ifdef BIND
+#ifndef BIND
     printf("\n\nAlgorithmic time taken = %.6f sec\n",
         kpmbase::time_diff(start, end));
     printf("\n******************************************\n");
 #endif
 
     if (converged) {
-#ifdef BIND
+#ifndef BIND
         printf("K-means converged in %lu iterations\n", iter);
 #endif
     } else {
-#ifdef BIND
+#ifndef BIND
         printf("[Warning]: K-means failed to converge in %lu iterations\n",
                 iter);
 #endif
@@ -449,9 +443,9 @@ kpmbase::kmeans_t kmeans_task_coordinator::run_kmeans(
 
 #ifndef BIND
     printf("Final cluster counts: \n");
-#endif
     kpmbase::print_vector(cluster_assignment_counts);
     printf("\n******************************************\n");
+#endif
 
     return kpmbase::kmeans_t(this->nrow, this->ncol, iter, this->k,
             &cluster_assignments[0], &cluster_assignment_counts[0],
