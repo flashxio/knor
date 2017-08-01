@@ -75,7 +75,7 @@ void base_kmeans_thread::numa_alloc_mem() {
     fseek(f, start_rid*ncol*sizeof(double), SEEK_SET); // start position
 #ifdef NDEBUG
     size_t nread = fread(local_data, blob_size, 1, f);
-    nread = nread; // Silence compiler warning
+    nread = nread + 1 - 1; // Silence compiler warning
 #else
     assert(fread(local_data, blob_size, 1, f) == 1);
 #endif
