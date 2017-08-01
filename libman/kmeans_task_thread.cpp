@@ -80,16 +80,9 @@ void kmeans_task_thread::request_task() {
     }
 #if 0
     else {
-        pthread_mutex_unlock(&mutex);
-        if (try_steal_task()) {
-
-        } else {
-          rc = pthread_mutex_lock(&mutex);
-          if (rc) perror("pthread_mutex_lock");
-          sleep();
-          pthread_mutex_unlock(&mutex);
+        if (try_steal_task())
+            // Try to steal
         }
-    }
 #else
     else {
         sleep();
@@ -241,8 +234,7 @@ void kmeans_task_thread::wait() {
         if (rc) perror("pthread_cond_wait");
     }
 
-    rc = pthread_mutex_unlock(&mutex);
-    if (rc) perror("pthread_mutex_unlock");
+    pthread_mutex_unlock(&mutex);
 }
 
 void kmeans_task_thread::wake(thread_state_t state) {
