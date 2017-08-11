@@ -288,7 +288,9 @@ void* callback(void* arg) {
 
     // We've stopped running so exit
     pthread_exit(NULL);
+#ifdef _WIN32
     return NULL;
+#endif
 }
 
 void kmeans_task_thread::start(const thread_state_t state=WAIT) {
