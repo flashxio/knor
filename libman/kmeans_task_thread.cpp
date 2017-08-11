@@ -288,6 +288,7 @@ void* callback(void* arg) {
 
     // We've stopped running so exit
     pthread_exit(NULL);
+    return NULL;
 }
 
 void kmeans_task_thread::start(const thread_state_t state=WAIT) {
