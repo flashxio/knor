@@ -27,6 +27,32 @@ algorithm that *can* drastically reduce the number of distance computations
 required for k-means without the memory bloat traditionally associated with
 Elkan's algorithm.
 
+# Python
+
+We expose the **knori** to users through `Python`. We support Linux and Mac OSX.
+
+For instructions on how to install the `Python` package please see the
+[Python repository](https://github.com/flashxio/knorPy).
+
+In most cases all that is necessary is:
+
+```
+pip install knor
+```
+
+# R
+
+We expose the **knori** to users through `R`. We support Linux, Mac OSX, and **Windows**.
+
+For instructions on how to install the `R` package please see the
+[R repository](https://github.com/flashxio/knorR).
+
+In most cases all that is necessary is:
+
+```
+install.packages("knor")
+```
+
 ## knor's backbone
 
 **knor** relies on the following:
@@ -39,7 +65,7 @@ vertex-centric interface.
 
 ## System Requirements
 
-- Linux
+- Linux or Mac OS 10.*
 - At least **4 (GB) of RAM**
 - Administrative privileges
 

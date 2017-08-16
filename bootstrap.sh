@@ -18,7 +18,10 @@
 
 # Ubuntu bootstrap script
 
-./install.sh
+if [ $(uname -s) == "Linux" ]
+then
+    ./install.sh
+fi
 git clone --recursive https://github.com/flashxio/knor.git
 cd knor
 git checkout master
