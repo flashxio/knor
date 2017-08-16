@@ -24,9 +24,9 @@ def mkdir(dirname):
         if not os.path.exists(dirname):
             os.makedirs(dirname)
         else:
-            print "[WARNING]: Dir: '{}' exists. Files will be overwritten!".\
-                    format(dirname)
-    except Exception, msg:
+            print(("[WARNING]: Dir: '{}' exists. Files will be overwritten!".\
+                    format(dirname)))
+    except Exception as msg:
         sys.stderr.write("Failure to make dir: '{}'.\nERROR msg: {}\n".format(
                 dirname, msg))
 
