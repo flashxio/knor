@@ -35,90 +35,93 @@
 #include "kmeans_task_coordinator.hpp"
 #include "util.hpp"
 
-static void print_usage();
+#include "cxxopts/cxxopts.hpp"
+
 namespace kpmbase = kpmeans::base;
 namespace kpmprune = kpmeans::prune;
 
-int main(int argc, char* argv[]) {
+int main(int argc, char* argv[])
+{
+  try {
+    // positional args
+    std::string datafn = "";
+    unsigned k = 0;
 
-    if (argc < 5) {
-        print_usage();
-        exit(EXIT_FAILURE);
-    }
-
-	int opt;
-    std::string datafn = std::string(argv[1]);
-    size_t nrow = atol(argv[2]);
-    size_t ncol = atol(argv[3]);
-    unsigned k = atol(argv[4]);
-
+    // optional args
+    unsigned nthread = kpmbase::get_num_omp_threads();
     std::string dist_type = "eucl";
     std::string centersfn = "";
-	size_t max_iters=std::numeric_limits<size_t>::max();
-	std::string init = "kmeanspp";
-	unsigned nthread = kpmbase::get_num_omp_threads();
-	int num_opts = 0;
-	double tolerance = -1;
+    unsigned max_iters=std::numeric_limits<unsigned>::max();
+    std::string init = "kmeanspp";
+    double tolerance = -1;
+
     bool no_prune = false;
     bool omp = false;
+
     if (omp) { }
     unsigned nnodes = kpmbase::get_num_nodes();
     std::string outdir = "";
 
-    // Increase by 3 -- getopt ignores argv[0]
-	argv += 3;
-	argc -= 3;
+    cxxopts::Options options(argv[0],
+            "knori data-file nsamples dim k [alg-options]\n");
+    options.positional_help("[optional args]");
 
-	while ((opt = getopt(argc, argv, "l:i:t:T:d:C:PON:o:")) != -1) {
-		num_opts++;
-		switch (opt) {
-			case 'l':
-				tolerance = atof(optarg);
-				num_opts++;
-				break;
-			case 'i':
-				max_iters = atol(optarg);
-				num_opts++;
-				break;
-			case 't':
-				init = optarg;
-				num_opts++;
-				break;
-			case 'T':
-				nthread = atoi(optarg);
-				num_opts++;
-				break;
-			case 'd':
-				dist_type = std::string(optarg);
-				num_opts++;
-				break;
-			case 'C':
-				centersfn = std::string(optarg);
-                kpmbase::assert_msg(kpmbase::is_file_exist(centersfn.c_str()),
-                        "Centers file name doesn't exit!");
-                init = "none"; // Ignore whatever you pass in
-				num_opts++;
-				break;
-			case 'P':
-				no_prune = true;
-				num_opts++;
-				break;
-			case 'O':
-				omp = true;
-				num_opts++;
-				break;
-			case 'N':
-				nnodes = atoi(optarg);
-				num_opts++;
-				break;
-			case 'o':
-				outdir = std::string(optarg);
-				num_opts++;
-				break;
-			default:
-				print_usage();
-		}
-	}
+    options.add_options()
+      ("f,datafn", "Path to data-file on disk",
+            cxxopts::value<std::string>(datafn), "FILE")
+      ("n,nsamples", "Number of samples in the dataset (rows)",
+            cxxopts::value<std::string>())
+      ("m,dim", "Number of features in the dataset (columns)",
+            cxxopts::value<std::string>())
+      ("k,nclust", "Number of clusters desired",
+            cxxopts::value<unsigned>(k))
+      ("T,num_thread", "The number of threads to run",
+            cxxopts::value<unsigned>(nthread))
+      ("i,iters", "maximum number of iterations",
+            cxxopts::value<unsigned>(max_iters))
+      ("C,centersfn", "Path to centroids on disk",
+            cxxopts::value<std::string>(centersfn), "FILE")
+      ("O,omp", "Use OpenMP for ||ization rather than fast pthreads",
+            cxxopts::value<bool>(omp))
+      ("P,prune", "DO NOT use the minimal triangle inequality (~Elkan's alg)",
+            cxxopts::value<bool>(no_prune))
+      ("N,nnodes", "No. of numa nodes you want to use",
+            cxxopts::value<unsigned>(nnodes))
+      ("d,dist", "Distance metric [eucl,cos]",
+            cxxopts::value<std::string>(dist_type))
+      ("l,tol", "tolerance for convergence (1E-6)",
+            cxxopts::value<std::string>())
+      ("o,outdir", "Write output to an output directory of this name",
+            cxxopts::value<std::string>(outdir))
+      ("h,help", "Print help")
+    ;
+
+    options.parse_positional({"datafn", "nsamples", "dim", "nclust"});
+    int nargs = argc;
+    options.parse(argc, argv);
+
+    if (options.count("help") || (nargs == 1)) {
+        std::cout << options.help() << std::endl;
+        exit(EXIT_SUCCESS);
+    }
+
+    if (nargs < 5) {
+        std::cout << "[ERROR]: Not enough default arguments\n";
+        std::cout << options.help() << std::endl;
+        exit(EXIT_SUCCESS);
+    }
+
+    kpmbase::assert_msg(kpmbase::is_file_exist(datafn.c_str()),
+            "Data file name doesn't exit!");
+    size_t nrow = atol(options["nsamples"].as<std::string>().c_str());
+    size_t ncol = atol(options["dim"].as<std::string>().c_str());
+    if (options.count("tol"))
+        tolerance = std::stod(options["tol"].as<std::string>());
+    if (options.count("centersfn")) {
+        kpmbase::assert_msg(kpmbase::is_file_exist(centersfn.c_str()),
+                "Centers file name doesn't exit!");
+        init = "none";  // Ignore whatever you pass in
+    }
 
     if (outdir.empty())
         fprintf(stderr, "\n\n**[WARNING]**: No output dir specified with '-o' "
@@ -150,7 +153,7 @@ int main(int argc, char* argv[]) {
         unsigned* p_clust_asgns = new unsigned [nrow];
         size_t* p_clust_asgn_cnt = new size_t [k];
 
-        if (NULL == p_centers) // We have no preallocated centers
+        if (NULL == p_centers)  We have no preallocated centers
             p_centers = new double [k*ncol];
 
         if (no_prune) {
@@ -192,22 +195,10 @@ int main(int argc, char* argv[]) {
 
     if (p_centers) delete [] p_centers;
 
-    return EXIT_SUCCESS;
-}
-
-void print_usage() {
-	fprintf(stderr,
-        "knori data-file nsamples dim k [alg-options]\n");
-    fprintf(stderr, "-t type: type of initialization for kmeans"
-           " ['random', 'forgy', 'kmeanspp', 'none']\n");
-    fprintf(stderr, "-T num_thread: The number of threads to run\n");
-    fprintf(stderr, "-i iters: maximum number of iterations\n");
-    fprintf(stderr, "-C File with initial clusters in same format as data\n");
-    fprintf(stderr, "-l tolerance for convergence (1E-6)\n");
-    fprintf(stderr, "-d Distance metric [eucl,cos]\n");
-    fprintf(stderr, "-P DO NOT use the minimal triangle inequality (~Elkan's alg)\n");
-    fprintf(stderr, "-O Use OpenMP for ||ization rather than fast pthreads\n");
-    fprintf(stderr, "-N No. of numa nodes you want to use\n");
-    fprintf(stderr, "-o Write output to an output directory of this name\n");
+  } catch (const cxxopts::OptionException& e)
+  {
+    std::cout << "error parsing options: " << e.what() << std::endl;
     exit(EXIT_FAILURE);
+  }
+    return EXIT_SUCCESS;
 }
