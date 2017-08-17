@@ -99,8 +99,7 @@ void kmeans_thread::wait() {
         if (rc) perror("pthread_cond_wait");
     }
 
-    rc = pthread_mutex_unlock(&mutex);
-    if (rc) perror("pthread_mutex_unlock");
+    pthread_mutex_unlock(&mutex);
 }
 
 void kmeans_thread::wake(thread_state_t state) {
