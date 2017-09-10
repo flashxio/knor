@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-#ifdef __linux
+#ifdef __unix__
 #include <omp.h>
 #endif
 
@@ -38,7 +38,7 @@ double get_bic(const std::vector<double>& dist_v, const size_t nrow,
         const size_t ncol, const unsigned k) {
         double bic = 0;
 
-#ifdef __linux
+#ifdef __unix__
 #pragma omp parallel for reduction(+:bic) shared (dist_v)
 #endif
     for (unsigned i = 0; i < dist_v.size(); i++) {
@@ -53,7 +53,7 @@ double get_bic(const std::vector<double>& dist_v, const size_t nrow,
 
 void spherical_projection(double* data, const size_t nrow,
         const size_t ncol) {
-#ifdef __linux
+#ifdef __unix__
 #pragma omp parallel for shared (data)
 #endif
     for (unsigned row = 0; row < nrow; row++) {

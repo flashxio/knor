@@ -21,7 +21,7 @@
 #define __KNORI_HPP__
 
 #include "io.hpp"
-#ifdef __linux
+#ifdef __unix__
 #include "kmeans.hpp"
 #endif
 
@@ -53,7 +53,7 @@ kmeans_t kmeans(double* data, const size_t nrow,
 
     kmeans_t ret;
 
-#ifdef __linux
+#ifdef __unix__
     if (omp) {
         kpmeans::kmeans_coordinator::ptr kc =
             kpmeans::kmeans_coordinator::create("",
@@ -94,7 +94,7 @@ kmeans_t kmeans(double* data, const size_t nrow,
         } else {
             ret = kc->run_kmeans(data);
         }
-#if __linux
+#if __unix__
     }
 #endif
 
@@ -115,7 +115,7 @@ kmeans_t kmeans(const std::string datafn, const size_t nrow,
 
     kmeans_t ret;
 
-#ifdef __linux
+#ifdef __unix__
     if (omp) {
         kpmeans::kmeans_coordinator::ptr kc =
             kpmeans::kmeans_coordinator::create(datafn,
@@ -129,7 +129,7 @@ kmeans_t kmeans(const std::string datafn, const size_t nrow,
                     datafn, nrow, ncol, k, max_iters, nnodes, nthread, p_centers,
                     init, tolerance, dist_type);
         ret = kc->run_kmeans();
-#ifdef __linux
+#ifdef __unix__
     }
 #endif
 

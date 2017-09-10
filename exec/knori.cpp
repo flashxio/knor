@@ -27,7 +27,7 @@
 
 #include "signal.h"
 #include "io.hpp"
-#ifdef __linux
+#ifdef __unix__
 #include "kmeans.hpp"
 #endif
 
@@ -143,7 +143,7 @@ int main(int argc, char* argv[])
         printf("Read centers!\n");
     } else
         printf("No centers to read ..\n");
-#ifdef __linux
+#ifdef __unix__
     if (omp) {
         kpmbase::bin_io<double> br(datafn, nrow, ncol);
         double* p_data = new double [nrow*ncol];
@@ -184,7 +184,7 @@ int main(int argc, char* argv[])
                     init, tolerance, dist_type);
             ret = kc->run_kmeans();
         }
-#ifdef __linux
+#ifdef __unix__
     }
 #endif
 
