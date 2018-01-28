@@ -18,7 +18,9 @@
  */
 
 #ifdef __unix__
+#ifdef _OPENMP
 #include <omp.h>
+#endif
 #endif
 
 #ifdef USE_NUMA
@@ -39,7 +41,9 @@ double get_bic(const std::vector<double>& dist_v, const size_t nrow,
         double bic = 0;
 
 #ifdef __unix__
+#ifdef _OPENMP
 #pragma omp parallel for reduction(+:bic) shared (dist_v)
+#endif
 #endif
     for (unsigned i = 0; i < dist_v.size(); i++) {
         bic += (dist_v[i] );
@@ -48,20 +52,22 @@ double get_bic(const std::vector<double>& dist_v, const size_t nrow,
     printf("Distance sum: %f\n", bic);
 #endif
 
-    return 2*bic + log(nrow)*ncol*k;
+    return 2*bic + std::log(static_cast<double>(nrow))*ncol*k;
 }
 
 void spherical_projection(double* data, const size_t nrow,
         const size_t ncol) {
 #ifdef __unix__
+#ifdef _OPENMP
 #pragma omp parallel for shared (data)
+#endif
 #endif
     for (unsigned row = 0; row < nrow; row++) {
         double norm2 = 0;
         for (unsigned col = 0; col < ncol; col++)
             norm2 += (data[row]*data[row]);
         for (unsigned col = 0; col < ncol; col++)
-            data[col] = data[col]/sqrt(norm2);
+            data[col] = data[col]/std::sqrt(norm2);
     }
 }
 

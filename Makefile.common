@@ -35,7 +35,7 @@ else
 	LDFLAGS = -lnuma -lpthread $(OMP_FLAG) \
 			   -rdynamic -lrt -rdynamic
 	CXXFLAGS = -g -std=c++11 -O3 -I. -Wall -fPIC $(CLANG_FLAGS) \
-			   -DSTATISTICS $(OMP_FLAG) -DUSE_NUMA
+			   -DSTATISTICS $(OMP_FLAG) -DUSE_NUMA -D_OPENMP
 endif
 
 ifdef PROF

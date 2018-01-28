@@ -67,7 +67,7 @@ const double eucl_dist(const T* lhs, const T* rhs,
         diff = lhs[col] - rhs[col];
         dist += diff * diff;
     }
-    return sqrt(dist);
+    return std::sqrt(dist);
 }
 
 template<typename T>
@@ -84,7 +84,7 @@ const double cos_dist(const T* lhs, const T* rhs,
         ldenom += a*a;
         rdenom += b*b;
     }
-    return  1 - (numr / ((sqrt(ldenom)*sqrt(rdenom))));
+    return  1 - (numr / ((std::sqrt(ldenom)*std::sqrt(rdenom))));
 }
 
 /** \brief Choose the correct distance function and return it

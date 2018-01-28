@@ -82,7 +82,9 @@ void test_thread_safety(const kpmbase::thd_safe_bool_vector::ptr data,
 
         // Assign _test values to data
 #ifdef __unix__
+#ifdef _OPENMP
 #pragma omp parallel for shared(_test)
+#endif
 #endif
         for (unsigned i = 0; i < data->size(); i++) {
             data->set(i, _test[i]);

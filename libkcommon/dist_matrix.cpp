@@ -92,7 +92,9 @@ void dist_matrix::compute_dist(kpmeans::base::prune_clusters::ptr cls,
 
     assert(get_num_rows() == cls->get_nclust()-1);
     cls->reset_s_val_v();
+#ifdef _OPENMP
     //#pragma omp parallel for collapse(2) // FIXME: Opt Coalese perhaps
+#endif
     for (unsigned i = 0; i < cls->get_nclust(); i++) {
         for (unsigned j = i+1; j < cls->get_nclust(); j++) {
             double dist = kpmeans::base::eucl_dist(&(cls->get_means()[i*ncol]),

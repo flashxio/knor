@@ -21,7 +21,10 @@
 #include <gperftools/profiler.h>
 #endif
 
+#ifdef _OPENMP
 #include <omp.h>
+#endif
+
 #include <vector>
 
 #include "kmeans.hpp"
@@ -63,7 +66,9 @@ void random_partition_init(unsigned* cluster_assignments,
     std::default_random_engine generator;
     std::uniform_int_distribution<unsigned> distribution(0, k-1);
 
+#ifdef _OPENMP
 //#pragma omp parallel for shared(cluster_assignments)
+#endif
     for (size_t row = 0; row < num_rows; row++) {
         unsigned asgnd_clust = distribution(generator);
 
@@ -138,7 +143,10 @@ static void kmeanspp_init(const double* matrix, kpmbase::clusters::ptr clusters,
     // Choose next center c_i with weighted prob
     while (true) {
         double cum_dist = 0;
+
+#ifdef _OPENMP
 #pragma omp parallel for reduction(+:cum_dist) shared (dist_v)
+#endif
         for (size_t row = 0; row < NUM_ROWS; row++) {
             double dist = kpmbase::dist_comp_raw(&matrix[row*NUM_COLS],
                         &((clusters->get_means())[clust_idx*NUM_COLS]),
@@ -195,8 +203,10 @@ static void EM_step(const double* matrix, kpmbase::clusters::ptr cls,
     for (int i = 0; i < OMP_MAX_THREADS; i++)
         pt_cl[i] = kpmbase::clusters::create(K, NUM_COLS);
 
+#ifdef _OPENMP
 #pragma omp parallel for firstprivate(matrix, pt_cl)\
     shared(cluster_assignments) schedule(static)
+#endif
     for (size_t row = 0; row < NUM_ROWS; row++) {
 
         size_t asgnd_clust = kpmbase::INVALID_CLUSTER_ID;
