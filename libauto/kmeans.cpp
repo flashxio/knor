@@ -226,10 +226,18 @@ static void EM_step(const double* matrix, kpmbase::clusters::ptr cls,
         assert(asgnd_clust != kpmbase::INVALID_CLUSTER_ID);
 
         if (asgnd_clust != cluster_assignments[row]) {
+#ifdef _OPENMP
             pt_num_change[omp_get_thread_num()]++;
+#else
+            pt_num_change[0]++;
+#endif
         }
         cluster_assignments[row] = asgnd_clust;
+#ifdef _OPENMP
         pt_cl[omp_get_thread_num()]->add_member(&matrix[row*NUM_COLS], asgnd_clust);
+#else
+        pt_cl[0]->add_member(&matrix[row*NUM_COLS], asgnd_clust);
+#endif
         // Accumulate for local copies
     }
 
@@ -282,8 +290,13 @@ kpmbase::kmeans_t compute_kmeans(const double* matrix, double* clusters_ptr,
     if (!max_threads)
         max_threads = 1;
 
+#ifdef _OPENMP
     OMP_MAX_THREADS = std::min(max_threads, kpmbase::get_num_omp_threads());
     omp_set_num_threads(OMP_MAX_THREADS);
+#else
+    OMP_MAX_THREADS = 1;
+#endif
+
 #ifndef BIND
     printf("Running on %i threads!\n", OMP_MAX_THREADS);
 #endif
