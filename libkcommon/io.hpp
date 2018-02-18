@@ -278,7 +278,7 @@ class bin_io {
         // Read all the data!
         void read(std::vector<T>* v) {
 #ifdef NDEBUG
-            fread(&((*v)[0]), sizeof(T)*ncol*nrow, 1, f);
+            size_t nbytes = fread(&((*v)[0]), sizeof(T)*ncol*nrow, 1, f);
 #else
             assert(fread(&((*v)[0]), sizeof(T)*ncol*nrow, 1, f) == 1);
 #endif

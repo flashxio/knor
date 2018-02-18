@@ -23,6 +23,7 @@
 #include "io.hpp"
 #ifdef __unix__
 #include "kmeans.hpp"
+namespace kpmomp = kpmeans::omp;
 #endif
 
 #include "kmeans_coordinator.hpp"
@@ -55,24 +56,19 @@ kmeans_t kmeans(double* data, const size_t nrow,
 
 #ifdef __unix__
     if (omp) {
-        kpmeans::kmeans_coordinator::ptr kc =
-            kpmeans::kmeans_coordinator::create("",
-                    nrow, ncol, k, max_iters, nnodes, nthread, p_centers,
-                    init, tolerance, dist_type);
+        std::vector<double> centroids (k*ncol);
+        std::fill(centroids.begin(), centroids.end(), 0);
+        std::vector<unsigned> assignments(nrow);
+        std::fill(assignments.begin(), assignments.end(), 0);
+        std::vector<size_t> counts(k);
+        std::fill(counts.begin(), counts.end(), 0);
 
-        if (numa_opt) {
-#ifdef USE_NUMA
-            kpmbind::memory_distributor<double>::ptr md =
-                kpmbind::memory_distributor<double>::create(data,
-                        nnodes, nrow, ncol);
-            md->numa_reorg(kc->get_threads());
-            ret = kc->run_kmeans(NULL, true);
-#else
-            ret = kc->run_kmeans(data);
-#endif
-        } else {
-            ret = kc->run_kmeans(data);
-        }
+        if (max_iters < std::numeric_limits<size_t>::max())
+            max_iters++; // NOTE: This accounts for difference in pthread v. omp
+
+        ret = kpmomp::compute_min_kmeans(data, &centroids[0], &assignments[0],
+                &counts[0], nrow, ncol, k, max_iters, nthread, init, tolerance,
+                dist_type);
     } else {
 #endif
         kpmprune::kmeans_task_coordinator::ptr kc =
@@ -117,11 +113,24 @@ kmeans_t kmeans(const std::string datafn, const size_t nrow,
 
 #ifdef __unix__
     if (omp) {
-        kpmeans::kmeans_coordinator::ptr kc =
-            kpmeans::kmeans_coordinator::create(datafn,
-                    nrow, ncol, k, max_iters, nnodes, nthread, p_centers,
-                    init, tolerance, dist_type);
-        ret = kc->run_kmeans();
+        // Read all the data
+        std::vector<double> data(nrow*ncol);
+        bin_io<double> br(datafn, nrow, ncol);
+        br.read(&data);
+
+        std::vector<double> centroids(k*ncol);
+        std::fill(centroids.begin(), centroids.end(), 0);
+        std::vector<unsigned> assignments(nrow);
+        std::fill(assignments.begin(), assignments.end(), 0);
+        std::vector<size_t> counts(k);
+        std::fill(counts.begin(), counts.end(), 0);
+
+        if (max_iters < std::numeric_limits<size_t>::max())
+            max_iters++; // NOTE: This accounts for difference in pthread v. omp
+
+        ret = kpmomp::compute_kmeans(&data[0], &centroids[0], &assignments[0],
+                &counts[0], nrow, ncol, k, max_iters, nthread, init, tolerance,
+                dist_type);
     } else {
 #endif
         kpmprune::kmeans_task_coordinator::ptr kc =
