@@ -44,6 +44,3 @@ apt-get install -y libgoogle-perftools-dev
 
 # Source control
 apt-get install -y git
-
-# Python bindings
-apt-get install -y swig
