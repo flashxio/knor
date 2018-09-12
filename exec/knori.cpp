@@ -27,9 +27,7 @@
 
 #include "signal.h"
 #include "io.hpp"
-#ifdef __unix__
 #include "kmeans.hpp"
-#endif
 
 #include "kmeans_coordinator.hpp"
 #include "kmeans_task_coordinator.hpp"
@@ -143,7 +141,7 @@ int main(int argc, char* argv[])
         printf("Read centers!\n");
     } else
         printf("No centers to read ..\n");
-#ifdef __unix__
+#ifdef _OPENMP
     if (omp) {
         kpmbase::bin_io<double> br(datafn, nrow, ncol);
         double* p_data = new double [nrow*ncol];
@@ -184,7 +182,7 @@ int main(int argc, char* argv[])
                     init, tolerance, dist_type);
             ret = kc->run_kmeans();
         }
-#ifdef __unix__
+#ifdef _OPENMP
     }
 #endif
 
