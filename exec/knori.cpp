@@ -27,7 +27,7 @@
 
 #include "signal.h"
 #include "io.hpp"
-#include "kmeans.hpp"
+#include "../libauto/kmeans.hpp"
 
 #include "kmeans_coordinator.hpp"
 #include "kmeans_task_coordinator.hpp"
