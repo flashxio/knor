@@ -32,6 +32,10 @@
 namespace kpmbind = kpmeans::binding;
 #endif
 
+#ifdef _OPENMP
+namespace kpmomp = kpmeans::omp;
+#endif
+
 namespace kpmprune = kpmeans::prune;
 
 namespace kpmeans { namespace base {
