@@ -2,7 +2,7 @@
 # Copyright 2016 neurodata (http://neurodata.io/)
 # Written by Disa Mhembere (disa@jhu.edu)
 #
-# This file is part of k-par-means.
+# This file is part of knor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
