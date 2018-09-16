@@ -17,8 +17,8 @@
  * limitations under the License.
  */
 
-#ifndef __KPM_MPI__
-#define __KPM_MPI__
+#ifndef __KNOR_MPI__
+#define __KNOR_MPI__
 
 #include <mpi.h>
 #include "exception.hpp"

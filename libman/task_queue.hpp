@@ -17,8 +17,8 @@
  * limitations under the License.
  */
 
-#ifndef __KPM_KMEANS_TASK_QUEUE_HPP__
-#define __KPM_KMEANS_TASK_QUEUE_HPP__
+#ifndef __KNOR_KMEANS_TASK_QUEUE_HPP__
+#define __KNOR_KMEANS_TASK_QUEUE_HPP__
 
 #include <memory>
 #include <cassert>

@@ -16,8 +16,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __KPM_UTIL_HPP__
-#define __KPM_UTIL_HPP__
+#ifndef __KNOR_UTIL_HPP__
+#define __KNOR_UTIL_HPP__
 
 #include <stdlib.h>
 #include <stdio.h>

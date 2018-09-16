@@ -17,8 +17,8 @@
  * limitations under the License.
  */
 
-#ifndef __KPM_CLUSTERS_HPP__
-#define __KPM_CLUSTERS_HPP__
+#ifndef __KNOR_CLUSTERS_HPP__
+#define __KNOR_CLUSTERS_HPP__
 
 #include <limits>
 #include <vector>

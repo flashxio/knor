@@ -17,8 +17,8 @@
  * limitations under the License.
  */
 
-#ifndef __KPM_EXCEPTIONS_HPP__
-#define __KPM_EXCEPTIONS_HPP__
+#ifndef __KNOR_EXCEPTIONS_HPP__
+#define __KNOR_EXCEPTIONS_HPP__
 
 #include <exception>
 #include <stdexcept>
@@ -97,4 +97,4 @@ public:
     }
 };
 } }
-#endif // __KPM_EXCEPTIONS_HPP__
+#endif // __KNOR_EXCEPTIONS_HPP__

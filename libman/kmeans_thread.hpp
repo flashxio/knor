@@ -17,8 +17,8 @@
  * limitations under the License.
  */
 
-#ifndef __KPM_KMEANS_THREAD_HPP__
-#define __KPM_KMEANS_THREAD_HPP__
+#ifndef __KNOR_KMEANS_THREAD_HPP__
+#define __KNOR_KMEANS_THREAD_HPP__
 
 #include "base_kmeans_thread.hpp"
 

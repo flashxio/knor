@@ -17,8 +17,8 @@
  * limitations under the License.
  */
 
-#ifndef __KPM_COMMON_HPP__
-#define __KPM_COMMON_HPP__
+#ifndef __KNOR_COMMON_HPP__
+#define __KNOR_COMMON_HPP__
 
 #include "io.hpp"
 #include "clusters.hpp"

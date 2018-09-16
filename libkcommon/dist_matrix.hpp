@@ -17,8 +17,8 @@
  * limitations under the License.
  */
 
-#ifndef __KPM_DIST_MATRIX_HPP__
-#define __KPM_DIST_MATRIX_HPP__
+#ifndef __KNOR_DIST_MATRIX_HPP__
+#define __KNOR_DIST_MATRIX_HPP__
 
 #include <memory>
 #include <limits>

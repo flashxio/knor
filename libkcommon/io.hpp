@@ -17,8 +17,8 @@
  * limitations under the License.
  */
 
-#ifndef __KPM_I0_HPP__
-#define __KPM_I0_HPP__
+#ifndef __KNOR_I0_HPP__
+#define __KNOR_I0_HPP__
 
 #include <stdlib.h>
 #include <stdio.h>

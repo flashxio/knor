@@ -16,8 +16,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __KPM_DIST_COORDINATOR_HPP__
-#define __KPM_DIST_COORDINATOR_HPP__
+#ifndef __KNOR_DIST_COORDINATOR_HPP__
+#define __KNOR_DIST_COORDINATOR_HPP__
 
 #include "exception.hpp"
 #include "kmeans_coordinator.hpp"

@@ -17,8 +17,8 @@
  * limitations under the License.
  */
 
-#ifndef __KPM_TEST_SHARED_HPP__
-#define __KPM_TEST_SHARED_HPP__
+#ifndef __KNOR_TEST_SHARED_HPP__
+#define __KNOR_TEST_SHARED_HPP__
 
 #include <string>
 #include <iostream>

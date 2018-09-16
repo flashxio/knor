@@ -17,8 +17,8 @@
  * limitations under the License.
  */
 
-#ifndef __KPM_BASE_KMEANS_COORDINATOR_HPP__
-#define __KPM_BASE_KMEANS_COORDINATOR_HPP__
+#ifndef __KNOR_BASE_KMEANS_COORDINATOR_HPP__
+#define __KNOR_BASE_KMEANS_COORDINATOR_HPP__
 
 #include <pthread.h>
 

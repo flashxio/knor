@@ -17,8 +17,8 @@
  * limitations under the License.
  */
 
-#ifndef __KPM_PRUNE_STATS_HPP__
-#define __KPM_PRUNE_STATS_HPP__
+#ifndef __KNOR_PRUNE_STATS_HPP__
+#define __KNOR_PRUNE_STATS_HPP__
 
 #include <vector>
 #include <map>

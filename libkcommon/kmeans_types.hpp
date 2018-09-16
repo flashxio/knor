@@ -17,8 +17,8 @@
  * limitations under the License.
  */
 
-#ifndef __KPM_TYPES_HPP__
-#define __KPM_TYPES_HPP__
+#ifndef __KNOR_TYPES_HPP__
+#define __KNOR_TYPES_HPP__
 
 #include <cstddef>
 #include <limits>

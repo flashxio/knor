@@ -16,8 +16,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __KPM_KMEANS_COORDINATOR_HPP__
-#define __KPM_KMEANS_COORDINATOR_HPP__
+#ifndef __KNOR_KMEANS_COORDINATOR_HPP__
+#define __KNOR_KMEANS_COORDINATOR_HPP__
 
 #include "base_kmeans_coordinator.hpp"
 #include "util.hpp"
