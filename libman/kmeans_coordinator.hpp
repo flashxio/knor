@@ -19,7 +19,7 @@
 #ifndef __KNOR_KMEANS_COORDINATOR_HPP__
 #define __KNOR_KMEANS_COORDINATOR_HPP__
 
-#include "base_kmeans_coordinator.hpp"
+#include "coordinator.hpp"
 #include "util.hpp"
 
 #ifdef PROFILER
@@ -32,9 +32,9 @@ namespace base {
     class clusters;
 }
 
-class base_kmeans_thread;
+class thread;
 
-class kmeans_coordinator : public base_kmeans_coordinator {
+class kmeans_coordinator : public coordinator {
     protected:
         // Metadata
         // max index stored within each threads partition
@@ -48,7 +48,7 @@ class kmeans_coordinator : public base_kmeans_coordinator {
                 const double tolerance, const base::dist_type_t dt);
 
     public:
-        static base_kmeans_coordinator::ptr create(const std::string fn,
+        static coordinator::ptr create(const std::string fn,
                 const size_t nrow,
                 const size_t ncol, const unsigned k, const unsigned max_iters,
                 const unsigned nnodes, const unsigned nthreads,
@@ -65,7 +65,7 @@ class kmeans_coordinator : public base_kmeans_coordinator {
                     dist_type.c_str(), fn.c_str());
 #endif
 #endif
-            return base_kmeans_coordinator::ptr(
+            return coordinator::ptr(
                     new kmeans_coordinator(fn, nrow, ncol, k, max_iters,
                     nnodes, nthreads, centers, _init_t, tolerance, _dist_t));
         }

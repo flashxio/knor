@@ -28,7 +28,7 @@
 #include <iostream>
 #include <cassert>
 
-#include "base_kmeans_thread.hpp"
+#include "thread.hpp"
 
 namespace kpmeans { namespace binding {
 
@@ -73,7 +73,7 @@ public:
         return ptr(new memory_distributor<T>(mallocd_data, npart, nrow, ncol));
     }
 
-    void numa_reorg (std::vector<base_kmeans_thread::ptr>& threads) {
+    void numa_reorg (std::vector<thread::ptr>& threads) {
         for (size_t tid = 0; tid < threads.size(); tid++) {
             size_t nbytes = threads[tid]->get_data_size();
             size_t start_rid = threads[tid]->get_start_rid();

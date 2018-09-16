@@ -40,7 +40,7 @@ kmeans_task_coordinator::kmeans_task_coordinator(const std::string fn, const siz
         const unsigned nnodes, const unsigned nthreads,
         const double* centers, const kpmbase::init_type_t it,
         const double tolerance, const kpmbase::dist_type_t dt) :
-    base_kmeans_coordinator(fn, nrow, ncol, k, max_iters,
+    coordinator(fn, nrow, ncol, k, max_iters,
             nnodes, nthreads, centers, it, tolerance, dt) {
 
         cltrs = kpmbase::prune_clusters::create(k, ncol);
@@ -201,7 +201,7 @@ void kmeans_task_coordinator::set_thd_dist_v_ptr(double* v) {
 
 void kmeans_task_coordinator::set_thread_data_ptr(double* allocd_data) {
 
-    base_kmeans_coordinator::set_thread_data_ptr(allocd_data);
+    coordinator::set_thread_data_ptr(allocd_data);
     // We must also set the pointer for the task queues
     set_task_data_ptrs();
 }

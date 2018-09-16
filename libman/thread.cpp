@@ -21,7 +21,7 @@
 #include <numa.h>
 #endif
 
-#include "base_kmeans_thread.hpp"
+#include "thread.hpp"
 #include "exception.hpp"
 #include "util.hpp"
 
@@ -30,7 +30,7 @@
 
 namespace kpmeans {
 
-void base_kmeans_thread::destroy_numa_mem() {
+void thread::destroy_numa_mem() {
     if (!preallocd_data) {
 #ifdef USE_NUMA
     numa_free(local_data, get_data_size());
@@ -40,7 +40,7 @@ void base_kmeans_thread::destroy_numa_mem() {
     }
 }
 
-void base_kmeans_thread::join() {
+void thread::join() {
     void* join_status;
     int rc = pthread_join(hw_thd, &join_status);
     if (rc)
@@ -50,7 +50,7 @@ void base_kmeans_thread::join() {
 }
 
 // Once the algorithm ends we should deallocate the memory we moved
-void base_kmeans_thread::close_file_handle() {
+void thread::close_file_handle() {
     int rc = fclose(f);
     if (rc)
         throw base::io_exception("fclose() failed!", rc);
@@ -64,7 +64,7 @@ void base_kmeans_thread::close_file_handle() {
 }
 
 // Move data ~equally to all nodes
-void base_kmeans_thread::numa_alloc_mem() {
+void thread::numa_alloc_mem() {
     kpmbase::assert_msg(f, "File handle invalid, can only alloc once!");
     size_t blob_size = get_data_size();
 #ifdef USE_NUMA
@@ -82,14 +82,14 @@ void base_kmeans_thread::numa_alloc_mem() {
     close_file_handle();
 }
 
-void base_kmeans_thread::set_local_data_ptr(double* data, bool offset) {
+void thread::set_local_data_ptr(double* data, bool offset) {
     if (offset)
         local_data = &(data[start_rid*ncol]); // Grab your offset
     else
         local_data = data;
 }
 
-base_kmeans_thread::~base_kmeans_thread() {
+thread::~thread() {
     pthread_cond_destroy(&cond);
     pthread_mutex_destroy(&mutex);
     pthread_mutexattr_destroy(&mutex_attr);
@@ -105,7 +105,7 @@ base_kmeans_thread::~base_kmeans_thread() {
         join();
 }
 
-void base_kmeans_thread::bind2node_id() {
+void thread::bind2node_id() {
 #ifdef USE_NUMA
     struct bitmask *bmp = numa_allocate_nodemask();
     numa_bitmask_setbit(bmp, node_id);

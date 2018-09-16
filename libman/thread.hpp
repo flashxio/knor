@@ -17,8 +17,8 @@
  * limitations under the License.
  */
 
-#ifndef __KNOR_BASE_KMEANS_THREAD_HPP__
-#define __KNOR_BASE_KMEANS_THREAD_HPP__
+#ifndef __KNOR_BASE_THREAD_HPP__
+#define __KNOR_BASE_THREAD_HPP__
 
 #include <pthread.h>
 
@@ -57,7 +57,7 @@ union metaunion {
     unsigned clust_idx; // Used during kms++
 };
 
-class base_kmeans_thread {
+class thread {
 protected:
     pthread_t hw_thd;
     unsigned node_id; // Which NUMA node are you on?
@@ -88,7 +88,7 @@ protected:
 
     friend void* callback(void* arg);
 
-    base_kmeans_thread(const int node_id, const unsigned thd_id,
+    thread(const int node_id, const unsigned thd_id,
             const unsigned ncol, const unsigned nclust,
             unsigned* cluster_assignments, const unsigned start_rid,
             const std::string fn="") {
@@ -122,7 +122,7 @@ protected:
     }
 
 public:
-    typedef std::shared_ptr<base_kmeans_thread> ptr;
+    typedef std::shared_ptr<thread> ptr;
 
     virtual void start(const kpmeans::thread_state_t state) = 0;
     // Allocate and move data using this thread
@@ -236,7 +236,7 @@ public:
     // Move data ~equally to all nodes
     void numa_alloc_mem();
     void set_local_data_ptr(double* data, bool offset=true);
-    ~base_kmeans_thread();
+    ~thread();
     void bind2node_id();
 };
 }

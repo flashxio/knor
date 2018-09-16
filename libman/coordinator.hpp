@@ -17,8 +17,8 @@
  * limitations under the License.
  */
 
-#ifndef __KNOR_BASE_KMEANS_COORDINATOR_HPP__
-#define __KNOR_BASE_KMEANS_COORDINATOR_HPP__
+#ifndef __KNOR_COORDINATOR_HPP__
+#define __KNOR_COORDINATOR_HPP__
 
 #include <pthread.h>
 
@@ -37,9 +37,9 @@
 
 namespace kpmeans {
 
-class base_kmeans_thread;
+class thread;
 
-class base_kmeans_coordinator {
+class coordinator {
 protected:
     unsigned nthreads, nnodes;
     size_t nrow, ncol;
@@ -59,9 +59,9 @@ protected:
     pthread_mutex_t mutex;
     pthread_cond_t cond;
     pthread_mutexattr_t mutex_attr;
-    std::vector<std::shared_ptr<base_kmeans_thread> > threads;
+    std::vector<std::shared_ptr<thread> > threads;
 
-    base_kmeans_coordinator(const std::string fn, const size_t nrow,
+    coordinator(const std::string fn, const size_t nrow,
             const size_t ncol, const unsigned k, const unsigned max_iters,
             const unsigned nnodes, const unsigned nthreads,
             const double* centers, const kpmeans::base::init_type_t it,
@@ -69,9 +69,9 @@ protected:
 
 public:
     const size_t get_num_changed() const { return num_changed; }
-    typedef std::shared_ptr<base_kmeans_coordinator> ptr;
+    typedef std::shared_ptr<coordinator> ptr;
     typedef std::vector<std::shared_ptr
-        <base_kmeans_thread> >::iterator thread_iter;
+        <thread> >::iterator thread_iter;
 
     // pass file handle to threads to read & numa alloc
     virtual void run_init() = 0;
@@ -89,7 +89,7 @@ public:
     virtual void destroy_threads() = 0;
     virtual void set_thd_dist_v_ptr(double* v) = 0;
     void wait4complete();
-    std::vector<std::shared_ptr<base_kmeans_thread> >& get_threads() {
+    std::vector<std::shared_ptr<thread> >& get_threads() {
         return threads;
     }
 

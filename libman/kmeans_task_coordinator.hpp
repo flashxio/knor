@@ -19,7 +19,7 @@
 #ifndef __KNOR_KMEANS_TASK_COORDINATOR_HPP__
 #define __KNOR_KMEANS_TASK_COORDINATOR_HPP__
 
-#include "base_kmeans_coordinator.hpp"
+#include "coordinator.hpp"
 #include "util.hpp"
 
 namespace kpmeans {
@@ -34,7 +34,7 @@ namespace prune {
 class kmeans_task_thread;
 class dist_matrix;
 
-class kmeans_task_coordinator : public kpmeans::base_kmeans_coordinator {
+class kmeans_task_coordinator : public kpmeans::coordinator {
 protected: // So lazy ..
     // Metadata
     // max index stored within each threads partition
@@ -51,7 +51,7 @@ protected: // So lazy ..
             const double tolerance, const base::dist_type_t dt);
 
 public:
-    static base_kmeans_coordinator::ptr create(
+    static coordinator::ptr create(
             const std::string fn, const size_t nrow,
             const size_t ncol, const unsigned k, const unsigned max_iters,
             const unsigned nnodes, const unsigned nthreads,
@@ -69,7 +69,7 @@ public:
                 dist_type.c_str(), fn.c_str());
 #endif
 #endif
-        return base_kmeans_coordinator::ptr(
+        return coordinator::ptr(
                 new kmeans_task_coordinator(fn, nrow, ncol, k, max_iters,
                     nnodes, nthreads, centers, _init_t, tolerance, _dist_t));
     }

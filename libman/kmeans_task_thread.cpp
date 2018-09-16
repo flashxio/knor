@@ -31,7 +31,7 @@ kmeans_task_thread::kmeans_task_thread(const int node_id, const unsigned thd_id,
         const unsigned ncol,
         std::shared_ptr<kpmbase::prune_clusters> g_clusters,
         unsigned* cluster_assignments,
-        const std::string fn) : base_kmeans_thread(node_id, thd_id, ncol,
+        const std::string fn) : thread(node_id, thd_id, ncol,
             g_clusters->get_nclust(), cluster_assignments, start_rid, fn) {
 
             this->g_clusters = g_clusters;
@@ -128,7 +128,7 @@ bool kmeans_task_thread::try_steal_task() {
 #else
 
 bool kmeans_task_thread::try_steal_task() {
-  std::vector<std::shared_ptr<kpmeans::base_kmeans_thread> > workers =
+  std::vector<std::shared_ptr<kpmeans::thread> > workers =
     (static_cast<kmeans_task_coordinator*>(driver))->get_threads(); // Me included
 
   bool one_locked;

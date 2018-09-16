@@ -43,7 +43,7 @@ private:
     std::vector<size_t> prev_num_members;
 
 public:
-    static base_kmeans_coordinator::ptr create(int argc, char* argv[],
+    static coordinator::ptr create(int argc, char* argv[],
             const std::string fn, const size_t nrow,
             const size_t ncol, const unsigned k, const unsigned max_iters,
             const unsigned nnodes, const unsigned nthreads,
@@ -59,7 +59,7 @@ public:
                 "\n\n", nnodes, nthreads, nrow, ncol, init.c_str(),
                 dist_type.c_str(), fn.c_str());
 #endif
-        return base_kmeans_coordinator::ptr(
+        return coordinator::ptr(
                 new dist_task_coordinator(argc, argv, fn, nrow, ncol, k,
                     max_iters, nnodes, nthreads, centers,
                     _init_t, tolerance, _dist_t));

@@ -19,14 +19,14 @@
 
 #include <cassert>
 
-#include "base_kmeans_coordinator.hpp"
-#include "base_kmeans_thread.hpp"
+#include "coordinator.hpp"
+#include "thread.hpp"
 #include "util.hpp"
 
 namespace kpmbase = kpmeans::base;
 
 namespace kpmeans {
-base_kmeans_coordinator::base_kmeans_coordinator(const std::string fn,
+coordinator::coordinator(const std::string fn,
         const size_t nrow,
         const size_t ncol, const unsigned k, const unsigned max_iters,
         const unsigned nnodes, const unsigned nthreads,
@@ -64,7 +64,7 @@ base_kmeans_coordinator::base_kmeans_coordinator(const std::string fn,
     pthread_cond_init(&cond, NULL);
 }
 
-void base_kmeans_coordinator::wait4complete() {
+void coordinator::wait4complete() {
     pthread_mutex_lock(&mutex);
     while (pending_threads != 0) {
         pthread_cond_wait(&cond, &mutex);
@@ -72,7 +72,7 @@ void base_kmeans_coordinator::wait4complete() {
     pthread_mutex_unlock(&mutex);
 }
 
-void base_kmeans_coordinator::set_thread_data_ptr(double* allocd_data) {
+void coordinator::set_thread_data_ptr(double* allocd_data) {
     thread_iter it = threads.begin();
     for (; it != threads.end(); ++it)
         (*it)->set_local_data_ptr(allocd_data);

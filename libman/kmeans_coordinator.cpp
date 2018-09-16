@@ -31,7 +31,7 @@ kmeans_coordinator::kmeans_coordinator(const std::string fn, const size_t nrow,
         const unsigned nnodes, const unsigned nthreads,
         const double* centers, const kpmbase::init_type_t it,
         const double tolerance, const kpmbase::dist_type_t dt) :
-    base_kmeans_coordinator(fn, nrow, ncol, k, max_iters,
+    coordinator(fn, nrow, ncol, k, max_iters,
             nnodes, nthreads, centers, it, tolerance, dt) {
 
         cltrs = kpmbase::clusters::create(k, ncol);

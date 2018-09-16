@@ -22,7 +22,7 @@
 
 #include <atomic>
 
-#include "base_kmeans_thread.hpp"
+#include "thread.hpp"
 
 namespace kpmeans {
 class task_queue;
@@ -40,7 +40,7 @@ namespace kpmbase = kpmeans::base;
 
 namespace kpmeans { namespace prune {
 
-class kmeans_task_thread : public kpmeans::base_kmeans_thread {
+class kmeans_task_thread : public kpmeans::thread {
 protected: // Lazy
     std::shared_ptr<kpmbase::prune_clusters> g_clusters; // Ptr to global cluster data
     unsigned start_rid; // The row id of the first item in this partition
@@ -61,13 +61,13 @@ protected: // Lazy
             unsigned* cluster_assignments,
             const std::string fn);
 public:
-    static base_kmeans_thread::ptr create(const int node_id,
+    static thread::ptr create(const int node_id,
             const unsigned thd_id,
             const unsigned start_rid, const unsigned nlocal_rows,
             const unsigned ncol,
             std::shared_ptr<kpmbase::prune_clusters> g_clusters,
             unsigned* cluster_assignments, const std::string fn) {
-        return base_kmeans_thread::ptr(
+        return thread::ptr(
                 new kmeans_task_thread(node_id, thd_id, start_rid,
                     nlocal_rows, ncol, g_clusters,
                     cluster_assignments, fn));
