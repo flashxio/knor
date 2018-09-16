@@ -28,7 +28,7 @@
 #define VERBOSE 0
 #define INVALID_THD_ID -1
 
-namespace kpmeans {
+namespace knor {
 
 void thread::destroy_numa_mem() {
     if (!preallocd_data) {
@@ -114,4 +114,4 @@ void thread::bind2node_id() {
 #endif
     // No NUMA? Do nothing
 }
-} // End namespace kpmeans
+} // End namespace knor

@@ -24,7 +24,7 @@
 #include <map>
 #include <memory>
 
-namespace kpmeans { namespace base {
+namespace knor { namespace base {
 // Class to hold stats on the effectiveness of pruning
 class prune_stats {
 private:
@@ -136,5 +136,5 @@ public:
     void write_consolidated(std::string fn, size_t print_row_cnt);
 };
 
-} } // End namespace kpmeans::base
+} } // End namespace knor::base
 #endif

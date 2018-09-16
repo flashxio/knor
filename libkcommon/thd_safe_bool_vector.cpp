@@ -22,7 +22,7 @@
 #include "io.hpp"
 #include "thd_safe_bool_vector.hpp"
 
-namespace kpmeans { namespace base {
+namespace knor { namespace base {
 
 _bool::_bool(char c) {
     _[0] = c;
@@ -54,4 +54,4 @@ unsigned thd_safe_bool_vector::size() const {
 void thd_safe_bool_vector::print() const {
     print_vector<_bool>(data);
 }
-} } // End namespace kpmeans::base
+} } // End namespace knor::base

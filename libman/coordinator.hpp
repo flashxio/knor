@@ -35,7 +35,7 @@
 #include <gperftools/profiler.h>
 #endif
 
-namespace kpmeans {
+namespace knor {
 
 class thread;
 
@@ -47,8 +47,8 @@ protected:
     std::vector<unsigned> cluster_assignments;
     std::vector<size_t>cluster_assignment_counts;
     unsigned k;
-    kpmeans::base::init_type_t _init_t;
-    kpmeans::base::dist_type_t _dist_t;
+    knor::base::init_type_t _init_t;
+    knor::base::dist_type_t _dist_t;
     double tolerance;
     unsigned max_iters;
     size_t num_changed; // total # samples changed in an iter
@@ -64,8 +64,8 @@ protected:
     coordinator(const std::string fn, const size_t nrow,
             const size_t ncol, const unsigned k, const unsigned max_iters,
             const unsigned nnodes, const unsigned nthreads,
-            const double* centers, const kpmeans::base::init_type_t it,
-            const double tolerance, const kpmeans::base::dist_type_t dt);
+            const double* centers, const knor::base::init_type_t it,
+            const double tolerance, const knor::base::dist_type_t dt);
 
 public:
     const size_t get_num_changed() const { return num_changed; }
@@ -78,10 +78,10 @@ public:
     virtual void random_partition_init() = 0;
     virtual void forgy_init() = 0;
 
-    virtual kpmeans::base::kmeans_t run_kmeans(
+    virtual knor::base::kmeans_t run_kmeans(
             double* allocd_data=NULL, const bool numa_opt=false) = 0;
     virtual void kmeanspp_init() = 0;
-    virtual void wake4run(kpmeans::thread_state_t state) = 0;
+    virtual void wake4run(knor::thread_state_t state) = 0;
     virtual const double* get_thd_data(const unsigned row_id) const = 0;
 
     virtual void set_thread_clust_idx(const unsigned clust_idx) = 0;
@@ -95,21 +95,21 @@ public:
 
     virtual void set_thread_data_ptr(double* allocd_data);
 
-    virtual void set_global_ptrs() { throw kpmeans::base::abstract_exception(); };
+    virtual void set_global_ptrs() { throw knor::base::abstract_exception(); };
     virtual const void print_thread_data() {
-        throw kpmeans::base::abstract_exception();
+        throw knor::base::abstract_exception();
     };
-    virtual void build_thread_state() { throw kpmeans::base::abstract_exception(); };
+    virtual void build_thread_state() { throw knor::base::abstract_exception(); };
     const unsigned* get_cluster_assignments() const {
         return &cluster_assignments[0];
     }
 
     void clear_cluster_assignments() {
         std::fill(&cluster_assignments[0],
-                &cluster_assignments[nrow], kpmeans::base::INVALID_CLUSTER_ID);
+                &cluster_assignments[nrow], knor::base::INVALID_CLUSTER_ID);
     }
     const size_t get_nrow() { return nrow; }
     const size_t get_ncol() { return ncol; }
 };
-} // namespace kpmeans
+} // namespace knor
 #endif

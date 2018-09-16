@@ -23,7 +23,7 @@
 #include "util.hpp"
 #include "clusters.hpp"
 
-namespace kpmeans { namespace base {
+namespace knor { namespace base {
 void clusters::clear() {
     std::fill(means.begin(), means.end(), 0);
     std::fill(num_members_v.begin(), num_members_v.end(), 0);
@@ -190,4 +190,4 @@ const void prune_clusters::print_prev_means_v() const {
     std::cout << "\n";
 #endif
 }
-} } // End namespace kpmeans, base
+} } // End namespace knor, base

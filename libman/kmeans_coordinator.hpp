@@ -26,7 +26,7 @@
 #include <gperftools/profiler.h>
 #endif
 
-namespace kpmeans {
+namespace knor {
 
 namespace base {
     class clusters;
@@ -80,7 +80,7 @@ class kmeans_coordinator : public coordinator {
                 const bool numa_opt) override;
         void update_clusters();
         void kmeanspp_init() override;
-        void wake4run(kpmeans::thread_state_t state) override;
+        void wake4run(knor::thread_state_t state) override;
         void destroy_threads() override;
         void set_thread_clust_idx(const unsigned clust_idx) override;
         double reduction_on_cuml_sum() override;

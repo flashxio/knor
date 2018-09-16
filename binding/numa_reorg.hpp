@@ -30,7 +30,7 @@
 
 #include "thread.hpp"
 
-namespace kpmeans { namespace binding {
+namespace knor { namespace binding {
 
 /**
   * Parition data into number of NUMA nodes chunks
@@ -115,6 +115,6 @@ public:
         // Dealloc happens in each thread ...
     }
 };
-}} // End namespace kpmeans::binding
+}} // End namespace knor::binding
 
 #endif

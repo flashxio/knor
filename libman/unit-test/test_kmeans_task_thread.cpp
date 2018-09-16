@@ -34,8 +34,8 @@
 #include "numa.h"
 #endif
 
-namespace kpmprune = kpmeans::prune;
-namespace kpmbase = kpmeans::base;
+namespace kpmprune = knor::prune;
+namespace kpmbase = knor::base;
 
 static std::atomic<unsigned> pending_threads;
 //static unsigned pending_threads;
@@ -52,7 +52,7 @@ static void wait4complete() {
 }
 
 static void wake4run(std::vector<kpmprune::kmeans_task_thread::ptr>& threads,
-        const unsigned nthreads, const kpmeans::thread_state_t state) {
+        const unsigned nthreads, const knor::thread_state_t state) {
     pending_threads = nthreads;
     for (unsigned thd_id = 0; thd_id < threads.size(); thd_id++) {
         threads[thd_id]->wake(state);
@@ -69,15 +69,15 @@ static void test_thread_creation(const unsigned NTHREADS, const unsigned nnodes)
                 (i%nnodes, i, 69, 200, 1, cl, NULL, "/dev/null"));
         threads[i]->set_parent_cond(&cond);
         threads[i]->set_parent_pending_threads(&pending_threads);
-        threads[i]->start(kpmeans::thread_state_t::WAIT); // Thread puts itself to sleep
+        threads[i]->start(knor::thread_state_t::WAIT); // Thread puts itself to sleep
     }
 
     for (unsigned i = 0; i < 2048; i++) {
-        wake4run(threads, NTHREADS, kpmeans::thread_state_t::TEST);
+        wake4run(threads, NTHREADS, knor::thread_state_t::TEST);
         wait4complete();
     }
 
-    wake4run(threads, NTHREADS, kpmeans::thread_state_t::EXIT);
+    wake4run(threads, NTHREADS, knor::thread_state_t::EXIT);
     std::cout << "SUCCESS: for creation & join\n";
 }
 
@@ -100,7 +100,7 @@ void test_numa_populate_data(const unsigned NTHREADS, const unsigned nnodes,
                  cl, NULL, fn));
         threads[i]->set_parent_cond(&cond);
         threads[i]->set_parent_pending_threads(&pending_threads);
-        threads[i]->start(kpmeans::thread_state_t::WAIT); // Thread puts itself to sleep
+        threads[i]->start(knor::thread_state_t::WAIT); // Thread puts itself to sleep
     }
 
     kpmbase::bin_io<double> br(fn, nrow, ncol);
@@ -108,7 +108,7 @@ void test_numa_populate_data(const unsigned NTHREADS, const unsigned nnodes,
     printf("Bin read data\n");
     br.read(data);
 
-    wake4run(threads, NTHREADS, kpmeans::thread_state_t::ALLOC_DATA);
+    wake4run(threads, NTHREADS, knor::thread_state_t::ALLOC_DATA);
     wait4complete();
 
     std::vector<kpmprune::kmeans_task_thread::ptr>::iterator it = threads.begin();
@@ -119,7 +119,7 @@ void test_numa_populate_data(const unsigned NTHREADS, const unsigned nnodes,
         printf("Thread %u PASSED numa_mem_alloc()\n", (*it)->get_thd_id());
     }
 
-    wake4run(threads, NTHREADS, kpmeans::thread_state_t::EXIT);
+    wake4run(threads, NTHREADS, knor::thread_state_t::EXIT);
     delete [] data;
     printf("SUCCESS test_numa_populate_data ..\n");
 }

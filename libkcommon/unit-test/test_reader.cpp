@@ -20,7 +20,7 @@
 #include "io.hpp"
 #include "util.hpp"
 
-namespace kpmbase = kpmeans::base;
+namespace kpmbase = knor::base;
 
 void test_text_reader(std::string fn, const size_t NROW, const size_t NCOL) {
     std::cout << "Text reader test ...\n";

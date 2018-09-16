@@ -35,8 +35,8 @@
 
 #include "cxxopts/cxxopts.hpp"
 
-namespace kpmbase = kpmeans::base;
-namespace kpmprune = kpmeans::prune;
+namespace kpmbase = knor::base;
+namespace kpmprune = knor::prune;
 
 int main(int argc, char* argv[])
 {
@@ -155,11 +155,11 @@ int main(int argc, char* argv[])
             p_centers = new double [k*ncol];
 
         if (no_prune) {
-            ret = kpmeans::omp::compute_kmeans(p_data, p_centers, p_clust_asgns,
+            ret = knor::omp::compute_kmeans(p_data, p_centers, p_clust_asgns,
                     p_clust_asgn_cnt, nrow, ncol, k, max_iters,
                     nthread, init, tolerance, dist_type);
         } else {
-            ret = kpmeans::omp::compute_min_kmeans(p_data, p_centers, p_clust_asgns,
+            ret = knor::omp::compute_min_kmeans(p_data, p_centers, p_clust_asgns,
                     p_clust_asgn_cnt, nrow, ncol, k, max_iters,
                     nthread, init, tolerance, dist_type);
         }
@@ -170,8 +170,8 @@ int main(int argc, char* argv[])
     } else {
 #endif
         if (no_prune) {
-            kpmeans::kmeans_coordinator::ptr kc =
-                kpmeans::kmeans_coordinator::create(datafn,
+            knor::kmeans_coordinator::ptr kc =
+                knor::kmeans_coordinator::create(datafn,
                     nrow, ncol, k, max_iters, nnodes, nthread, p_centers,
                     init, tolerance, dist_type);
             ret = kc->run_kmeans();

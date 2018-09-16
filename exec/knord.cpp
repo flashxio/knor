@@ -127,18 +127,18 @@ int main(int argc, char* argv[]) {
     kpmbase::kmeans_t ret; // Only root fills this
 
     if (no_prune) {
-        kpmeans::dist::dist_coordinator::ptr dc =
-            kpmeans::dist::dist_coordinator::create(argc, argv,
+        knor::dist::dist_coordinator::ptr dc =
+            knor::dist::dist_coordinator::create(argc, argv,
                     datafn, nrow, ncol, k, max_iters, nnodes, nthread,
                     p_centers, init, tolerance, dist_type);
-        std::static_pointer_cast<kpmeans::dist::dist_coordinator>(
+        std::static_pointer_cast<knor::dist::dist_coordinator>(
                 dc)->run_kmeans(ret, outdir);
     } else {
-        kpmeans::prune::dist_task_coordinator::ptr dc =
-            kpmeans::prune::dist_task_coordinator::create(argc, argv,
+        knor::prune::dist_task_coordinator::ptr dc =
+            knor::prune::dist_task_coordinator::create(argc, argv,
                     datafn, nrow, ncol, k, max_iters, nnodes, nthread,
                     p_centers, init, tolerance, dist_type);
-        std::static_pointer_cast<kpmeans::prune::dist_task_coordinator>(
+        std::static_pointer_cast<knor::prune::dist_task_coordinator>(
                 dc)->run_kmeans(ret, outdir);
     }
 

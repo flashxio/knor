@@ -25,7 +25,7 @@
 #include "io.hpp"
 #include "util.hpp"
 
-namespace kpmeans { namespace prune {
+namespace knor { namespace prune {
 
 dist_matrix::dist_matrix(const unsigned rows) {
     assert(rows > 1);
@@ -82,11 +82,11 @@ void dist_matrix::print() {
 #ifndef BIND
         std::cout << row << " ==> ";
 #endif
-        kpmeans::base::print_vector<double>(mat[row]);
+        knor::base::print_vector<double>(mat[row]);
     }
 }
 
-void dist_matrix::compute_dist(kpmeans::base::prune_clusters::ptr cls,
+void dist_matrix::compute_dist(knor::base::prune_clusters::ptr cls,
         const unsigned ncol) {
     if (cls->get_nclust() <= 1) return;
 
@@ -97,7 +97,7 @@ void dist_matrix::compute_dist(kpmeans::base::prune_clusters::ptr cls,
 #endif
     for (unsigned i = 0; i < cls->get_nclust(); i++) {
         for (unsigned j = i+1; j < cls->get_nclust(); j++) {
-            double dist = kpmeans::base::eucl_dist(&(cls->get_means()[i*ncol]),
+            double dist = knor::base::eucl_dist(&(cls->get_means()[i*ncol]),
                     &(cls->get_means()[j*ncol]), ncol) / 2.0;
             set(i,j, dist);
 
@@ -120,4 +120,4 @@ void dist_matrix::compute_dist(kpmeans::base::prune_clusters::ptr cls,
     }
 #endif
 }
-} } // End namepsace kpmeans, prune
+} } // End namepsace knor, prune

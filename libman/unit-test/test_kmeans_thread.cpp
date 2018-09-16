@@ -32,7 +32,7 @@
 #include "numa.h"
 #endif
 
-namespace kpmbase = kpmeans::base;
+namespace kpmbase = knor::base;
 
 static std::atomic<unsigned> pending_threads;
 //static unsigned pending_threads;
@@ -50,8 +50,8 @@ static void wait4complete() {
     //printf("Exiting wait4complete!!\n\n");
 }
 
-static void wake4run(std::vector<kpmeans::kmeans_thread::ptr>& threads,
-        const unsigned nthreads, const kpmeans::thread_state_t state) {
+static void wake4run(std::vector<knor::kmeans_thread::ptr>& threads,
+        const unsigned nthreads, const knor::thread_state_t state) {
     pending_threads = nthreads;
     for (unsigned thd_id = 0; thd_id < threads.size(); thd_id++) {
         threads[thd_id]->wake(state);
@@ -60,25 +60,25 @@ static void wake4run(std::vector<kpmeans::kmeans_thread::ptr>& threads,
 
 static void test_thread_creation(const unsigned NTHREADS,
         const unsigned nnodes) {
-    std::vector<kpmeans::kmeans_thread::ptr> threads;
+    std::vector<knor::kmeans_thread::ptr> threads;
 
     // Always: Build state alone
     for (unsigned i = 0; i < NTHREADS; i++) {
         kpmbase::clusters::ptr cl = kpmbase::clusters::create(2,2);
-        threads.push_back(kpmeans::kmeans_thread::create
+        threads.push_back(knor::kmeans_thread::create
                 (i%nnodes, i, 69, 200, 1, cl, NULL, "/dev/null"));
         threads[i]->set_parent_cond(&cond);
         threads[i]->set_parent_pending_threads(&pending_threads);
         // Thread puts itself to sleep
-        threads[i]->start(kpmeans::thread_state_t::WAIT);
+        threads[i]->start(knor::thread_state_t::WAIT);
     }
 
     for (unsigned i = 0; i < 2048; i++) {
-        wake4run(threads, NTHREADS, kpmeans::thread_state_t::TEST);
+        wake4run(threads, NTHREADS, knor::thread_state_t::TEST);
         wait4complete();
     }
 
-    wake4run(threads, NTHREADS, kpmeans::thread_state_t::EXIT);
+    wake4run(threads, NTHREADS, knor::thread_state_t::EXIT);
     std::cout << "SUCCESS: for creation & join\n";
 }
 
@@ -90,29 +90,29 @@ void test_numa_populate_data(const unsigned NTHREADS, const unsigned nnodes,
             "%u threads ...\n", NTHREADS);
     const unsigned nprocrows = nrow/NTHREADS;
 
-    std::vector<kpmeans::kmeans_thread::ptr> threads;
+    std::vector<knor::kmeans_thread::ptr> threads;
 
     // Always: Build state alone
     for (unsigned i = 0; i < NTHREADS; i++) {
         kpmbase::clusters::ptr cl = kpmbase::clusters::create(2,2);
-        threads.push_back(kpmeans::kmeans_thread::create
+        threads.push_back(knor::kmeans_thread::create
                 (i%nnodes, i, i*nprocrows, nprocrows, ncol,
                  cl, NULL, fn));
         threads[i]->set_parent_cond(&cond);
         threads[i]->set_parent_pending_threads(&pending_threads);
         // Thread puts itself to sleep
-        threads[i]->start(kpmeans::thread_state_t::WAIT);
+        threads[i]->start(knor::thread_state_t::WAIT);
     }
 
-    kpmeans::base::bin_io<double> br(fn, nrow, ncol);
+    knor::base::bin_io<double> br(fn, nrow, ncol);
     double* data = new double [nrow*ncol];
     printf("Bin read data\n");
     br.read(data);
 
-    wake4run(threads, NTHREADS, kpmeans::thread_state_t::ALLOC_DATA);
+    wake4run(threads, NTHREADS, knor::thread_state_t::ALLOC_DATA);
     wait4complete();
 
-    std::vector<kpmeans::kmeans_thread::ptr>::iterator it = threads.begin();
+    std::vector<knor::kmeans_thread::ptr>::iterator it = threads.begin();
     // Print it back
     for (it = threads.begin(); it != threads.end(); ++it) {
         double *dp = &data[(*it)->get_thd_id()*ncol*nprocrows];
@@ -121,7 +121,7 @@ void test_numa_populate_data(const unsigned NTHREADS, const unsigned nnodes,
         printf("Thread %u PASSED numa_mem_alloc()\n", (*it)->get_thd_id());
     }
 
-    wake4run(threads, NTHREADS, kpmeans::thread_state_t::EXIT);
+    wake4run(threads, NTHREADS, knor::thread_state_t::EXIT);
     delete [] data;
     printf("SUCCESS test_numa_populate_data ..\n");
 }

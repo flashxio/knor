@@ -40,7 +40,7 @@ void test_queue_get(const unsigned NTHREADS, const unsigned nnodes,
     printf("Bin read data\n");
     br.read(data);
 
-    kpmeans::task_queue q(data, 0, nrow, ncol);
+    knor::task_queue q(data, 0, nrow, ncol);
     printf("Task queue ==> nrow: %u, ncol: %u\n",
             q.get_nrow(), q.get_ncol());
 
@@ -50,7 +50,7 @@ void test_queue_get(const unsigned NTHREADS, const unsigned nnodes,
         // Test reset
         q.reset();
         while(q.has_task()) {
-            kpmeans::task* t = q.get_task();
+            knor::task* t = q.get_task();
             assert(kpmbase::eq_all<double>(
                         t->get_data_ptr(), &(data[t->get_start_rid()*ncol]),
                         t->get_nrow()*ncol));

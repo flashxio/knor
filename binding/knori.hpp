@@ -29,16 +29,16 @@
 
 #ifdef USE_NUMA
 #include "numa_reorg.hpp"
-namespace kpmbind = kpmeans::binding;
+namespace kpmbind = knor::binding;
 #endif
 
 #ifdef _OPENMP
-namespace kpmomp = kpmeans::omp;
+namespace kpmomp = knor::omp;
 #endif
 
-namespace kpmprune = kpmeans::prune;
+namespace kpmprune = knor::prune;
 
-namespace kpmeans { namespace base {
+namespace knor { namespace base {
     // NOTE: It is the callers job to allocate/free data & p_centers
 
 kmeans_t kmeans(double* data, const size_t nrow,
@@ -147,5 +147,5 @@ kmeans_t kmeans(const std::string datafn, const size_t nrow,
     return ret;
 }
 
-} } // End namespace kpmeans::base
+} } // End namespace knor::base
 #endif

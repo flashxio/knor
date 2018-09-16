@@ -20,7 +20,7 @@
 #include "knori.hpp"
 #include "util.hpp"
 
-namespace kpmbase = kpmeans::base;
+namespace kpmbase = knor::base;
 
 int main(int argc, char* argv[]) {
 

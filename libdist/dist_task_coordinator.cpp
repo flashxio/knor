@@ -30,9 +30,9 @@
 #include "kmeans_types.hpp"
 #include "dist_matrix.hpp"
 
-namespace kpmmpi = kpmeans::mpi;
+namespace kpmmpi = knor::mpi;
 
-namespace kpmeans { namespace prune {
+namespace knor { namespace prune {
 
 dist_task_coordinator::dist_task_coordinator(
         int argc, char* argv[],
@@ -253,7 +253,7 @@ void dist_task_coordinator::run_kmeans(kpmbase::kmeans_t& ret,
 
     // The business
     set_global_ptrs();
-    wake4run(kpmeans::thread_state_t::ALLOC_DATA);
+    wake4run(knor::thread_state_t::ALLOC_DATA);
     wait4complete();
 
     struct timeval start, end;
@@ -321,7 +321,7 @@ void dist_task_coordinator::run_kmeans(kpmbase::kmeans_t& ret,
             get_dm()->print();
         }
 #endif
-        wake4run(kpmeans::thread_state_t::EM);
+        wake4run(knor::thread_state_t::EM);
         wait4complete();
         // NOTE: Unfinalized diffs on this proc in cltrs.means
         pp_aggregate();
@@ -474,4 +474,4 @@ void dist_task_coordinator::pp_aggregate() {
     }
 }
 
-} } // End namespace kpmeans, prune
+} } // End namespace knor, prune

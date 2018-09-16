@@ -23,7 +23,7 @@
 #include "io.hpp"
 #include "util.hpp"
 
-namespace kpmeans { namespace base {
+namespace knor { namespace base {
 
 kmeans_t::kmeans_t(const size_t nrow, const size_t ncol, const size_t iters,
          const size_t k, const unsigned* assignments_buf,

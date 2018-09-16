@@ -25,7 +25,7 @@
 #include "io.hpp"
 #include "clusters.hpp"
 
-namespace kpmeans {
+namespace knor {
 kmeans_coordinator::kmeans_coordinator(const std::string fn, const size_t nrow,
         const size_t ncol, const unsigned k, const unsigned max_iters,
         const unsigned nnodes, const unsigned nthreads,

@@ -24,7 +24,7 @@
 
 #include "clusters.hpp"
 
-namespace kpmbase = kpmeans::base;
+namespace kpmbase = knor::base;
 
 constexpr unsigned NCOL = 4;
 constexpr unsigned NCLUST = 5;

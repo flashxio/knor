@@ -24,11 +24,11 @@
 #include <cassert>
 #include "io.hpp"
 
-namespace kpmbase = kpmeans::base;
+namespace kpmbase = knor::base;
 
 #define MIN_TASK_ROWS 8192
 //#define MIN_TASK_ROWS 2 // TODO: Change
-namespace kpmeans {
+namespace knor {
 template <typename T>
     class data_container {
         private:

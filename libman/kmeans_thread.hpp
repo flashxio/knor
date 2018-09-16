@@ -22,13 +22,13 @@
 
 #include "thread.hpp"
 
-namespace kpmeans { namespace base {
+namespace knor { namespace base {
     class clusters;
 } }
-namespace kpmbase = kpmeans::base;
+namespace kpmbase = knor::base;
 
 
-namespace kpmeans {
+namespace knor {
 class kmeans_thread : public thread {
     private:
          // Pointer to global cluster data

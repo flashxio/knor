@@ -23,7 +23,7 @@
 #include <exception>
 #include <stdexcept>
 
-namespace kpmeans { namespace base {
+namespace knor { namespace base {
 
 class not_implemented_exception : public std::runtime_error {
 

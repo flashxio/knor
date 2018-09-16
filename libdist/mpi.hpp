@@ -23,7 +23,7 @@
 #include <mpi.h>
 #include "exception.hpp"
 
-namespace kpmeans { namespace mpi {
+namespace knor { namespace mpi {
 class mpi {
 public:
 #if 0
@@ -75,5 +75,5 @@ public:
     // Merge the per-process cluster assingments so it can be returned in 1 proc
     void merge_global_assignments() { /*FIXME*/ }
 };
-}} // namespace kpmeans::mpi
+}} // namespace knor::mpi
 #endif

@@ -31,7 +31,7 @@
 #include "kmeans_types.hpp"
 #include "exception.hpp"
 
-namespace kpmeans { namespace base {
+namespace knor { namespace base {
 
 double get_bic(const std::vector<double>& dist_v, const size_t nrow,
         const size_t ncol, const unsigned k);
@@ -182,9 +182,9 @@ bool is_file_exist(const char *fn);
 size_t filesize(const char* filename);
 
 void assert_msg(bool expr, const std::string msg);
-} } // End namespace kpmeans::base
+} } // End namespace knor::base
 
-namespace kpmeans { namespace test {
+namespace knor { namespace test {
 
 template <typename It1, typename It2, typename T>
 bool check_collection_equal(It1 arg0first, It1 arg0last,
@@ -213,5 +213,5 @@ bool check_collection_equal(It1 arg0first, It1 arg0last,
     }
     return all_eq;
 }
-}} // End namespace kpmeans::test
+}} // End namespace knor::test
 #endif

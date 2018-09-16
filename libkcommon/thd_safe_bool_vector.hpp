@@ -23,7 +23,7 @@
 #include <vector>
 #include <memory>
 
-namespace kpmeans { namespace base {
+namespace knor { namespace base {
 
 constexpr unsigned LEN = 2;
 class _bool {
@@ -76,5 +76,5 @@ public:
     unsigned size() const;
     void print() const;
 };
-} } // End namespace kpmeans, base
+} } // End namespace knor, base
 #endif

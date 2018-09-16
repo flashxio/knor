@@ -21,9 +21,9 @@
 #include "test_shared.hpp"
 #include "util.hpp"
 
-namespace kpmtest = kpmeans::test;
+namespace kpmtest = knor::test;
 
-namespace kpmeans { namespace test {
+namespace knor { namespace test {
 kpmbase::kmeans_t run_test(double* p_centers, double* p_data,
         size_t* p_clust_asgn_cnt, unsigned* p_clust_asgns, const bool prune,
         const std::string init, const unsigned max_iter) {
@@ -40,12 +40,12 @@ kpmbase::kmeans_t run_test(double* p_centers, double* p_data,
 
     kpmbase::kmeans_t ret;
     if (prune) {
-        ret = kpmeans::omp::compute_min_kmeans(
+        ret = knor::omp::compute_min_kmeans(
                 p_data, p_centers, p_clust_asgns,
                 p_clust_asgn_cnt, TEST_NROW, TEST_NCOL, TEST_K, max_iter,
                 NTHREADS, init, 0);
     } else {
-        ret = kpmeans::omp::compute_kmeans(
+        ret = knor::omp::compute_kmeans(
                 p_data, p_centers, p_clust_asgns,
                 p_clust_asgn_cnt, TEST_NROW, TEST_NCOL, TEST_K, max_iter,
                 NTHREADS, init, 0);
@@ -68,7 +68,7 @@ int main(int argc, char* argv[]) {
 
         /////////////////////////// Auto only ///////////////////////////
         {
-            kpmbase::kmeans_t ret = kpmeans::test::run_test(&p_centers[0],
+            kpmbase::kmeans_t ret = knor::test::run_test(&p_centers[0],
                     &p_data[0], &p_clust_asgn_cnt[0], &p_clust_asgns[0], false,
                     "none", 10);
             assert(kpmtest::check_collection_equal(
@@ -80,7 +80,7 @@ int main(int argc, char* argv[]) {
 
         /////////////////////////// Min auto ///////////////////////////
         {
-            kpmbase::kmeans_t ret = kpmeans::test::run_test(&p_centers[0],
+            kpmbase::kmeans_t ret = knor::test::run_test(&p_centers[0],
                     &p_data[0], &p_clust_asgn_cnt[0], &p_clust_asgns[0], true,
                     "none", 10);
             assert(kpmtest::check_collection_equal(
@@ -103,12 +103,12 @@ int main(int argc, char* argv[]) {
                 it != inits.end(); ++it) {
             srand(1);
             kpmbase::kmeans_t ret_auto =
-                kpmeans::test::run_test(&p_centers[0],
+                knor::test::run_test(&p_centers[0],
                 &p_data[0], &p_clust_asgn_cnt[0], &p_clust_asgns[0], false,
                 *it, 4);
             srand(1);
             kpmbase::kmeans_t ret_min_auto =
-                kpmeans::test::run_test(&p_centers[0],
+                knor::test::run_test(&p_centers[0],
                 &p_data[0], &p_clust_asgn_cnt[0], &p_clust_asgns[0], true,
                 *it, 4);
 

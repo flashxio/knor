@@ -22,9 +22,9 @@
 #include "kmeans_task_coordinator.hpp"
 #include "exception.hpp"
 
-namespace kpmbase = kpmeans::base;
+namespace kpmbase = knor::base;
 
-namespace kpmeans { namespace prune {
+namespace knor { namespace prune {
 
 constexpr unsigned root = 0;
 
@@ -84,5 +84,5 @@ public:
     const size_t init(int argc, char* argv[], const size_t g_nrow);
     ~dist_task_coordinator();
 };
-} } // End namespace kpmeans, prune
+} } // End namespace knor, prune
 #endif

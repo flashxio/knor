@@ -25,7 +25,7 @@
 #include <memory>
 #include <algorithm>
 
-namespace kpmeans { namespace base {
+namespace knor { namespace base {
 
 typedef std::vector<double> kmsvector;
 typedef std::vector<double>::iterator kmsiterator;
@@ -261,5 +261,5 @@ public:
     const void print_prev_means_v() const;
     void reset_s_val_v();
 };
-} } // End namespace kpmeans, base
+} } // End namespace knor, base
 #endif

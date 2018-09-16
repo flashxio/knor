@@ -36,7 +36,7 @@
 #define KM_TEST 0
 #define VERBOSE 0
 
-namespace kpmbase = kpmeans::base;
+namespace kpmbase = knor::base;
 
 namespace {
 
@@ -275,7 +275,7 @@ static void EM_step(const double* matrix, kpmbase::clusters::ptr cls,
 }
 } // End annon namespace
 
-namespace kpmeans { namespace omp {
+namespace knor { namespace omp {
 
 kpmbase::kmeans_t compute_kmeans(const double* matrix, double* clusters_ptr,
         unsigned* cluster_assignments, size_t* cluster_assignment_counts,
@@ -481,4 +481,4 @@ kpmbase::kmeans_t compute_kmeans(const double* matrix, double* clusters_ptr,
             cluster_assignments, cluster_assignment_counts,
             clusters->get_means());
 }
-} } // End namespace kpmeans, omp
+} } // End namespace knor, omp

@@ -24,7 +24,7 @@
 #include "thd_safe_bool_vector.hpp"
 #include "dist_matrix.hpp"
 
-namespace kpmeans { namespace prune {
+namespace knor { namespace prune {
 
 kmeans_task_thread::kmeans_task_thread(const int node_id, const unsigned thd_id,
         const unsigned start_rid, const unsigned nlocal_rows,
@@ -128,7 +128,7 @@ bool kmeans_task_thread::try_steal_task() {
 #else
 
 bool kmeans_task_thread::try_steal_task() {
-  std::vector<std::shared_ptr<kpmeans::thread> > workers =
+  std::vector<std::shared_ptr<knor::thread> > workers =
     (static_cast<kmeans_task_coordinator*>(driver))->get_threads(); // Me included
 
   bool one_locked;
@@ -421,4 +421,4 @@ const void kmeans_task_thread::print_local_data() const {
 kmeans_task_thread::~kmeans_task_thread() {
   delete tasks;
 }
-} } // End namespace kpmeans, prune
+} } // End namespace knor, prune

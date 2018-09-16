@@ -37,8 +37,8 @@
 #define KM_TEST 0
 #define VERBOSE 0
 
-namespace kpmprune = kpmeans::prune;
-namespace kpmbase = kpmeans::base;
+namespace kpmprune = knor::prune;
+namespace kpmbase = knor::base;
 
 namespace {
 
@@ -380,7 +380,7 @@ void get_sampling(std::vector<std::vector<double>>& samples,
 #endif
 } // End annon namespace
 
-namespace kpmeans { namespace omp {
+namespace knor { namespace omp {
 
 kpmbase::kmeans_t compute_min_kmeans(const double* matrix, double* clusters_ptr,
         unsigned* cluster_assignments, size_t* cluster_assignment_counts,
@@ -594,4 +594,4 @@ kpmbase::kmeans_t compute_min_kmeans(const double* matrix, double* clusters_ptr,
             cluster_assignments, cluster_assignment_counts,
             clusters->get_means());
 }
-} } // End namespace kpmeans, omp
+} } // End namespace knor, omp

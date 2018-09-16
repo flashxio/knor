@@ -24,7 +24,7 @@
 
 #include "thread.hpp"
 
-namespace kpmeans {
+namespace knor {
 class task_queue;
 class task;
     namespace base {
@@ -36,18 +36,18 @@ class task;
     }
 }
 
-namespace kpmbase = kpmeans::base;
+namespace kpmbase = knor::base;
 
-namespace kpmeans { namespace prune {
+namespace knor { namespace prune {
 
-class kmeans_task_thread : public kpmeans::thread {
+class kmeans_task_thread : public knor::thread {
 protected: // Lazy
     std::shared_ptr<kpmbase::prune_clusters> g_clusters; // Ptr to global cluster data
     unsigned start_rid; // The row id of the first item in this partition
 
     void* driver; // Hacky, but no time ...
-    kpmeans::task_queue* tasks;
-    kpmeans::task* curr_task;
+    knor::task_queue* tasks;
+    knor::task* curr_task;
 
     bool prune_init;
     std::shared_ptr<dist_matrix> dm; // global
@@ -73,14 +73,14 @@ public:
                     cluster_assignments, fn));
     }
 
-    void start(const kpmeans::thread_state_t state);
+    void start(const knor::thread_state_t state);
     // Allocate and move data using this thread
     void EM_step();
     void kmspp_dist();
     const unsigned get_global_data_id(const unsigned row_id) const;
     void run();
     void wait();
-    void wake(kpmeans::thread_state_t state);
+    void wake(knor::thread_state_t state);
     void request_task();
     void lock_sleep();
     void sleep();
@@ -121,7 +121,7 @@ public:
         this->dm = dm;
     }
 
-    kpmeans::task_queue* get_task_queue() {
+    knor::task_queue* get_task_queue() {
       return tasks;
     }
 
@@ -129,5 +129,5 @@ public:
       return thd_id;
     }
 };
-} } // End namespace kpmeans, prune
+} } // End namespace knor, prune
 #endif

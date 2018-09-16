@@ -32,9 +32,9 @@
 
 #include "task_queue.hpp"
 
-namespace kpmbase = kpmeans::base;
+namespace kpmbase = knor::base;
 
-namespace kpmeans { namespace prune {
+namespace knor { namespace prune {
 kmeans_task_coordinator::kmeans_task_coordinator(const std::string fn, const size_t nrow,
         const size_t ncol, const unsigned k, const unsigned max_iters,
         const unsigned nnodes, const unsigned nthreads,
@@ -451,4 +451,4 @@ kpmbase::kmeans_t kmeans_task_coordinator::run_kmeans(
             &cluster_assignments[0], &cluster_assignment_counts[0],
             cltrs->get_means());
 }
-} } // End namespace kpmeans, prune
+} } // End namespace knor, prune

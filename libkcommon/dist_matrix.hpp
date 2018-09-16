@@ -25,7 +25,7 @@
 #include <vector>
 
 
-namespace kpmeans {
+namespace knor {
 
     namespace base {
     class prune_clusters;
@@ -67,5 +67,5 @@ public:
     void compute_dist(std::shared_ptr<base::prune_clusters> cl,
             const unsigned ncol);
 };
-} } // End namespace kpmeans, prune
+} } // End namespace knor, prune
 #endif

@@ -22,13 +22,13 @@
 #include "exception.hpp"
 #include "kmeans_coordinator.hpp"
 
-namespace kpmbase = kpmeans::base;
+namespace kpmbase = knor::base;
 
-namespace kpmeans { namespace dist {
+namespace knor { namespace dist {
 
 constexpr unsigned root = 0;
 
-class dist_coordinator : public kpmeans::kmeans_coordinator {
+class dist_coordinator : public knor::kmeans_coordinator {
 private:
     dist_coordinator(int argc, char* argv[],
             const std::string fn, const size_t nrow,
@@ -76,5 +76,5 @@ public:
     const size_t init(int argc, char* argv[], const size_t g_nrow);
     ~dist_coordinator();
 };
-} } // End namespace kpmeans::dist
+} } // End namespace knor::dist
 #endif

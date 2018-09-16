@@ -23,12 +23,12 @@
 #include <cstdlib>
 #include <string>
 
-namespace kpmeans { namespace base {
+namespace knor { namespace base {
     class kmeans_t;
 }}
 
 
-namespace kpmeans { namespace omp {
+namespace knor { namespace omp {
 /**
  * \brief Compute kmeans on matrix of features
  * \param matrix The matrix who's row IDs are being clustered.
@@ -41,7 +41,7 @@ namespace kpmeans { namespace omp {
  * \param max_iters The maximum number of iterations of K-means to perform.
  * \param init The type of initilization ["random", "forgy", "kmeanspp"]
  **/
-kpmeans::base::kmeans_t compute_kmeans(const double* matrix, double* clusters,
+knor::base::kmeans_t compute_kmeans(const double* matrix, double* clusters,
 		unsigned* cluster_assignments, size_t* cluster_assignment_counts,
 		const size_t num_rows, const size_t num_cols, const unsigned k,
 		const size_t MAX_ITERS, int max_threads,
@@ -49,7 +49,7 @@ kpmeans::base::kmeans_t compute_kmeans(const double* matrix, double* clusters,
         const std::string dist_type="eucl");
 
 /** See `compute_kmeans` for argument list */
-kpmeans::base::kmeans_t compute_min_kmeans
+knor::base::kmeans_t compute_min_kmeans
     (const double* matrix, double* clusters_ptr,
         unsigned* cluster_assignments, size_t* cluster_assignment_counts,
 		const size_t num_rows, const size_t num_cols, const unsigned k,

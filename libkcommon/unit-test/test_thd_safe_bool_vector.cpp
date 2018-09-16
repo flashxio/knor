@@ -24,7 +24,7 @@
 #include "thd_safe_bool_vector.hpp"
 #include "util.hpp"
 
-namespace kpmbase = kpmeans::base;
+namespace kpmbase = knor::base;
 
 void build_state(std::vector<short> &verifier,
         kpmbase::thd_safe_bool_vector::ptr data, const unsigned len) {

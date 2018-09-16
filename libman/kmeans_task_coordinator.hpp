@@ -22,7 +22,7 @@
 #include "coordinator.hpp"
 #include "util.hpp"
 
-namespace kpmeans {
+namespace knor {
 class task;
 
 namespace base {
@@ -34,7 +34,7 @@ namespace prune {
 class kmeans_task_thread;
 class dist_matrix;
 
-class kmeans_task_coordinator : public kpmeans::coordinator {
+class kmeans_task_coordinator : public knor::coordinator {
 protected: // So lazy ..
     // Metadata
     // max index stored within each threads partition
@@ -85,7 +85,7 @@ public:
     std::pair<size_t, size_t> get_rid_len_tup(const unsigned thd_id);
     // Pass file handle to threads to read & numa alloc
     void update_clusters(const bool prune_init);
-    void wake4run(kpmeans::thread_state_t state) override;
+    void wake4run(knor::thread_state_t state) override;
     void destroy_threads() override;
     void set_thread_clust_idx(const unsigned clust_idx) override;
     double reduction_on_cuml_sum() override;
@@ -107,5 +107,5 @@ public:
     virtual const void print_thread_data() override;
     virtual void build_thread_state() override;
 };
-} } // End namespace kpmeans, prune
+} } // End namespace knor, prune
 #endif

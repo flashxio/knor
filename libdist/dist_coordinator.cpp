@@ -29,9 +29,9 @@
 #include "util.hpp"
 #include "kmeans_types.hpp"
 
-namespace kpmmpi = kpmeans::mpi;
+namespace kpmmpi = knor::mpi;
 
-namespace kpmeans { namespace dist {
+namespace knor { namespace dist {
 
 dist_coordinator::dist_coordinator(
         int argc, char* argv[],
@@ -266,7 +266,7 @@ void dist_coordinator::run_kmeans(kpmbase::kmeans_t& ret,
     }
 
     // Give processes their data
-    wake4run(kpmeans::thread_state_t::ALLOC_DATA);
+    wake4run(knor::thread_state_t::ALLOC_DATA);
     wait4complete();
 
     shift_thread_start_rid();
@@ -326,7 +326,7 @@ void dist_coordinator::run_kmeans(kpmbase::kmeans_t& ret,
             printf("Running iteration %lu ...\n", iters);
 #endif
 
-        wake4run(kpmeans::thread_state_t::EM);
+        wake4run(knor::thread_state_t::EM);
         wait4complete();
         // NOTE: Unfinalized diffs on this proc
 
@@ -450,4 +450,4 @@ void dist_coordinator::pp_aggregate() {
     }
 }
 
-} } // End namespace kpmeans::dist
+} } // End namespace knor::dist

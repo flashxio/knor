@@ -30,7 +30,7 @@
 #include <fstream>
 #include <sstream>
 
-namespace kpmeans { namespace base {
+namespace knor { namespace base {
 
 /* \Internal
  * \brief print a col wise matrix of type double / double.
@@ -321,5 +321,5 @@ void store_cluster(const unsigned id, const double* data,
         const unsigned numel, const unsigned* cluster_assignments,
         const size_t nrow, const size_t ncol, const std::string dir);
 
-} } // End namespace kpmeans, base
+} } // End namespace knor, base
 #endif

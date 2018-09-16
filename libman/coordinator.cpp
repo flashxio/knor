@@ -23,9 +23,9 @@
 #include "thread.hpp"
 #include "util.hpp"
 
-namespace kpmbase = kpmeans::base;
+namespace kpmbase = knor::base;
 
-namespace kpmeans {
+namespace knor {
 coordinator::coordinator(const std::string fn,
         const size_t nrow,
         const size_t ncol, const unsigned k, const unsigned max_iters,
@@ -77,4 +77,4 @@ void coordinator::set_thread_data_ptr(double* allocd_data) {
     for (; it != threads.end(); ++it)
         (*it)->set_local_data_ptr(allocd_data);
 }
-} // End namespace kpmeans
+} // End namespace knor

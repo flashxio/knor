@@ -26,7 +26,7 @@
 #include "io.hpp"
 #include "clusters.hpp"
 
-namespace kpmeans {
+namespace knor {
 kmeans_thread::kmeans_thread(const int node_id, const unsigned thd_id,
         const unsigned start_rid,
         const unsigned nprocrows, const unsigned ncol,
@@ -210,4 +210,4 @@ void kmeans_thread::kmspp_dist() {
 const void kmeans_thread::print_local_data() const {
     kpmbase::print_mat(local_data, nprocrows, ncol);
 }
-} // End namespace kpmeans
+} // End namespace knor

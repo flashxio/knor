@@ -25,9 +25,9 @@
 
 #include "io.hpp"
 
-namespace kpmbase = kpmeans::base;
+namespace kpmbase = knor::base;
 
-namespace kpmeans { namespace test {
+namespace knor { namespace test {
     const std::string TESTDATA_FN = "../test-data/matrix_r50_c5_rrw.bin";
     const std::string TEST_INIT_CLUSTERS =
         "../test-data/init_clusters_k8_c5.bin";

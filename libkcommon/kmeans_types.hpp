@@ -25,7 +25,7 @@
 #include <vector>
 #include <string>
 
-namespace kpmeans { namespace base {
+namespace knor { namespace base {
 
 static const unsigned INVALID_CLUSTER_ID = std::numeric_limits<unsigned>::max();
 enum kms_stage_t { INIT, ESTEP }; // What phase of the algo we're in

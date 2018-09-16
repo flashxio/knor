@@ -20,7 +20,7 @@
 #ifndef __KNOR_THREAD_STATE_HPP__
 #define __KNOR_THREAD_STATE_HPP__
 
-namespace kpmeans {
+namespace knor {
     enum thread_state_t {
         TEST, /*just for testing*/
         ALLOC_DATA, /*moving data for reduces rma*/
