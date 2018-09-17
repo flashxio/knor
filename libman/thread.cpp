@@ -65,7 +65,7 @@ void thread::close_file_handle() {
 
 // Move data ~equally to all nodes
 void thread::numa_alloc_mem() {
-    kpmbase::assert_msg(f, "File handle invalid, can only alloc once!");
+    kbase::assert_msg(f, "File handle invalid, can only alloc once!");
     size_t blob_size = get_data_size();
 #ifdef USE_NUMA
     local_data = static_cast<double*>(numa_alloc_onnode(blob_size, node_id));

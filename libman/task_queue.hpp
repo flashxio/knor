@@ -24,7 +24,7 @@
 #include <cassert>
 #include "io.hpp"
 
-namespace kpmbase = knor::base;
+namespace kbase = knor::base;
 
 #define MIN_TASK_ROWS 8192
 //#define MIN_TASK_ROWS 2 // TODO: Change
@@ -77,7 +77,7 @@ template <typename T>
 #ifndef BIND
                 printf("start_rid: %u, nrow: %u\n",
                         get_start_rid(), get_nrow());
-                kpmbase::print_mat<T>(get_data_ptr(), get_nrow(), ncol);
+                kbase::print_mat<T>(get_data_ptr(), get_nrow(), ncol);
 #endif
             }
     };

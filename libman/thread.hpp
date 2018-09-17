@@ -47,8 +47,8 @@ namespace prune {
 }
 }
 
-namespace kpmbase = knor::base;
-namespace kpmprune = knor::prune;
+namespace kbase = knor::base;
+namespace kprune = knor::prune;
 
 namespace knor {
 
@@ -66,7 +66,7 @@ protected:
     size_t ncol; // How many columns in the data
     double* local_data; // Pointer to where the data begins that the thread works on
     size_t data_size; // true size of local_data at any point
-    std::shared_ptr<kpmbase::clusters> local_clusters;
+    std::shared_ptr<kbase::clusters> local_clusters;
 
     pthread_mutex_t mutex;
     pthread_cond_t cond;
@@ -134,27 +134,27 @@ public:
 
     // Used by `task' thread classes
     virtual void set_driver(void* driver) {
-        throw kpmbase::abstract_exception();
+        throw kbase::abstract_exception();
     }
     virtual void wake(knor::thread_state_t state) {
-        throw kpmbase::abstract_exception();
+        throw kbase::abstract_exception();
     }
     virtual void set_prune_init(const bool prune_init) {
-        throw kpmbase::abstract_exception();
+        throw kbase::abstract_exception();
     }
-    virtual void set_recalc_v_ptr(std::shared_ptr<kpmbase::thd_safe_bool_vector>
+    virtual void set_recalc_v_ptr(std::shared_ptr<kbase::thd_safe_bool_vector>
             recalculated_v) {
-        throw kpmbase::abstract_exception();
+        throw kbase::abstract_exception();
     }
-    virtual void set_dist_mat_ptr(std::shared_ptr<kpmprune::dist_matrix> dm) {
-        throw kpmbase::abstract_exception();
+    virtual void set_dist_mat_ptr(std::shared_ptr<kprune::dist_matrix> dm) {
+        throw kbase::abstract_exception();
     }
-    virtual bool try_steal_task() { throw kpmbase::abstract_exception(); }
+    virtual bool try_steal_task() { throw kbase::abstract_exception(); }
     virtual task_queue* get_task_queue() {
-        throw kpmbase::abstract_exception();
+        throw kbase::abstract_exception();
     }
     virtual const void print_local_data() const {
-        throw kpmbase::abstract_exception();
+        throw kbase::abstract_exception();
     };
 
     void test() {
@@ -180,7 +180,7 @@ public:
         return meta.num_changed;
     }
 
-    const std::shared_ptr<kpmbase::clusters> get_local_clusters() const {
+    const std::shared_ptr<kbase::clusters> get_local_clusters() const {
         return local_clusters;
     }
 

@@ -29,14 +29,14 @@
 
 #ifdef USE_NUMA
 #include "numa_reorg.hpp"
-namespace kpmbind = knor::binding;
+namespace kbind = knor::binding;
 #endif
 
 #ifdef _OPENMP
-namespace kpmomp = knor::omp;
+namespace komp = knor::omp;
 #endif
 
-namespace kpmprune = knor::prune;
+namespace kprune = knor::prune;
 
 namespace knor { namespace base {
     // NOTE: It is the callers job to allocate/free data & p_centers
@@ -67,20 +67,20 @@ kmeans_t kmeans(double* data, const size_t nrow,
         if (max_iters < std::numeric_limits<size_t>::max())
             max_iters++; // NOTE: This accounts for difference in pthread v. omp
 
-        ret = kpmomp::compute_min_kmeans(data, &centroids[0], &assignments[0],
+        ret = komp::compute_min_kmeans(data, &centroids[0], &assignments[0],
                 &counts[0], nrow, ncol, k, max_iters, nthread, init, tolerance,
                 dist_type);
     } else {
 #endif
-        kpmprune::kmeans_task_coordinator::ptr kc =
-            kpmprune::kmeans_task_coordinator::create(
+        kprune::kmeans_task_coordinator::ptr kc =
+            kprune::kmeans_task_coordinator::create(
                     "", nrow, ncol, k, max_iters, nnodes,
                     nthread, p_centers,
                     init, tolerance, dist_type);
         if (numa_opt) {
 #ifdef USE_NUMA
-            kpmbind::memory_distributor<double>::ptr md =
-                kpmbind::memory_distributor<double>::create(data,
+            kbind::memory_distributor<double>::ptr md =
+                kbind::memory_distributor<double>::create(data,
                         nnodes, nrow, ncol);
 
             md->numa_reorg(kc->get_threads());
@@ -129,13 +129,13 @@ kmeans_t kmeans(const std::string datafn, const size_t nrow,
         if (max_iters < std::numeric_limits<size_t>::max())
             max_iters++; // NOTE: This accounts for difference in pthread v. omp
 
-        ret = kpmomp::compute_kmeans(&data[0], &centroids[0], &assignments[0],
+        ret = komp::compute_kmeans(&data[0], &centroids[0], &assignments[0],
                 &counts[0], nrow, ncol, k, max_iters, nthread, init, tolerance,
                 dist_type);
     } else {
 #endif
-        kpmprune::kmeans_task_coordinator::ptr kc =
-            kpmprune::kmeans_task_coordinator::create(
+        kprune::kmeans_task_coordinator::ptr kc =
+            kprune::kmeans_task_coordinator::create(
                     datafn, nrow, ncol, k, max_iters, nnodes, nthread, p_centers,
                     init, tolerance, dist_type);
         ret = kc->run_kmeans();

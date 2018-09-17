@@ -26,25 +26,25 @@
 #include "test_shared.hpp"
 #include "util.hpp"
 
-namespace kpmtest = knor::test;
-namespace kpmprune = knor::prune;
+namespace ktest = knor::test;
+namespace kprune = knor::prune;
 
 namespace knor { namespace test {
-kpmbase::kmeans_t run_test(const std::string datafn, double* p_centers,
+kbase::kmeans_t run_test(const std::string datafn, double* p_centers,
         size_t* p_clust_asgn_cnt, unsigned* p_clust_asgns, const bool prune,
         const std::string init, const unsigned max_iter) {
     constexpr unsigned NTHREADS = 2;
-    unsigned nnodes = kpmbase::get_num_nodes();
+    unsigned nnodes = kbase::get_num_nodes();
 
     if (init == "none") {
-            kpmbase::bin_io<double> br(TEST_INIT_CLUSTERS, TEST_K, TEST_NCOL);
+            kbase::bin_io<double> br(TEST_INIT_CLUSTERS, TEST_K, TEST_NCOL);
             br.read(p_centers);
     }
 
-    kpmbase::kmeans_t ret;
+    kbase::kmeans_t ret;
     if (prune) {
-        kpmprune::kmeans_task_coordinator::ptr kc =
-            kpmprune::kmeans_task_coordinator::create(
+        kprune::kmeans_task_coordinator::ptr kc =
+            kprune::kmeans_task_coordinator::create(
                 datafn, TEST_NROW, TEST_NCOL, TEST_K, max_iter,
                 nnodes, NTHREADS, p_centers, init, 0);
         ret = kc->run_kmeans();
@@ -61,39 +61,39 @@ kpmbase::kmeans_t run_test(const std::string datafn, double* p_centers,
 
 
 int main(int argc, char* argv[]) {
-    std::vector<double> p_centers(kpmtest::TEST_K*kpmtest::TEST_NCOL);
-    std::vector<double> p_data(kpmtest::TEST_NROW*kpmtest::TEST_NCOL);
-    std::vector<size_t> p_clust_asgn_cnt(kpmtest::TEST_K);
-    std::vector<unsigned> p_clust_asgns(kpmtest::TEST_NROW);
+    std::vector<double> p_centers(ktest::TEST_K*ktest::TEST_NCOL);
+    std::vector<double> p_data(ktest::TEST_NROW*ktest::TEST_NCOL);
+    std::vector<size_t> p_clust_asgn_cnt(ktest::TEST_K);
+    std::vector<unsigned> p_clust_asgns(ktest::TEST_NROW);
 
     {
-        std::vector<double>res(kpmtest::TEST_K*kpmtest::TEST_NCOL);
-        kpmtest::load_result(&res[0]);
+        std::vector<double>res(ktest::TEST_K*ktest::TEST_NCOL);
+        ktest::load_result(&res[0]);
 
         /////////////////////////// Auto only ///////////////////////////
         {
-            kpmbase::kmeans_t ret = knor::test::run_test(
-                    kpmtest::TESTDATA_FN, &p_centers[0],
+            kbase::kmeans_t ret = knor::test::run_test(
+                    ktest::TESTDATA_FN, &p_centers[0],
                     &p_clust_asgn_cnt[0], &p_clust_asgns[0],
                     false, "none", 10);
 
-            assert(kpmtest::check_collection_equal(
+            assert(ktest::check_collection_equal(
                         ret.centroids.begin(), ret.centroids.end(),
                         res.begin(), res.end(),
-                        kpmtest::TEST_TOL));
+                        ktest::TEST_TOL));
             std::cout << "\n***Auto inited passed ***\n";
         }
 
         /////////////////////////// Min auto ///////////////////////////
         {
-            kpmbase::kmeans_t ret = knor::test::run_test(
-                    kpmtest::TESTDATA_FN, &p_centers[0],
+            kbase::kmeans_t ret = knor::test::run_test(
+                    ktest::TESTDATA_FN, &p_centers[0],
                     &p_clust_asgn_cnt[0], &p_clust_asgns[0],
                     false, "none", 10);
-            assert(kpmtest::check_collection_equal(
+            assert(ktest::check_collection_equal(
                         ret.centroids.begin(), ret.centroids.end(),
                         res.begin(), res.end(),
-                        kpmtest::TEST_TOL));
+                        ktest::TEST_TOL));
             std::cout << "\n***Min Auto inited passed ***\n";
         }
 
@@ -110,15 +110,15 @@ int main(int argc, char* argv[]) {
         for (std::vector<std::string>::iterator it = inits.begin();
                 it != inits.end(); ++it) {
             srand(1);
-            kpmbase::kmeans_t ret_auto =
+            kbase::kmeans_t ret_auto =
                 knor::test::run_test(
-                    kpmtest::TESTDATA_FN, &p_centers[0],
+                    ktest::TESTDATA_FN, &p_centers[0],
                     &p_clust_asgn_cnt[0], &p_clust_asgns[0],
                     false, *it, 3);
             srand(1);
-            kpmbase::kmeans_t ret_min_auto =
+            kbase::kmeans_t ret_min_auto =
                 knor::test::run_test(
-                    kpmtest::TESTDATA_FN, &p_centers[0],
+                    ktest::TESTDATA_FN, &p_centers[0],
                     &p_clust_asgn_cnt[0], &p_clust_asgns[0],
                     true, *it, 3);
 
@@ -126,11 +126,11 @@ int main(int argc, char* argv[]) {
                         ret_auto.assignment_count.end(),
                         ret_min_auto.assignment_count.begin()
                         ));
-            assert(kpmtest::check_collection_equal(
+            assert(ktest::check_collection_equal(
                         ret_auto.centroids.begin(), ret_auto.centroids.end(),
                         ret_min_auto.centroids.begin(),
                         ret_min_auto.centroids.end(),
-                        kpmtest::TEST_TOL));
+                        ktest::TEST_TOL));
         }
     }
     return EXIT_SUCCESS;

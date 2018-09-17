@@ -32,21 +32,21 @@
 
 #include "task_queue.hpp"
 
-namespace kpmbase = knor::base;
+namespace kbase = knor::base;
 
 namespace knor { namespace prune {
 kmeans_task_coordinator::kmeans_task_coordinator(const std::string fn, const size_t nrow,
         const size_t ncol, const unsigned k, const unsigned max_iters,
         const unsigned nnodes, const unsigned nthreads,
-        const double* centers, const kpmbase::init_type_t it,
-        const double tolerance, const kpmbase::dist_type_t dt) :
+        const double* centers, const kbase::init_type_t it,
+        const double tolerance, const kbase::dist_type_t dt) :
     coordinator(fn, nrow, ncol, k, max_iters,
             nnodes, nthreads, centers, it, tolerance, dt) {
 
-        cltrs = kpmbase::prune_clusters::create(k, ncol);
+        cltrs = kbase::prune_clusters::create(k, ncol);
 
         if (centers) {
-            if (kpmbase::init_type_t::NONE) {
+            if (kbase::init_type_t::NONE) {
                 cltrs->set_mean(centers);
             } else {
 #ifndef BIND
@@ -57,7 +57,7 @@ kmeans_task_coordinator::kmeans_task_coordinator(const std::string fn, const siz
         }
 
         // For pruning
-        recalculated_v = kpmbase::thd_safe_bool_vector::create(nrow, false);
+        recalculated_v = kbase::thd_safe_bool_vector::create(nrow, false);
         dist_v.resize(nrow);
         std::fill(&dist_v[0], &dist_v[nrow], std::numeric_limits<double>::max());
         dm = prune::dist_matrix::create(k);
@@ -152,7 +152,7 @@ void kmeans_task_coordinator::update_clusters(const bool prune_init) {
     for (unsigned clust_idx = 0; clust_idx < k; clust_idx++) {
         cltrs->finalize(clust_idx);
         cltrs->set_prev_dist(
-                kpmbase::eucl_dist(&(cltrs->get_means()[clust_idx*ncol]),
+                kbase::eucl_dist(&(cltrs->get_means()[clust_idx*ncol]),
                 &(cltrs->get_prev_means()[clust_idx*ncol]), ncol), clust_idx);
 #if VERBOSE
 #ifndef BIND
@@ -267,7 +267,7 @@ void kmeans_task_coordinator::kmeanspp_init() {
     gettimeofday(&end, NULL);
 #ifndef BIND
     printf("Initialization time: %.6f sec\n",
-        kpmbase::time_diff(start, end));
+        kbase::time_diff(start, end));
 #endif
 }
 
@@ -311,16 +311,16 @@ void kmeans_task_coordinator::forgy_init() {
 
 void kmeans_task_coordinator::run_init() {
     switch(_init_t) {
-        case kpmbase::init_type_t::RANDOM:
+        case kbase::init_type_t::RANDOM:
             random_partition_init();
             break;
-        case kpmbase::init_type_t::FORGY:
+        case kbase::init_type_t::FORGY:
             forgy_init();
             break;
-        case kpmbase::init_type_t::PLUSPLUS:
+        case kbase::init_type_t::PLUSPLUS:
             kmeanspp_init();
             break;
-        case kpmbase::init_type_t::NONE:
+        case kbase::init_type_t::NONE:
             break;
         default:
             throw std::runtime_error("Unknown initialization type");
@@ -350,7 +350,7 @@ void kmeans_task_coordinator::set_task_data_ptrs() {
 /**
  * Main driver for kmeans
  */
-kpmbase::kmeans_t kmeans_task_coordinator::run_kmeans(
+kbase::kmeans_t kmeans_task_coordinator::run_kmeans(
         double* allocd_data, const bool numa_opt) {
 #ifdef PROFILER
     ProfilerStart("libman/kmeans_task_coordinator.perf");
@@ -406,7 +406,7 @@ kpmbase::kmeans_t kmeans_task_coordinator::run_kmeans(
 #if VERBOSE
 #ifndef BIND
         printf("Cluster assignment counts: \n");
-        kpmbase::print_vector(cluster_assignment_counts);
+        kbase::print_vector(cluster_assignment_counts);
 #endif
 #endif
 
@@ -426,7 +426,7 @@ kpmbase::kmeans_t kmeans_task_coordinator::run_kmeans(
 
 #ifndef BIND
     printf("\n\nAlgorithmic time taken = %.6f sec\n",
-        kpmbase::time_diff(start, end));
+        kbase::time_diff(start, end));
     printf("\n******************************************\n");
 #endif
 
@@ -443,11 +443,11 @@ kpmbase::kmeans_t kmeans_task_coordinator::run_kmeans(
 
 #ifndef BIND
     printf("Final cluster counts: \n");
-    kpmbase::print_vector(cluster_assignment_counts);
+    kbase::print_vector(cluster_assignment_counts);
     printf("\n******************************************\n");
 #endif
 
-    return kpmbase::kmeans_t(this->nrow, this->ncol, iter, this->k,
+    return kbase::kmeans_t(this->nrow, this->ncol, iter, this->k,
             &cluster_assignments[0], &cluster_assignment_counts[0],
             cltrs->get_means());
 }

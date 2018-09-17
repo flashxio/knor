@@ -20,11 +20,11 @@
 #include "io.hpp"
 #include "util.hpp"
 
-namespace kpmbase = knor::base;
+namespace kbase = knor::base;
 
 void test_text_reader(std::string fn, const size_t NROW, const size_t NCOL) {
     std::cout << "Text reader test ...\n";
-    kpmbase::text_reader<double> rdr(fn);
+    kbase::text_reader<double> rdr(fn);
     rdr.set_ncol(NCOL);
     std::vector<double> v(NCOL);
     std::vector<double> m;
@@ -35,33 +35,33 @@ void test_text_reader(std::string fn, const size_t NROW, const size_t NCOL) {
     std::cout << "Readline: ==>\n";
     std::cout << "nrow: " << rdr.get_nrow() <<
         ", ncol: " << rdr.get_ncol() << std::endl;
-    kpmbase::print_mat<double>(&m[0], rdr.get_nrow(), rdr.get_ncol());
+    kbase::print_mat<double>(&m[0], rdr.get_nrow(), rdr.get_ncol());
 
     std::cout << "Read: ==>\n";
     std::vector<double> v2(NROW*NCOL);
-    kpmbase::text_reader<double> rdr2(fn);
+    kbase::text_reader<double> rdr2(fn);
     rdr2.set_ncol(NCOL);
     rdr2.read(v2);
     std::cout << "nrow: " << rdr2.get_nrow() <<
         ", ncol: " << rdr2.get_ncol() << std::endl;
 
-    kpmbase::print_mat<double>(&v2[0], rdr2.get_nrow(), rdr2.get_ncol());
+    kbase::print_mat<double>(&v2[0], rdr2.get_nrow(), rdr2.get_ncol());
 
     assert(m.size() == NROW * NCOL);
     assert(m.size() == v2.size());
-    assert(kpmbase::eq_all<double>(&m[0], &v2[0], m.size()));
+    assert(kbase::eq_all<double>(&m[0], &v2[0], m.size()));
 }
 
 void test_bin_rm_reader(std::string fn, const size_t NROW, const size_t NCOL) {
     std::cout << "\nBinary reader test ...\n";
 
-    kpmbase::bin_rm_reader<double> rdr(fn);
+    kbase::bin_rm_reader<double> rdr(fn);
     rdr.set_ncol(NCOL);
     std::vector<double> v(NCOL);
 
     while (rdr.readline(v)) {
         std::cout << "line: ==> ";
-        kpmbase::print_vector<double>(v);
+        kbase::print_vector<double>(v);
     }
 }
 

@@ -23,21 +23,21 @@
 #include "thread.hpp"
 #include "util.hpp"
 
-namespace kpmbase = knor::base;
+namespace kbase = knor::base;
 
 namespace knor {
 coordinator::coordinator(const std::string fn,
         const size_t nrow,
         const size_t ncol, const unsigned k, const unsigned max_iters,
         const unsigned nnodes, const unsigned nthreads,
-        const double* centers, const kpmbase::init_type_t it,
-        const double tolerance, const kpmbase::dist_type_t dt) {
+        const double* centers, const kbase::init_type_t it,
+        const double tolerance, const kbase::dist_type_t dt) {
 
     this->fn = fn;
     this->nrow = nrow;
     this->ncol = ncol;
     this->k = k;
-    kpmbase::assert_msg(k >= 1, "[FATAL]: 'k' must be >= 1");
+    kbase::assert_msg(k >= 1, "[FATAL]: 'k' must be >= 1");
     this->max_iters = max_iters;
     this->nnodes = nnodes;
     this->nthreads = static_cast<unsigned>(

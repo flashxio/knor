@@ -36,13 +36,13 @@ class task;
     }
 }
 
-namespace kpmbase = knor::base;
+namespace kbase = knor::base;
 
 namespace knor { namespace prune {
 
 class kmeans_task_thread : public knor::thread {
 protected: // Lazy
-    std::shared_ptr<kpmbase::prune_clusters> g_clusters; // Ptr to global cluster data
+    std::shared_ptr<kbase::prune_clusters> g_clusters; // Ptr to global cluster data
     unsigned start_rid; // The row id of the first item in this partition
 
     void* driver; // Hacky, but no time ...
@@ -51,13 +51,13 @@ protected: // Lazy
 
     bool prune_init;
     std::shared_ptr<dist_matrix> dm; // global
-    std::shared_ptr<kpmbase::thd_safe_bool_vector> recalculated_v; // global
+    std::shared_ptr<kbase::thd_safe_bool_vector> recalculated_v; // global
     bool _is_numa;
 
     kmeans_task_thread(const int node_id, const unsigned thd_id,
             const unsigned start_rid, const unsigned nlocal_rows,
             const unsigned ncol,
-            std::shared_ptr<kpmbase::prune_clusters> g_clusters,
+            std::shared_ptr<kbase::prune_clusters> g_clusters,
             unsigned* cluster_assignments,
             const std::string fn);
 public:
@@ -65,7 +65,7 @@ public:
             const unsigned thd_id,
             const unsigned start_rid, const unsigned nlocal_rows,
             const unsigned ncol,
-            std::shared_ptr<kpmbase::prune_clusters> g_clusters,
+            std::shared_ptr<kbase::prune_clusters> g_clusters,
             unsigned* cluster_assignments, const std::string fn) {
         return thread::ptr(
                 new kmeans_task_thread(node_id, thd_id, start_rid,
@@ -112,7 +112,7 @@ public:
         return prune_init;
     }
 
-    void set_recalc_v_ptr(std::shared_ptr<kpmbase::thd_safe_bool_vector>
+    void set_recalc_v_ptr(std::shared_ptr<kbase::thd_safe_bool_vector>
             recalculated_v) {
         this->recalculated_v = recalculated_v;
     }

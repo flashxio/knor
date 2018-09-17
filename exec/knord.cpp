@@ -50,11 +50,11 @@ int main(int argc, char* argv[]) {
     std::string centersfn = "";
 	unsigned max_iters=std::numeric_limits<unsigned>::max();
 	std::string init = "kmeanspp";
-	unsigned nthread = kpmbase::get_num_omp_threads();
+	unsigned nthread = kbase::get_num_omp_threads();
 	int num_opts = 0;
 	double tolerance = -1;
     bool no_prune = false;
-    unsigned nnodes = kpmbase::get_num_nodes();
+    unsigned nnodes = kbase::get_num_nodes();
     std::string outdir = "";
 
     // Increase by 3 -- getopt ignores argv[0]
@@ -86,7 +86,7 @@ int main(int argc, char* argv[]) {
 				break;
 			case 'C':
 				centersfn = std::string(optarg);
-                kpmbase::assert_msg(kpmbase::is_file_exist(centersfn.c_str()),
+                kbase::assert_msg(kbase::is_file_exist(centersfn.c_str()),
                         "Centers file name doesn't exit!");
                 init = "none"; // Ignore whatever you pass in
 				num_opts++;
@@ -109,22 +109,22 @@ int main(int argc, char* argv[]) {
 		}
 	}
 
-    kpmbase::assert_msg(!(init=="none" && centersfn.empty()),
+    kbase::assert_msg(!(init=="none" && centersfn.empty()),
             "Centers file name doesn't exit!");
 
-    if (kpmbase::filesize(datafn.c_str()) != (sizeof(double)*nrow*ncol))
-        throw kpmbase::io_exception("File size does not match input size.");
+    if (kbase::filesize(datafn.c_str()) != (sizeof(double)*nrow*ncol))
+        throw kbase::io_exception("File size does not match input size.");
 
     double* p_centers = NULL;
 
-    if (kpmbase::is_file_exist(centersfn.c_str())) {
+    if (kbase::is_file_exist(centersfn.c_str())) {
         p_centers = new double [k*ncol];
-        kpmbase::bin_io<double> br2(centersfn, k, ncol);
+        kbase::bin_io<double> br2(centersfn, k, ncol);
         br2.read(p_centers);
         printf("Read centers!\n");
     }
 
-    kpmbase::kmeans_t ret; // Only root fills this
+    kbase::kmeans_t ret; // Only root fills this
 
     if (no_prune) {
         knor::dist::dist_coordinator::ptr dc =

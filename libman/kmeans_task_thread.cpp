@@ -29,7 +29,7 @@ namespace knor { namespace prune {
 kmeans_task_thread::kmeans_task_thread(const int node_id, const unsigned thd_id,
         const unsigned start_rid, const unsigned nlocal_rows,
         const unsigned ncol,
-        std::shared_ptr<kpmbase::prune_clusters> g_clusters,
+        std::shared_ptr<kbase::prune_clusters> g_clusters,
         unsigned* cluster_assignments,
         const std::string fn) : thread(node_id, thd_id, ncol,
             g_clusters->get_nclust(), cluster_assignments, start_rid, fn) {
@@ -44,7 +44,7 @@ kmeans_task_thread::kmeans_task_thread(const int node_id, const unsigned thd_id,
             prune_init = true;
             _is_numa = false; // TODO: param this
             local_clusters =
-                kpmbase::clusters::create(g_clusters->get_nclust(), ncol);
+                kbase::clusters::create(g_clusters->get_nclust(), ncol);
 
             set_data_size(sizeof(double)*nlocal_rows*ncol);
 #if VERBOSE
@@ -75,7 +75,7 @@ void kmeans_task_thread::request_task() {
 
         // FIXME: someone got the last task
         //printf("request_task: Thd: %u, Task ==> ", get_thd_id()); curr_task.print();
-        kpmbase::assert_msg(curr_task->get_nrow(), "FIXME: Empty task");
+        kbase::assert_msg(curr_task->get_nrow(), "FIXME: Empty task");
         pthread_mutex_unlock(&mutex);
     }
 #if 0
@@ -216,10 +216,10 @@ void kmeans_task_thread::run() {
             request_task();
             break;
         case EXIT:
-            throw kpmbase::thread_exception(
+            throw kbase::thread_exception(
                     "Thread state is EXIT but running!\n");
         default:
-            throw kpmbase::thread_exception("Unknown thread state\n");
+            throw kbase::thread_exception("Unknown thread state\n");
     }
 }
 
@@ -298,7 +298,7 @@ void kmeans_task_thread::start(const thread_state_t state=WAIT) {
     this->state = state;
     int rc = pthread_create(&hw_thd, NULL, callback, this);
     if (rc)
-        throw kpmbase::thread_exception(
+        throw kbase::thread_exception(
                 "Thread creation (pthread_create) failed!", rc);
 }
 
@@ -317,10 +317,10 @@ void kmeans_task_thread::EM_step() {
 
             for (unsigned clust_idx = 0;
                     clust_idx < g_clusters->get_nclust(); clust_idx++) {
-                dist = kpmbase::dist_comp_raw<double>(
+                dist = kbase::dist_comp_raw<double>(
                         &curr_task->get_data_ptr()[row*ncol],
                         &(g_clusters->get_means()[clust_idx*ncol]), ncol,
-                        kpmbase::dist_type_t::EUCL);
+                        kbase::dist_type_t::EUCL);
 
                 if (dist < dist_v[true_row_id]) {
                     dist_v[true_row_id] = dist;
@@ -347,11 +347,11 @@ void kmeans_task_thread::EM_step() {
                     }
 
                     if (!recalculated_v->get(true_row_id)) {
-                        dist_v[true_row_id] = kpmbase::dist_comp_raw<double>(
+                        dist_v[true_row_id] = kbase::dist_comp_raw<double>(
                                 &curr_task->get_data_ptr()[row*ncol],
                                 &(g_clusters->get_means()[cluster_assignments
                                     [true_row_id]*ncol]), ncol,
-                                kpmbase::dist_type_t::EUCL);
+                                kbase::dist_type_t::EUCL);
                         recalculated_v->set(true_row_id, true);
                     }
 
@@ -362,10 +362,10 @@ void kmeans_task_thread::EM_step() {
                     }
 
                     // Track 5
-                    double jdist = kpmbase::dist_comp_raw(
+                    double jdist = kbase::dist_comp_raw(
                             &curr_task->get_data_ptr()[row*ncol],
                             &(g_clusters->get_means()[clust_idx*ncol]), ncol,
-                            kpmbase::dist_type_t::EUCL);
+                            kbase::dist_type_t::EUCL);
 
                     if (jdist < dist_v[true_row_id]) {
                         dist_v[true_row_id] = jdist;
@@ -399,10 +399,10 @@ void kmeans_task_thread::kmspp_dist() {
     for (unsigned row = 0; row < curr_task->get_nrow(); row++) {
         unsigned true_row_id = get_global_data_id(row);
 
-        double dist = kpmbase::dist_comp_raw<double>(
+        double dist = kbase::dist_comp_raw<double>(
                 &(curr_task->get_data_ptr()[row*ncol]),
                 &((g_clusters->get_means())[clust_idx*ncol]), ncol,
-                kpmbase::dist_type_t::EUCL);
+                kbase::dist_type_t::EUCL);
 
         if (dist < dist_v[true_row_id]) { // Found a closer cluster than before
             dist_v[true_row_id] = dist;
@@ -414,7 +414,7 @@ void kmeans_task_thread::kmspp_dist() {
 }
 
 const void kmeans_task_thread::print_local_data() const {
-    kpmbase::print_mat(local_data,
+    kbase::print_mat(local_data,
             (get_data_size()/(sizeof(double)*ncol)), ncol);
 }
 

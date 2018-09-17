@@ -20,7 +20,7 @@
 #include "knori.hpp"
 #include "util.hpp"
 
-namespace kpmbase = knor::base;
+namespace kbase = knor::base;
 
 int main(int argc, char* argv[]) {
 
@@ -31,12 +31,12 @@ int main(int argc, char* argv[]) {
     constexpr unsigned nthread = 4;
     const std::string fn = "../../test-data/matrix_r50_c5_rrw.bin";
     const std::string centroidfn = "../../test-data/init_clusters_k8_c5.bin";
-    const unsigned nnodes = kpmbase::get_num_nodes();
+    const unsigned nnodes = kbase::get_num_nodes();
 
     // Read from disk
     std::cout << "Testing read from disk ..\n";
     {
-        kpmbase::kmeans_t ret = kpmbase::kmeans(
+        kbase::kmeans_t ret = kbase::kmeans(
                 fn, nrow, ncol, k,
                 /*"/data/kmeans/r16_c3145728_k100_cw.dat", 3145728, 16, 100,*/
                 max_iters, nnodes, nthread, NULL);
@@ -47,10 +47,10 @@ int main(int argc, char* argv[]) {
     std::cout << "Testing data only in-mem ..\n";
     {
         std::vector<double> data(nrow*ncol);
-        kpmbase::bin_rm_reader<double> br(fn);
+        kbase::bin_rm_reader<double> br(fn);
         br.read(data);
 
-        kpmbase::kmeans_t ret = kpmbase::kmeans(
+        kbase::kmeans_t ret = kbase::kmeans(
                 &data[0], nrow, ncol, k,
                 max_iters, nnodes, nthread, NULL,
                 "kmeanspp", -1, "eucl", true);
@@ -62,10 +62,10 @@ int main(int argc, char* argv[]) {
     std::cout << "Testing PRUNED data only in-mem ..\n";
     {
         std::vector<double> data(nrow*ncol);
-        kpmbase::bin_rm_reader<double> br(fn);
+        kbase::bin_rm_reader<double> br(fn);
         br.read(data);
 
-        kpmbase::kmeans_t ret = kpmbase::kmeans(
+        kbase::kmeans_t ret = kbase::kmeans(
                 &data[0], nrow, ncol, k,
                 max_iters, nnodes, nthread, NULL);
 
@@ -75,14 +75,14 @@ int main(int argc, char* argv[]) {
     std::cout << "Testing data + Centroid in-mem ..\n";
     {
         std::vector<double> data(nrow*ncol);
-        kpmbase::bin_rm_reader<double> br(fn);
+        kbase::bin_rm_reader<double> br(fn);
         br.read(data);
 
         std::vector<double> centroids(k*ncol);
-        kpmbase::bin_rm_reader<double> br2(centroidfn);
+        kbase::bin_rm_reader<double> br2(centroidfn);
         br2.read(centroids);
 
-        kpmbase::kmeans_t ret_full = kpmbase::kmeans(
+        kbase::kmeans_t ret_full = kbase::kmeans(
                 &data[0], nrow, ncol, k,
                 max_iters, nnodes, nthread, &centroids[0],
                 "none", -1, "eucl", true, false);
@@ -91,7 +91,7 @@ int main(int argc, char* argv[]) {
 
         //////////////////////////////////*****////////////////////////////
         //////////////////////////////////*****////////////////////////////
-        kpmbase::kmeans_t ret_numa_full = kpmbase::kmeans(
+        kbase::kmeans_t ret_numa_full = kbase::kmeans(
                 &data[0], nrow, ncol, k,
                 max_iters, nnodes, nthread, &centroids[0],
                 "none", -1, "eucl", true, true);
@@ -103,7 +103,7 @@ int main(int argc, char* argv[]) {
         //////////////////////////////////*****////////////////////////////
         //////////////////////////////////*****////////////////////////////
         std::cout << "Testing PRUNED. Data + Centroid in-mem ...\n";
-        kpmbase::kmeans_t ret = kpmbase::kmeans(
+        kbase::kmeans_t ret = kbase::kmeans(
                 &data[0], nrow, ncol, k,
                 max_iters, nnodes, nthread, &centroids[0],
                 "none");
@@ -113,7 +113,7 @@ int main(int argc, char* argv[]) {
         //////////////////////////////////*****////////////////////////////
         //////////////////////////////////*****////////////////////////////
         std::cout << "Testing PRUNED. Data + Centroid in-mem ...\n";
-        kpmbase::kmeans_t ret_numa = kpmbase::kmeans(
+        kbase::kmeans_t ret_numa = kbase::kmeans(
                 &data[0], nrow, ncol, k,
                 max_iters, nnodes, nthread, &centroids[0],
                 "none", -1, "eucl", false, true);

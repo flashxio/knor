@@ -35,7 +35,7 @@ void test_queue_get(const unsigned NTHREADS, const unsigned nnodes,
     printf("\nRunning test_queue_get with"
             " constexpr NTHREADS = %u...\n", NTHREADS);
 
-    kpmbase::bin_io<double> br(fn, nrow, ncol);
+    kbase::bin_io<double> br(fn, nrow, ncol);
     double* data = new double [nrow*ncol];
     printf("Bin read data\n");
     br.read(data);
@@ -51,7 +51,7 @@ void test_queue_get(const unsigned NTHREADS, const unsigned nnodes,
         q.reset();
         while(q.has_task()) {
             knor::task* t = q.get_task();
-            assert(kpmbase::eq_all<double>(
+            assert(kbase::eq_all<double>(
                         t->get_data_ptr(), &(data[t->get_start_rid()*ncol]),
                         t->get_nrow()*ncol));
             delete t;
@@ -68,7 +68,7 @@ int main(int argc, char* argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    unsigned nnodes = kpmbase::get_num_nodes();
+    unsigned nnodes = kbase::get_num_nodes();
     if (argc > 2) {
         if (atol(argv[2]) <= nnodes) {
             std::cout << "[NOTE]: Setting NUMA nodes to: " << argv[2] <<

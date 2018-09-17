@@ -29,7 +29,7 @@
 #include "util.hpp"
 #include "kmeans_types.hpp"
 
-namespace kpmmpi = knor::mpi;
+namespace kmpi = knor::mpi;
 
 namespace knor { namespace dist {
 
@@ -38,8 +38,8 @@ dist_coordinator::dist_coordinator(
         const std::string fn, const size_t nrow,
         const size_t ncol, const unsigned k, const unsigned max_iters,
         const unsigned nnodes, const unsigned nthreads,
-        const double* centers, const kpmbase::init_type_t it,
-        const double tolerance, const kpmbase::dist_type_t dt) :
+        const double* centers, const kbase::init_type_t it,
+        const double tolerance, const kbase::dist_type_t dt) :
     kmeans_coordinator(fn, this->init(argc, argv, nrow), ncol, k, max_iters, nnodes,
             nthreads, centers, it, tolerance, dt) {
 
@@ -72,7 +72,7 @@ const size_t dist_coordinator::init(int argc, char* argv[],
 }
 
 void dist_coordinator::random_partition_init() {
-    kpmbase::rand123emulator<unsigned> gen(0, k-1,
+    kbase::rand123emulator<unsigned> gen(0, k-1,
             ((g_nrow / nprocs) * mpi_rank));
     for (size_t row = 0; row < nrow; row++) {
         unsigned asgnd_clust = gen.next();
@@ -86,7 +86,7 @@ void dist_coordinator::random_partition_init() {
 #ifndef BIND
     printf("After rand paritions cluster_asgns: \n");
 #endif
-    kpmbase::print_arr<unsigned>(cluster_assignments, nrow);
+    kbase::print_arr<unsigned>(cluster_assignments, nrow);
 #endif
 }
 
@@ -115,7 +115,7 @@ const size_t dist_coordinator::global_rid(const size_t local_rid) const {
 const size_t dist_coordinator::local_rid(const size_t global_rid) const {
     size_t rid = global_rid - (mpi_rank * (g_nrow / nprocs));
     if (rid > this->nrow)
-        throw kpmbase::thread_exception("Row: " + std::to_string(rid) +
+        throw kbase::thread_exception("Row: " + std::to_string(rid) +
                 " out of bounds for Proc: " + std::to_string( mpi_rank));
     return rid;
 }
@@ -155,7 +155,7 @@ void dist_coordinator::kmeanspp_init() {
         cluster_assignments[local_rid(selected_idx)] = 0;
     }
 
-    kpmmpi::mpi::reduce_double(&(cltrs->get_means()[0]),
+    kmpi::mpi::reduce_double(&(cltrs->get_means()[0]),
             &buff[0], cltrs->size());
     cltrs->set_mean(&buff[0]);
 
@@ -176,7 +176,7 @@ void dist_coordinator::kmeanspp_init() {
         double local_cuml_dist = reduction_on_cuml_sum(); // Per proc cuml dists
 
         double cuml_dist; // Recepticle
-        kpmmpi::mpi::reduce_double(&local_cuml_dist, &cuml_dist);
+        kmpi::mpi::reduce_double(&local_cuml_dist, &cuml_dist);
 
         // All procs do this ...
         cuml_dist = (cuml_dist * ur_distribution(generator)) / (RAND_MAX - 1.0);
@@ -184,7 +184,7 @@ void dist_coordinator::kmeanspp_init() {
             break;
 
         // Gather the g_dist_v
-        kpmmpi::mpi::allgather_double(&dist_v[0],
+        kmpi::mpi::allgather_double(&dist_v[0],
                 &g_dist_v[0], g_nrow/nprocs);
 
         // Gather the remaining entries from the last proc which *may* have more
@@ -196,7 +196,7 @@ void dist_coordinator::kmeanspp_init() {
                 std::copy(&dist_v[tail_idx], &dist_v[tail_idx+numel],
                         &g_dist_v[g_nrow-numel]);
 
-            kpmmpi::mpi::bcast_double(&g_dist_v[g_nrow-numel], nprocs-1, numel);
+            kmpi::mpi::bcast_double(&g_dist_v[g_nrow-numel], nprocs-1, numel);
         }
 
         for (size_t row = 0; row < g_nrow; row++) {
@@ -220,7 +220,7 @@ void dist_coordinator::kmeanspp_init() {
             }
         }
 
-        kpmmpi::mpi::reduce_double(&(cltrs->get_means()[0]),
+        kmpi::mpi::reduce_double(&(cltrs->get_means()[0]),
                 &buff[0], cltrs->size());
         cltrs->set_mean(&buff[0]);
         assert(cuml_dist <= 0);
@@ -238,7 +238,7 @@ void dist_coordinator::kmeanspp_init() {
     if (mpi_rank == 0)
 #ifndef BIND
         printf("Initialization time: %.6f sec\n",
-                kpmbase::time_diff(start, end));
+                kbase::time_diff(start, end));
 #endif
 }
 
@@ -253,7 +253,7 @@ void dist_coordinator::forgy_init() {
     }
 }
 
-void dist_coordinator::run_kmeans(kpmbase::kmeans_t& ret,
+void dist_coordinator::run_kmeans(kbase::kmeans_t& ret,
         const std::string outdir) {
     if (mpi_rank == root) {
         if (outdir.empty())
@@ -280,7 +280,7 @@ void dist_coordinator::run_kmeans(kpmbase::kmeans_t& ret,
     size_t iters = 0;
     size_t nchanged = 0;
 
-    kpmbase::clusters::ptr cltrs_ptr = get_gcltrs();
+    kbase::clusters::ptr cltrs_ptr = get_gcltrs();
 
     // Init
     run_init();
@@ -288,15 +288,15 @@ void dist_coordinator::run_kmeans(kpmbase::kmeans_t& ret,
     double* clstr_buff = new double[k*ncol];
     size_t* nmemb_buff = new size_t[k];
 
-    if (_init_t == kpmbase::init_type_t::RANDOM ||
-            _init_t == kpmbase::init_type_t::FORGY) {
+    if (_init_t == kbase::init_type_t::RANDOM ||
+            _init_t == kbase::init_type_t::FORGY) {
         // MPI Update clusters
-        kpmmpi::mpi::reduce_double(&(cltrs_ptr->get_means()[0]),
+        kmpi::mpi::reduce_double(&(cltrs_ptr->get_means()[0]),
                 clstr_buff, cltrs_ptr->size());
         cltrs_ptr->set_mean(clstr_buff);
 
-        if (_init_t == kpmbase::init_type_t::RANDOM) {
-            kpmmpi::mpi::reduce_size_t(&(cltrs_ptr->get_num_members_v()[0]),
+        if (_init_t == kbase::init_type_t::RANDOM) {
+            kmpi::mpi::reduce_size_t(&(cltrs_ptr->get_num_members_v()[0]),
                     nmemb_buff, cltrs_ptr->get_num_members_v().size());
             cltrs_ptr->set_num_members_v(nmemb_buff); // Set new counts
             cltrs_ptr->finalize_all();
@@ -334,18 +334,18 @@ void dist_coordinator::run_kmeans(kpmbase::kmeans_t& ret,
 
         // NOTE: cltrs_ptr has this procs diff (agg of threads from this proc)
         // NOTE: clstr_buff has agg of all procs diff
-        kpmmpi::mpi::reduce_double(&(cltrs_ptr->get_means()[0]),
+        kmpi::mpi::reduce_double(&(cltrs_ptr->get_means()[0]),
                 clstr_buff, cltrs_ptr->size());
 
         // nmemb_buff has agg of all procs diff on membership count
-        kpmmpi::mpi::reduce_size_t(&(cltrs_ptr->get_num_members_v()[0]),
+        kmpi::mpi::reduce_size_t(&(cltrs_ptr->get_num_members_v()[0]),
                 nmemb_buff, cltrs_ptr->get_num_members_v().size());
         cltrs_ptr->set_mean(clstr_buff);
         cltrs_ptr->set_num_members_v(nmemb_buff);
 
         // NOTE: Now finalized
         size_t pp_num_changed = get_num_changed();
-        kpmmpi::mpi::reduce_size_t(&pp_num_changed, &nchanged);
+        kmpi::mpi::reduce_size_t(&pp_num_changed, &nchanged);
 
         if (mpi_rank == root) {
 #ifndef BIND
@@ -383,7 +383,7 @@ void dist_coordinator::run_kmeans(kpmbase::kmeans_t& ret,
     if (mpi_rank == root)
 #ifndef BIND
         printf("\nAlgorithmic time taken = %.5f sec\n",
-                kpmbase::time_diff(start, end));
+                kbase::time_diff(start, end));
 #endif
 
     if (!outdir.empty()) {
@@ -393,7 +393,7 @@ void dist_coordinator::run_kmeans(kpmbase::kmeans_t& ret,
         if (mpi_rank != root) {
             int rc = MPI_Ssend(local_assignments, get_nrow(),
                     MPI::UNSIGNED, root, 0, MPI_COMM_WORLD);
-            kpmbase::assert_msg(!rc,
+            kbase::assert_msg(!rc,
                     "Failure to send local assignments to root");
         } else {
             std::vector<unsigned> assignments(g_nrow);
@@ -411,11 +411,11 @@ void dist_coordinator::run_kmeans(kpmbase::kmeans_t& ret,
                 int rc = MPI_Recv(&assignments[pid*(g_nrow/nprocs)],
                         count, MPI::UNSIGNED, pid,
                         0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-                kpmbase::assert_msg(!rc,
+                kbase::assert_msg(!rc,
                         "Root Failure receive local assignments");
             }
 
-            ret = kpmbase::kmeans_t(g_nrow, ncol, iters, k, &assignments[0],
+            ret = kbase::kmeans_t(g_nrow, ncol, iters, k, &assignments[0],
                     &(cltrs_ptr->get_num_members_v()[0]),
                     cltrs_ptr->get_means());
 

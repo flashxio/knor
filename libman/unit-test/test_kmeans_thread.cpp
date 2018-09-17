@@ -32,7 +32,7 @@
 #include "numa.h"
 #endif
 
-namespace kpmbase = knor::base;
+namespace kbase = knor::base;
 
 static std::atomic<unsigned> pending_threads;
 //static unsigned pending_threads;
@@ -64,7 +64,7 @@ static void test_thread_creation(const unsigned NTHREADS,
 
     // Always: Build state alone
     for (unsigned i = 0; i < NTHREADS; i++) {
-        kpmbase::clusters::ptr cl = kpmbase::clusters::create(2,2);
+        kbase::clusters::ptr cl = kbase::clusters::create(2,2);
         threads.push_back(knor::kmeans_thread::create
                 (i%nnodes, i, 69, 200, 1, cl, NULL, "/dev/null"));
         threads[i]->set_parent_cond(&cond);
@@ -94,7 +94,7 @@ void test_numa_populate_data(const unsigned NTHREADS, const unsigned nnodes,
 
     // Always: Build state alone
     for (unsigned i = 0; i < NTHREADS; i++) {
-        kpmbase::clusters::ptr cl = kpmbase::clusters::create(2,2);
+        kbase::clusters::ptr cl = kbase::clusters::create(2,2);
         threads.push_back(knor::kmeans_thread::create
                 (i%nnodes, i, i*nprocrows, nprocrows, ncol,
                  cl, NULL, fn));
@@ -116,7 +116,7 @@ void test_numa_populate_data(const unsigned NTHREADS, const unsigned nnodes,
     // Print it back
     for (it = threads.begin(); it != threads.end(); ++it) {
         double *dp = &data[(*it)->get_thd_id()*ncol*nprocrows];
-        assert(kpmbase::eq_all(dp, (*it)->get_local_data(),
+        assert(kbase::eq_all(dp, (*it)->get_local_data(),
                     nprocrows*ncol));
         printf("Thread %u PASSED numa_mem_alloc()\n", (*it)->get_thd_id());
     }
@@ -132,7 +132,7 @@ int main(int argc, char* argv[]) {
     pthread_mutexattr_settype(&mutex_attr, PTHREAD_MUTEX_ERRORCHECK);
     pthread_mutex_init(&mutex, &mutex_attr);
     pthread_cond_init(&cond, NULL);
-    unsigned nnodes = kpmbase::get_num_nodes();
+    unsigned nnodes = kbase::get_num_nodes();
 
     if (argc < 2) {
         fprintf(stderr, "usage: ./test_kmeans_thread nthreads [nnodes]\n");

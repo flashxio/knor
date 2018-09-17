@@ -37,8 +37,8 @@
 #define KM_TEST 0
 #define VERBOSE 0
 
-namespace kpmprune = knor::prune;
-namespace kpmbase = knor::base;
+namespace kprune = knor::prune;
+namespace kbase = knor::base;
 
 namespace {
 
@@ -48,8 +48,8 @@ static size_t NUM_ROWS;
 short OMP_MAX_THREADS = 1;
 static size_t g_num_changed = 0;
 static struct timeval start, end;
-static kpmbase::init_type_t g_init_type;
-static kpmbase::dist_type_t g_dist_type;
+static kbase::init_type_t g_init_type;
+static kbase::dist_type_t g_dist_type;
 
 /**
  * \brief This initializes clusters by randomly choosing sample
@@ -59,7 +59,7 @@ static kpmbase::dist_type_t g_dist_type;
  */
 void random_partition_init(unsigned* cluster_assignments,
         const double* matrix,
-        std::shared_ptr<kpmbase::clusters> clusters,
+        std::shared_ptr<kbase::clusters> clusters,
         const size_t num_rows,
         const size_t num_cols, const unsigned k) {
 #ifndef BIND
@@ -99,7 +99,7 @@ void random_partition_init(unsigned* cluster_assignments,
  * \param clusters The cluster centers (means) flattened matrix.
  */
 void forgy_init(const double* matrix,
-        std::shared_ptr<kpmbase::clusters> clusters,
+        std::shared_ptr<kbase::clusters> clusters,
         const size_t num_rows, const size_t num_cols, const unsigned k) {
 
     std::default_random_engine generator;
@@ -133,7 +133,7 @@ std::string s (const double d) {
  *  See: http://ilpubs.stanford.edu:8090/778/1/2006-13.pdf for algorithm
  */
 static void kmeanspp_init(const double* matrix,
-        kpmbase::prune_clusters::ptr clusters,
+        kbase::prune_clusters::ptr clusters,
         unsigned* cluster_assignments) {
 
     std::default_random_engine generator;
@@ -212,18 +212,18 @@ static void kmeanspp_init(const double* matrix,
  * \param clusters The cluster centers (means) flattened matrix.
  *	\param cluster_assignments Which cluster each sample falls into.
  */
-static void EM_step(const double* matrix, kpmbase::prune_clusters::ptr cls,
+static void EM_step(const double* matrix, kbase::prune_clusters::ptr cls,
         unsigned* cluster_assignments, size_t* cluster_assignment_counts,
-        kpmbase::thd_safe_bool_vector::ptr recalculated_v,
+        kbase::thd_safe_bool_vector::ptr recalculated_v,
         std::vector<double>& dist_v,
-        kpmprune::dist_matrix::ptr dm, const bool prune_init=false) {
+        kprune::dist_matrix::ptr dm, const bool prune_init=false) {
 
-    std::vector<kpmbase::clusters::ptr> pt_cl(OMP_MAX_THREADS);
+    std::vector<kbase::clusters::ptr> pt_cl(OMP_MAX_THREADS);
     // Per thread changed cluster count. OMP_MAX_THREADS
     std::vector<size_t> pt_num_change(OMP_MAX_THREADS);
 
     for (int i = 0; i < OMP_MAX_THREADS; i++)
-        pt_cl[i] = kpmbase::clusters::create(K, NUM_COLS);
+        pt_cl[i] = kbase::clusters::create(K, NUM_COLS);
 
 #ifdef _OPENMP
 #pragma omp parallel for firstprivate(matrix, pt_cl)\
@@ -338,7 +338,7 @@ static void EM_step(const double* matrix, kpmbase::prune_clusters::ptr cls,
     size_t chk_nmemb = 0;
     for (unsigned clust_idx = 0; clust_idx < K; clust_idx++) {
         cls->finalize(clust_idx);
-        cls->set_prev_dist(kpmbase::eucl_dist(
+        cls->set_prev_dist(kbase::eucl_dist(
                     &(cls->get_means()[clust_idx*NUM_COLS]),
                     &(cls->get_prev_means()[clust_idx*NUM_COLS]),
                     NUM_COLS), clust_idx);
@@ -382,7 +382,7 @@ void get_sampling(std::vector<std::vector<double>>& samples,
 
 namespace knor { namespace omp {
 
-kpmbase::kmeans_t compute_min_kmeans(const double* matrix, double* clusters_ptr,
+kbase::kmeans_t compute_min_kmeans(const double* matrix, double* clusters_ptr,
         unsigned* cluster_assignments, size_t* cluster_assignment_counts,
         const size_t num_rows, const size_t num_cols, const unsigned k,
         const size_t MAX_ITERS, int max_threads, const std::string init,
@@ -400,7 +400,7 @@ kpmbase::kmeans_t compute_min_kmeans(const double* matrix, double* clusters_ptr,
     max_threads = 1;
 #endif
 
-    OMP_MAX_THREADS = std::min(max_threads, kpmbase::get_num_omp_threads());
+    OMP_MAX_THREADS = std::min(max_threads, kbase::get_num_omp_threads());
 
 #ifdef _OPENMP
     omp_set_num_threads(OMP_MAX_THREADS);
@@ -411,59 +411,59 @@ kpmbase::kmeans_t compute_min_kmeans(const double* matrix, double* clusters_ptr,
 
     // Check k
     if (K > NUM_ROWS || K < 2 || K == (unsigned)-1) {
-        throw kpmbase::parameter_exception("'k' must be between 2 and"
+        throw kbase::parameter_exception("'k' must be between 2 and"
                 " the number of rows in the matrix.", K);
     }
 
     gettimeofday(&start , NULL);
     /*** Begin VarInit of data structures ***/
     std::fill(cluster_assignments, cluster_assignments+NUM_ROWS,
-            kpmbase::INVALID_CLUSTER_ID);
+            kbase::INVALID_CLUSTER_ID);
     std::fill(cluster_assignment_counts, cluster_assignment_counts+K, 0);
 
-    kpmbase::prune_clusters::ptr clusters =
-        kpmbase::prune_clusters::create(K, NUM_COLS);
+    kbase::prune_clusters::ptr clusters =
+        kbase::prune_clusters::create(K, NUM_COLS);
 
     if (init == "none")
         clusters->set_mean(clusters_ptr);
 
     // For pruning
-    kpmbase::thd_safe_bool_vector::ptr recalculated_v =
-        kpmbase::thd_safe_bool_vector::create(NUM_ROWS, false);
+    kbase::thd_safe_bool_vector::ptr recalculated_v =
+        kbase::thd_safe_bool_vector::create(NUM_ROWS, false);
 
     std::vector<double> dist_v;
     dist_v.assign(NUM_ROWS, std::numeric_limits<double>::max());
-    kpmprune::dist_matrix::ptr dm = kpmprune::dist_matrix::create(K);
+    kprune::dist_matrix::ptr dm = kprune::dist_matrix::create(K);
 
     /*** End VarInit ***/
 #ifndef BIND
     printf("Dist_type is %s \n", dist_type.c_str());
 #endif
     if (dist_type == "eucl") {
-        g_dist_type = kpmbase::dist_type_t::EUCL;
+        g_dist_type = kbase::dist_type_t::EUCL;
     } else if (dist_type == "cos") {
-        g_dist_type = kpmbase::dist_type_t::COS;
+        g_dist_type = kbase::dist_type_t::COS;
     } else {
-        throw kpmbase::parameter_exception("param `dist_type` must be one of: "
+        throw kbase::parameter_exception("param `dist_type` must be one of: "
                 "'eucl', 'cos'.", dist_type);
     }
 
     if (init == "random") {
         random_partition_init(cluster_assignments, matrix,
                 clusters, NUM_ROWS, NUM_COLS, K);
-        g_init_type = kpmbase::init_type_t::RANDOM;
+        g_init_type = kbase::init_type_t::RANDOM;
         clusters->finalize_all();
     } else if (init == "forgy") {
         forgy_init(matrix, clusters, NUM_ROWS, NUM_COLS, K);
-        g_init_type = kpmbase::init_type_t::FORGY;
+        g_init_type = kbase::init_type_t::FORGY;
     } else if (init == "kmeanspp") {
         kmeanspp_init(matrix, clusters, cluster_assignments);
-        g_init_type = kpmbase::init_type_t::PLUSPLUS;
+        g_init_type = kbase::init_type_t::PLUSPLUS;
     } else if (init == "none") {
-        g_init_type = kpmbase::init_type_t::NONE;
+        g_init_type = kbase::init_type_t::NONE;
         dm->compute_dist(clusters, NUM_COLS);
     } else {
-        throw kpmbase::parameter_exception("param `init` must be one of: "
+        throw kbase::parameter_exception("param `init` must be one of: "
             "'random', 'forgy', 'kmeanspp'", init);
     }
 
@@ -560,7 +560,7 @@ kpmbase::kmeans_t compute_min_kmeans(const double* matrix, double* clusters_ptr,
     gettimeofday(&end, NULL);
 #ifndef BIND
     printf("\n\nAlgorithmic time taken = %.5f sec\n",
-        kpmbase::time_diff(start, end));
+        kbase::time_diff(start, end));
 #endif
 
 #ifdef PROFILER
@@ -583,14 +583,14 @@ kpmbase::kmeans_t compute_min_kmeans(const double* matrix, double* clusters_ptr,
         }
 #ifndef BIND
     printf("Final cluster counts ...\n");
-    kpmbase::print_arr(cluster_assignment_counts, K);
+    kbase::print_arr(cluster_assignment_counts, K);
 #endif
 
 #ifndef BIND
     printf("\n******************************************\n");
 #endif
 
-    return kpmbase::kmeans_t (NUM_ROWS, NUM_COLS, iter, K,
+    return kbase::kmeans_t (NUM_ROWS, NUM_COLS, iter, K,
             cluster_assignments, cluster_assignment_counts,
             clusters->get_means());
 }

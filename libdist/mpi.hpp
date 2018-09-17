@@ -33,7 +33,7 @@ public:
         int ret = MPI_Allreduce(send_buff, recv_buff,
                 numel, MPIType, MPI_SUM, MPI_COMM_WORLD);
         if (ret)
-            throw kpmbase::mpi_exception("All reduce failure in reduce_double"
+            throw kbase::mpi_exception("All reduce failure in reduce_double"
                     , ret);
     }
 #endif
@@ -43,7 +43,7 @@ public:
         int ret = MPI_Allreduce(send_buff, recv_buff,
                 numel, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
         if (ret)
-            throw kpmbase::mpi_exception("All reduce failure in reduce_double"
+            throw kbase::mpi_exception("All reduce failure in reduce_double"
                     , ret);
     }
 
@@ -52,7 +52,7 @@ public:
         int ret = MPI_Allreduce(send_buff, rev_buff, numel,
                 MPI::UNSIGNED_LONG_LONG, MPI_SUM, MPI_COMM_WORLD);
         if (ret)
-            throw kpmbase::mpi_exception("All reduce failure in reduce_size_t"
+            throw kbase::mpi_exception("All reduce failure in reduce_size_t"
                     , ret);
     }
 
@@ -62,14 +62,14 @@ public:
                 send_buff, numel, MPI_DOUBLE, recv_buff,
                 numel, MPI_DOUBLE, MPI_COMM_WORLD);
         if (ret)
-            throw kpmbase::mpi_exception("All gather failure in double", ret);
+            throw kbase::mpi_exception("All gather failure in double", ret);
     }
 
     static void bcast_double(double* buffer, const int pid,
             const size_t numel) {
         int ret = MPI_Bcast(buffer, numel, MPI_DOUBLE, pid, MPI_COMM_WORLD);
         if (ret)
-            throw kpmbase::mpi_exception("Bcast failure in double", ret);
+            throw kbase::mpi_exception("Bcast failure in double", ret);
     }
 
     // Merge the per-process cluster assingments so it can be returned in 1 proc

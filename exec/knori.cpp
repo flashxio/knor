@@ -35,8 +35,8 @@
 
 #include "cxxopts/cxxopts.hpp"
 
-namespace kpmbase = knor::base;
-namespace kpmprune = knor::prune;
+namespace kbase = knor::base;
+namespace kprune = knor::prune;
 
 int main(int argc, char* argv[])
 {
@@ -46,7 +46,7 @@ int main(int argc, char* argv[])
     unsigned k = 0;
 
     // optional args
-    unsigned nthread = kpmbase::get_num_omp_threads();
+    unsigned nthread = kbase::get_num_omp_threads();
     std::string dist_type = "eucl";
     std::string centersfn = "";
     unsigned max_iters=std::numeric_limits<unsigned>::max();
@@ -57,7 +57,7 @@ int main(int argc, char* argv[])
     bool omp = false;
 
     if (omp) { }
-    unsigned nnodes = kpmbase::get_num_nodes();
+    unsigned nnodes = kbase::get_num_nodes();
     std::string outdir = "";
 
     cxxopts::Options options(argv[0],
@@ -109,14 +109,14 @@ int main(int argc, char* argv[])
         exit(EXIT_SUCCESS);
     }
 
-    kpmbase::assert_msg(kpmbase::is_file_exist(datafn.c_str()),
+    kbase::assert_msg(kbase::is_file_exist(datafn.c_str()),
             "Data file name doesn't exit!");
     size_t nrow = atol(options["nsamples"].as<std::string>().c_str());
     size_t ncol = atol(options["dim"].as<std::string>().c_str());
     if (options.count("tol"))
         tolerance = std::stod(options["tol"].as<std::string>());
     if (options.count("centersfn")) {
-        kpmbase::assert_msg(kpmbase::is_file_exist(centersfn.c_str()),
+        kbase::assert_msg(kbase::is_file_exist(centersfn.c_str()),
                 "Centers file name doesn't exit!");
         init = "none";  // Ignore whatever you pass in
     }
@@ -125,25 +125,25 @@ int main(int argc, char* argv[])
         fprintf(stderr, "\n\n**[WARNING]**: No output dir specified with '-o' "
                 " flag means no output will be saved!\n\n");
 
-    kpmbase::assert_msg(!(init == "none" && centersfn.empty()),
+    kbase::assert_msg(!(init == "none" && centersfn.empty()),
             "Centers file name doesn't exit!");
 
-    if (kpmbase::filesize(datafn.c_str()) != (sizeof(double)*nrow*ncol))
-        throw kpmbase::io_exception("File size does not match input size.");
+    if (kbase::filesize(datafn.c_str()) != (sizeof(double)*nrow*ncol))
+        throw kbase::io_exception("File size does not match input size.");
 
     double* p_centers = NULL;
-    kpmbase::kmeans_t ret;
+    kbase::kmeans_t ret;
 
-    if (kpmbase::is_file_exist(centersfn.c_str())) {
+    if (kbase::is_file_exist(centersfn.c_str())) {
         p_centers = new double [k*ncol];
-        kpmbase::bin_io<double> br2(centersfn, k, ncol);
+        kbase::bin_io<double> br2(centersfn, k, ncol);
         br2.read(p_centers);
         printf("Read centers!\n");
     } else
         printf("No centers to read ..\n");
 #ifdef _OPENMP
     if (omp) {
-        kpmbase::bin_io<double> br(datafn, nrow, ncol);
+        kbase::bin_io<double> br(datafn, nrow, ncol);
         double* p_data = new double [nrow*ncol];
         br.read(p_data);
         printf("Read data!\n");
@@ -176,8 +176,8 @@ int main(int argc, char* argv[])
                     init, tolerance, dist_type);
             ret = kc->run_kmeans();
         } else {
-            kpmprune::kmeans_task_coordinator::ptr kc =
-                kpmprune::kmeans_task_coordinator::create(
+            kprune::kmeans_task_coordinator::ptr kc =
+                kprune::kmeans_task_coordinator::create(
                     datafn, nrow, ncol, k, max_iters, nnodes, nthread, p_centers,
                     init, tolerance, dist_type);
             ret = kc->run_kmeans();

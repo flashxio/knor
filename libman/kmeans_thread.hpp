@@ -25,20 +25,20 @@
 namespace knor { namespace base {
     class clusters;
 } }
-namespace kpmbase = knor::base;
+namespace kbase = knor::base;
 
 
 namespace knor {
 class kmeans_thread : public thread {
     private:
          // Pointer to global cluster data
-        std::shared_ptr<kpmbase::clusters> g_clusters;
+        std::shared_ptr<kbase::clusters> g_clusters;
         unsigned nprocrows; // How many rows to process
 
         kmeans_thread(const int node_id, const unsigned thd_id,
                 const unsigned start_rid, const unsigned nprocrows,
                 const unsigned ncol,
-                std::shared_ptr<kpmbase::clusters> g_clusters,
+                std::shared_ptr<kbase::clusters> g_clusters,
                 unsigned* cluster_assignments,
                 const std::string fn);
     public:
@@ -46,7 +46,7 @@ class kmeans_thread : public thread {
                 const int node_id, const unsigned thd_id,
                 const unsigned start_rid, const unsigned nprocrows,
                 const unsigned ncol,
-                std::shared_ptr<kpmbase::clusters> g_clusters,
+                std::shared_ptr<kbase::clusters> g_clusters,
                 unsigned* cluster_assignments, const std::string fn) {
             return thread::ptr(
                     new kmeans_thread(node_id, thd_id, start_rid,

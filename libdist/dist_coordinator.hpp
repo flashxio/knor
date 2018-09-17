@@ -22,7 +22,7 @@
 #include "exception.hpp"
 #include "kmeans_coordinator.hpp"
 
-namespace kpmbase = knor::base;
+namespace kbase = knor::base;
 
 namespace knor { namespace dist {
 
@@ -34,8 +34,8 @@ private:
             const std::string fn, const size_t nrow,
             const size_t ncol, const unsigned k, const unsigned max_iters,
             const unsigned nnodes, const unsigned nthreads,
-            const double* centers, const kpmbase::init_type_t it,
-            const double tolerance, const kpmbase::dist_type_t dt);
+            const double* centers, const kbase::init_type_t it,
+            const double tolerance, const kbase::dist_type_t dt);
 
     int mpi_rank;
     int nprocs;
@@ -49,8 +49,8 @@ public:
             const double* centers=NULL, const std::string init="kmeanspp",
             const double tolerance=-1, const std::string dist_type="eucl") {
 
-        kpmbase::init_type_t _init_t = kpmbase::get_init_type(init);
-        kpmbase::dist_type_t _dist_t = kpmbase::get_dist_type(dist_type);
+        kbase::init_type_t _init_t = kbase::get_init_type(init);
+        kbase::dist_type_t _dist_t = kbase::get_dist_type(dist_type);
 
         return coordinator::ptr(
                 new dist_coordinator(argc, argv, fn, nrow, ncol, k, max_iters,
@@ -65,7 +65,7 @@ public:
     void random_partition_init() override;
     void forgy_init() override;
     const bool is_local(const size_t global_rid) const;
-    void run_kmeans(kpmbase::kmeans_t& ret, const std::string outdir="");
+    void run_kmeans(kbase::kmeans_t& ret, const std::string outdir="");
 
     const size_t global_rid(const size_t local_rid) const;
     const size_t local_rid(const size_t global_rid) const;
