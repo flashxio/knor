@@ -30,7 +30,7 @@ coordinator::coordinator(const std::string fn,
         const size_t nrow,
         const size_t ncol, const unsigned k, const unsigned max_iters,
         const unsigned nnodes, const unsigned nthreads,
-        const double* centers, const kbase::init_type_t it,
+        const double* centers, const kbase::init_t it,
         const double tolerance, const kbase::dist_t dt) {
 
     this->fn = fn;

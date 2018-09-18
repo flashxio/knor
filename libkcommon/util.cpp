@@ -83,15 +83,15 @@ int get_num_omp_threads() {
     return num_threads;
 }
 
-init_type_t get_init_type(const std::string init) {
+init_t get_init_type(const std::string init) {
     if (init == "random")
-        return init_type_t::RANDOM;
+        return init_t::RANDOM;
     else if (init == "forgy")
-        return init_type_t::FORGY;
+        return init_t::FORGY;
     else if (init == "kmeanspp")
-        return init_type_t::PLUSPLUS;
+        return init_t::PLUSPLUS;
     else if (init == "none")
-        return init_type_t::NONE;
+        return init_t::NONE;
     else
         throw thread_exception(std::string("param init must be one of:"
                     " [random | forgy | kmeanspp]. It is '")

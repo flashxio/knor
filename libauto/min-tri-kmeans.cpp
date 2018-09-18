@@ -48,7 +48,7 @@ static size_t NUM_ROWS;
 short OMP_MAX_THREADS = 1;
 static size_t g_num_changed = 0;
 static struct timeval start, end;
-static kbase::init_type_t g_init_type;
+static kbase::init_t g_init_type;
 static kbase::dist_t g_dist_type;
 
 /**
@@ -451,16 +451,16 @@ kbase::kmeans_t compute_min_kmeans(const double* matrix, double* clusters_ptr,
     if (init == "random") {
         random_partition_init(cluster_assignments, matrix,
                 clusters, NUM_ROWS, NUM_COLS, K);
-        g_init_type = kbase::init_type_t::RANDOM;
+        g_init_type = kbase::init_t::RANDOM;
         clusters->finalize_all();
     } else if (init == "forgy") {
         forgy_init(matrix, clusters, NUM_ROWS, NUM_COLS, K);
-        g_init_type = kbase::init_type_t::FORGY;
+        g_init_type = kbase::init_t::FORGY;
     } else if (init == "kmeanspp") {
         kmeanspp_init(matrix, clusters, cluster_assignments);
-        g_init_type = kbase::init_type_t::PLUSPLUS;
+        g_init_type = kbase::init_t::PLUSPLUS;
     } else if (init == "none") {
-        g_init_type = kbase::init_type_t::NONE;
+        g_init_type = kbase::init_t::NONE;
         dm->compute_dist(clusters, NUM_COLS);
     } else {
         throw kbase::parameter_exception("param `init` must be one of: "

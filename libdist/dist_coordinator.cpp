@@ -38,7 +38,7 @@ dist_coordinator::dist_coordinator(
         const std::string fn, const size_t nrow,
         const size_t ncol, const unsigned k, const unsigned max_iters,
         const unsigned nnodes, const unsigned nthreads,
-        const double* centers, const kbase::init_type_t it,
+        const double* centers, const kbase::init_t it,
         const double tolerance, const kbase::dist_t dt) :
     kmeans_coordinator(fn, this->init(argc, argv, nrow), ncol, k, max_iters, nnodes,
             nthreads, centers, it, tolerance, dt) {
@@ -288,14 +288,14 @@ void dist_coordinator::run_kmeans(kbase::kmeans_t& ret,
     double* clstr_buff = new double[k*ncol];
     size_t* nmemb_buff = new size_t[k];
 
-    if (_init_t == kbase::init_type_t::RANDOM ||
-            _init_t == kbase::init_type_t::FORGY) {
+    if (_init_t == kbase::init_t::RANDOM ||
+            _init_t == kbase::init_t::FORGY) {
         // MPI Update clusters
         kmpi::mpi::reduce_double(&(cltrs_ptr->get_means()[0]),
                 clstr_buff, cltrs_ptr->size());
         cltrs_ptr->set_mean(clstr_buff);
 
-        if (_init_t == kbase::init_type_t::RANDOM) {
+        if (_init_t == kbase::init_t::RANDOM) {
             kmpi::mpi::reduce_size_t(&(cltrs_ptr->get_num_members_v()[0]),
                     nmemb_buff, cltrs_ptr->get_num_members_v().size());
             cltrs_ptr->set_num_members_v(nmemb_buff); // Set new counts

@@ -44,7 +44,7 @@ class kmeans_coordinator : public coordinator {
         kmeans_coordinator(const std::string fn, const size_t nrow,
                 const size_t ncol, const unsigned k, const unsigned max_iters,
                 const unsigned nnodes, const unsigned nthreads,
-                const double* centers, const base::init_type_t it,
+                const double* centers, const base::init_t it,
                 const double tolerance, const base::dist_t dt);
 
     public:
@@ -55,7 +55,7 @@ class kmeans_coordinator : public coordinator {
                 const double* centers=NULL, const std::string init="kmeanspp",
                 const double tolerance=-1, const std::string dist_type="eucl") {
 
-            base::init_type_t _init_t = base::get_init_type(init);
+            base::init_t _init_t = base::get_init_type(init);
             base::dist_t _dist_t = base::get_dist_type(dist_type);
 #if KM_TEST
 #ifndef BIND

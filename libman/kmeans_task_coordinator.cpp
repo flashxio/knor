@@ -38,7 +38,7 @@ namespace knor { namespace prune {
 kmeans_task_coordinator::kmeans_task_coordinator(const std::string fn, const size_t nrow,
         const size_t ncol, const unsigned k, const unsigned max_iters,
         const unsigned nnodes, const unsigned nthreads,
-        const double* centers, const kbase::init_type_t it,
+        const double* centers, const kbase::init_t it,
         const double tolerance, const kbase::dist_t dt) :
     coordinator(fn, nrow, ncol, k, max_iters,
             nnodes, nthreads, centers, it, tolerance, dt) {
@@ -46,7 +46,7 @@ kmeans_task_coordinator::kmeans_task_coordinator(const std::string fn, const siz
         cltrs = kbase::prune_clusters::create(k, ncol);
 
         if (centers) {
-            if (kbase::init_type_t::NONE) {
+            if (kbase::init_t::NONE) {
                 cltrs->set_mean(centers);
             } else {
 #ifndef BIND
@@ -311,16 +311,16 @@ void kmeans_task_coordinator::forgy_init() {
 
 void kmeans_task_coordinator::run_init() {
     switch(_init_t) {
-        case kbase::init_type_t::RANDOM:
+        case kbase::init_t::RANDOM:
             random_partition_init();
             break;
-        case kbase::init_type_t::FORGY:
+        case kbase::init_t::FORGY:
             forgy_init();
             break;
-        case kbase::init_type_t::PLUSPLUS:
+        case kbase::init_t::PLUSPLUS:
             kmeanspp_init();
             break;
-        case kbase::init_type_t::NONE:
+        case kbase::init_t::NONE:
             break;
         default:
             throw std::runtime_error("Unknown initialization type");

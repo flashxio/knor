@@ -30,7 +30,7 @@ namespace knor { namespace base {
 static const unsigned INVALID_CLUSTER_ID = std::numeric_limits<unsigned>::max();
 enum stage_t { INIT, ESTEP }; // What phase of the algo we're in
 enum dist_t { EUCL, COS, TAXI }; // Euclidean, Cosine distance
-enum init_type_t { RANDOM, FORGY, PLUSPLUS, NONE }; // May have to use
+enum init_t { RANDOM, FORGY, PLUSPLUS, NONE }; // May have to use
 
 class kmeans_t {
 public:

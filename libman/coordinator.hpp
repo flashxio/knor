@@ -47,7 +47,7 @@ protected:
     std::vector<unsigned> cluster_assignments;
     std::vector<size_t>cluster_assignment_counts;
     unsigned k;
-    knor::base::init_type_t _init_t;
+    knor::base::init_t _init_t;
     knor::base::dist_t _dist_t;
     double tolerance;
     unsigned max_iters;
@@ -64,7 +64,7 @@ protected:
     coordinator(const std::string fn, const size_t nrow,
             const size_t ncol, const unsigned k, const unsigned max_iters,
             const unsigned nnodes, const unsigned nthreads,
-            const double* centers, const knor::base::init_type_t it,
+            const double* centers, const knor::base::init_t it,
             const double tolerance, const knor::base::dist_t dt);
 
 public:
