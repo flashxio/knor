@@ -21,7 +21,7 @@
 #include <cassert>
 
 #include "kmeans_thread.hpp"
-#include "kmeans_types.hpp"
+#include "types.hpp"
 #include "util.hpp"
 #include "io.hpp"
 #include "clusters.hpp"
@@ -168,7 +168,7 @@ void kmeans_thread::EM_step() {
                 clust_idx < g_clusters->get_nclust(); clust_idx++) {
             dist = kbase::dist_comp_raw<double>(&local_data[row*ncol],
                     &(g_clusters->get_means()[clust_idx*ncol]), ncol,
-                    kbase::dist_type_t::EUCL);
+                    kbase::dist_t::EUCL);
 
             if (dist < best) {
                 best = dist;
@@ -197,7 +197,7 @@ void kmeans_thread::kmspp_dist() {
 
         double dist = kbase::dist_comp_raw<double>(&local_data[row*ncol],
                 &((g_clusters->get_means())[clust_idx*ncol]), ncol,
-                kbase::dist_type_t::EUCL);
+                kbase::dist_t::EUCL);
 
         if (dist < dist_v[true_row_id]) { // Found a closer cluster than before
             dist_v[true_row_id] = dist;

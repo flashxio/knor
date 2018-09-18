@@ -320,7 +320,7 @@ void kmeans_task_thread::EM_step() {
                 dist = kbase::dist_comp_raw<double>(
                         &curr_task->get_data_ptr()[row*ncol],
                         &(g_clusters->get_means()[clust_idx*ncol]), ncol,
-                        kbase::dist_type_t::EUCL);
+                        kbase::dist_t::EUCL);
 
                 if (dist < dist_v[true_row_id]) {
                     dist_v[true_row_id] = dist;
@@ -351,7 +351,7 @@ void kmeans_task_thread::EM_step() {
                                 &curr_task->get_data_ptr()[row*ncol],
                                 &(g_clusters->get_means()[cluster_assignments
                                     [true_row_id]*ncol]), ncol,
-                                kbase::dist_type_t::EUCL);
+                                kbase::dist_t::EUCL);
                         recalculated_v->set(true_row_id, true);
                     }
 
@@ -365,7 +365,7 @@ void kmeans_task_thread::EM_step() {
                     double jdist = kbase::dist_comp_raw(
                             &curr_task->get_data_ptr()[row*ncol],
                             &(g_clusters->get_means()[clust_idx*ncol]), ncol,
-                            kbase::dist_type_t::EUCL);
+                            kbase::dist_t::EUCL);
 
                     if (jdist < dist_v[true_row_id]) {
                         dist_v[true_row_id] = jdist;
@@ -402,7 +402,7 @@ void kmeans_task_thread::kmspp_dist() {
         double dist = kbase::dist_comp_raw<double>(
                 &(curr_task->get_data_ptr()[row*ncol]),
                 &((g_clusters->get_means())[clust_idx*ncol]), ncol,
-                kbase::dist_type_t::EUCL);
+                kbase::dist_t::EUCL);
 
         if (dist < dist_v[true_row_id]) { // Found a closer cluster than before
             dist_v[true_row_id] = dist;

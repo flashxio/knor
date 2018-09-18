@@ -98,15 +98,17 @@ init_type_t get_init_type(const std::string init) {
                 + init + std::string("'"));
 }
 
-dist_type_t get_dist_type(const std::string dist_type) {
+dist_t get_dist_type(const std::string dist_type) {
     if (dist_type == "eucl")
-        return dist_type_t::EUCL;
+        return dist_t::EUCL;
     else if (dist_type == "cos")
-        return dist_type_t::COS;
+        return dist_t::COS;
+    else if (dist_type == "taxi")
+        return dist_t::TAXI;
     else
         throw thread_exception(std::string
-                ("[ERROR]: param dist_type must be one of: 'eucl', 'cos'."
-                 " It is '") + dist_type + std::string("'"));
+                ("[ERROR]: param dist_type must be one of: 'eucl', 'cos', 'taxi'"
+                 ". It is '") + dist_type + std::string("'"));
 }
 
 bool is_file_exist(const char *fn) {

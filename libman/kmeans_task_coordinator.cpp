@@ -39,7 +39,7 @@ kmeans_task_coordinator::kmeans_task_coordinator(const std::string fn, const siz
         const size_t ncol, const unsigned k, const unsigned max_iters,
         const unsigned nnodes, const unsigned nthreads,
         const double* centers, const kbase::init_type_t it,
-        const double tolerance, const kbase::dist_type_t dt) :
+        const double tolerance, const kbase::dist_t dt) :
     coordinator(fn, nrow, ncol, k, max_iters,
             nnodes, nthreads, centers, it, tolerance, dt) {
 

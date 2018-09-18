@@ -127,7 +127,7 @@ public:
     virtual void start(const knor::thread_state_t state) = 0;
     // Allocate and move data using this thread
     virtual void EM_step() = 0;
-    virtual void kmspp_dist() = 0;
+    virtual void kmspp_dist() { }; // TODO: Remove from here
     virtual const unsigned get_global_data_id(const unsigned row_id) const = 0;
     virtual void run() = 0;
     virtual void sleep() = 0;

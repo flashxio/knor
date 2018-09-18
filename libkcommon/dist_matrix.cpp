@@ -120,4 +120,44 @@ void dist_matrix::compute_dist(knor::base::prune_clusters::ptr cls,
     }
 #endif
 }
+
+// Used for PAM pairwise distance of all entries
+// TODO: Find soln to this for Mac
+void dist_matrix::compute_pairwise_dist(double* data,
+        const size_t nelem, const size_t ncol,
+        const knor::base::dist_t metric) {
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+    for (size_t i = 0; i < nelem; i++) {
+        for (size_t j = i+1; j < nelem; j++) {
+            switch (metric) {
+                case (knor::base::dist_t::EUCL):
+                    {
+                        double dist = knor::base::eucl_dist(&(data[i*nelem]),
+                                &(data[j*nelem]), ncol);
+                        set(i,j, dist);
+                        break;
+                    }
+                case (knor::base::dist_t::COS):
+                    {
+                        double dist = knor::base::cos_dist(&(data[i*nelem]),
+                                &(data[j*nelem]), ncol);
+                        set(i,j, dist);
+                        break;
+                    }
+                case (knor::base::dist_t::TAXI):
+                    {
+                        double dist = knor::base::taxi_dist(&(data[i*nelem]),
+                                &(data[j*nelem]), ncol);
+                        set(i,j, dist);
+                        break;
+                    }
+                default:
+                    throw knor::base::parameter_exception(
+                            "Unknown distance metric");
+            }
+        }
+    }
+}
 } } // End namepsace knor, prune

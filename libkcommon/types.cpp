@@ -19,7 +19,7 @@
 
 #include <fstream>
 
-#include "kmeans_types.hpp"
+#include "types.hpp"
 #include "io.hpp"
 #include "util.hpp"
 

@@ -49,7 +49,7 @@ short OMP_MAX_THREADS = 1;
 static size_t g_num_changed = 0;
 static struct timeval start, end;
 static kbase::init_type_t g_init_type;
-static kbase::dist_type_t g_dist_type;
+static kbase::dist_t g_dist_type;
 
 /**
  * \brief This initializes clusters by randomly choosing sample
@@ -440,9 +440,9 @@ kbase::kmeans_t compute_min_kmeans(const double* matrix, double* clusters_ptr,
     printf("Dist_type is %s \n", dist_type.c_str());
 #endif
     if (dist_type == "eucl") {
-        g_dist_type = kbase::dist_type_t::EUCL;
+        g_dist_type = kbase::dist_t::EUCL;
     } else if (dist_type == "cos") {
-        g_dist_type = kbase::dist_type_t::COS;
+        g_dist_type = kbase::dist_t::COS;
     } else {
         throw kbase::parameter_exception("param `dist_type` must be one of: "
                 "'eucl', 'cos'.", dist_type);

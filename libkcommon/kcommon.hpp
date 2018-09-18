@@ -23,7 +23,7 @@
 #include "io.hpp"
 #include "clusters.hpp"
 #include "dist_matrix.hpp"
-#include "kmeans_types.hpp"
+#include "types.hpp"
 #include "prune_stats.hpp"
 #include "thd_safe_bool_vector.hpp"
 #include "util.hpp"

@@ -28,7 +28,7 @@
 #include <iostream>
 #include <random>
 
-#include "kmeans_types.hpp"
+#include "types.hpp"
 #include "exception.hpp"
 
 namespace knor { namespace base {
@@ -70,6 +70,17 @@ const double eucl_dist(const T* lhs, const T* rhs,
     return std::sqrt(dist);
 }
 
+template <typename T>
+const double taxi_dist(const T* lhs, const T* rhs,
+        const unsigned size) {
+    double dist = 0;
+
+    for (unsigned col = 0; col < size; col++) {
+        dist += std::abs(lhs[col] - rhs[col]);
+    }
+    return dist;
+}
+
 template<typename T>
 const double cos_dist(const T* lhs, const T* rhs,
         const unsigned size) {
@@ -95,10 +106,10 @@ const double cos_dist(const T* lhs, const T* rhs,
  */
 template <typename T>
 T dist_comp_raw(const T* arg0, const T* arg1,
-        const unsigned len, dist_type_t dt) {
-    if (dt == dist_type_t::EUCL)
+        const unsigned len, dist_t dt) {
+    if (dt == dist_t::EUCL)
         return eucl_dist<T>(arg0, arg1, len);
-    else if (dt == dist_type_t::COS)
+    else if (dt == dist_t::COS)
         return cos_dist(arg0, arg1, len);
     throw parameter_exception("Unknown distance metric\n");
 }
@@ -176,7 +187,7 @@ int get_num_omp_threads();
 unsigned get_num_nodes();
 
 init_type_t get_init_type(const std::string init);
-dist_type_t get_dist_type(const std::string dist_type);
+dist_t get_dist_type(const std::string dist_type);
 void int_handler(int sig_num);
 bool is_file_exist(const char *fn);
 size_t filesize(const char* filename);

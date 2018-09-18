@@ -27,7 +27,7 @@
 #include <memory>
 #include <atomic>
 
-#include "kmeans_types.hpp"
+#include "types.hpp"
 #include "thread_state.hpp"
 #include "exception.hpp"
 
@@ -48,7 +48,7 @@ protected:
     std::vector<size_t>cluster_assignment_counts;
     unsigned k;
     knor::base::init_type_t _init_t;
-    knor::base::dist_type_t _dist_t;
+    knor::base::dist_t _dist_t;
     double tolerance;
     unsigned max_iters;
     size_t num_changed; // total # samples changed in an iter
@@ -65,7 +65,7 @@ protected:
             const size_t ncol, const unsigned k, const unsigned max_iters,
             const unsigned nnodes, const unsigned nthreads,
             const double* centers, const knor::base::init_type_t it,
-            const double tolerance, const knor::base::dist_type_t dt);
+            const double tolerance, const knor::base::dist_t dt);
 
 public:
     const size_t get_num_changed() const { return num_changed; }

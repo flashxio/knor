@@ -35,7 +35,7 @@ private:
             const size_t ncol, const unsigned k, const unsigned max_iters,
             const unsigned nnodes, const unsigned nthreads,
             const double* centers, const kbase::init_type_t it,
-            const double tolerance, const kbase::dist_type_t dt);
+            const double tolerance, const kbase::dist_t dt);
 
     int mpi_rank;
     int nprocs;
@@ -50,7 +50,7 @@ public:
             const double tolerance=-1, const std::string dist_type="eucl") {
 
         kbase::init_type_t _init_t = kbase::get_init_type(init);
-        kbase::dist_type_t _dist_t = kbase::get_dist_type(dist_type);
+        kbase::dist_t _dist_t = kbase::get_dist_type(dist_type);
 
         return coordinator::ptr(
                 new dist_coordinator(argc, argv, fn, nrow, ncol, k, max_iters,

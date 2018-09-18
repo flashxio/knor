@@ -45,7 +45,7 @@ class kmeans_coordinator : public coordinator {
                 const size_t ncol, const unsigned k, const unsigned max_iters,
                 const unsigned nnodes, const unsigned nthreads,
                 const double* centers, const base::init_type_t it,
-                const double tolerance, const base::dist_type_t dt);
+                const double tolerance, const base::dist_t dt);
 
     public:
         static coordinator::ptr create(const std::string fn,
@@ -56,7 +56,7 @@ class kmeans_coordinator : public coordinator {
                 const double tolerance=-1, const std::string dist_type="eucl") {
 
             base::init_type_t _init_t = base::get_init_type(init);
-            base::dist_type_t _dist_t = base::get_dist_type(dist_type);
+            base::dist_t _dist_t = base::get_dist_type(dist_type);
 #if KM_TEST
 #ifndef BIND
             printf("kmeans coordinator => NUMA nodes: %u, nthreads: %u, "

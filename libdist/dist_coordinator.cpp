@@ -27,7 +27,7 @@
 #include "io.hpp"
 #include "mpi.hpp"
 #include "util.hpp"
-#include "kmeans_types.hpp"
+#include "types.hpp"
 
 namespace kmpi = knor::mpi;
 
@@ -39,7 +39,7 @@ dist_coordinator::dist_coordinator(
         const size_t ncol, const unsigned k, const unsigned max_iters,
         const unsigned nnodes, const unsigned nthreads,
         const double* centers, const kbase::init_type_t it,
-        const double tolerance, const kbase::dist_type_t dt) :
+        const double tolerance, const kbase::dist_t dt) :
     kmeans_coordinator(fn, this->init(argc, argv, nrow), ncol, k, max_iters, nnodes,
             nthreads, centers, it, tolerance, dt) {
 

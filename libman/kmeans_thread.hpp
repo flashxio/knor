@@ -57,7 +57,7 @@ class kmeans_thread : public thread {
         void start(const thread_state_t state);
         // Allocate and move data using this thread
         void EM_step();
-        void kmspp_dist();
+        void kmspp_dist() override;
         const unsigned get_global_data_id(const unsigned row_id) const;
         void run();
         void wait();
