@@ -47,13 +47,13 @@ kbase::kmeans_t run_test(const std::string datafn, double* p_centers,
             kprune::kmeans_task_coordinator::create(
                 datafn, TEST_NROW, TEST_NCOL, TEST_K, max_iter,
                 nnodes, NTHREADS, p_centers, init, 0);
-        ret = kc->run_kmeans();
+        ret = kc->run();
     } else {
         knor::kmeans_coordinator::ptr kc =
             knor::kmeans_coordinator::create(datafn,
                 TEST_NROW, TEST_NCOL, TEST_K, max_iter, nnodes,
                 NTHREADS, p_centers, init, 0);
-        ret = kc->run_kmeans();
+        ret = kc->run();
     }
     return ret;
 }

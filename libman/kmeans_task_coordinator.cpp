@@ -350,7 +350,7 @@ void kmeans_task_coordinator::set_task_data_ptrs() {
 /**
  * Main driver for kmeans
  */
-kbase::kmeans_t kmeans_task_coordinator::run_kmeans(
+kbase::kmeans_t kmeans_task_coordinator::run(
         double* allocd_data, const bool numa_opt) {
 #ifdef PROFILER
     ProfilerStart("libman/kmeans_task_coordinator.perf");

@@ -76,18 +76,18 @@ public:
     // pass file handle to threads to read & numa alloc
     virtual void run_init() = 0;
     virtual void random_partition_init() = 0;
-    virtual void forgy_init() = 0;
+    virtual void forgy_init() { };
 
-    virtual knor::base::kmeans_t run_kmeans(
+    virtual knor::base::kmeans_t run(
             double* allocd_data=NULL, const bool numa_opt=false) = 0;
-    virtual void kmeanspp_init() = 0;
+    virtual void kmeanspp_init() { };
     virtual void wake4run(knor::thread_state_t state) = 0;
     virtual const double* get_thd_data(const unsigned row_id) const = 0;
 
     virtual void set_thread_clust_idx(const unsigned clust_idx) = 0;
     virtual double reduction_on_cuml_sum() = 0;
     virtual void destroy_threads() = 0;
-    virtual void set_thd_dist_v_ptr(double* v) = 0;
+    virtual void set_thd_dist_v_ptr(double* v) { };
     void wait4complete();
     std::vector<std::shared_ptr<thread> >& get_threads() {
         return threads;

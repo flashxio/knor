@@ -84,12 +84,12 @@ kmeans_t kmeans(double* data, const size_t nrow,
                         nnodes, nrow, ncol);
 
             md->numa_reorg(kc->get_threads());
-            ret = kc->run_kmeans(NULL, true);
+            ret = kc->run(NULL, true);
 #else
-            ret = kc->run_kmeans(data);
+            ret = kc->run(data);
 #endif
         } else {
-            ret = kc->run_kmeans(data);
+            ret = kc->run(data);
         }
 #if _OPENMP
     }
@@ -138,7 +138,7 @@ kmeans_t kmeans(const std::string datafn, const size_t nrow,
             kprune::kmeans_task_coordinator::create(
                     datafn, nrow, ncol, k, max_iters, nnodes, nthread, p_centers,
                     init, tolerance, dist_type);
-        ret = kc->run_kmeans();
+        ret = kc->run();
 #ifdef _OPEMP
     }
 #endif

@@ -71,9 +71,9 @@ const double eucl_dist(const T* lhs, const T* rhs,
 }
 
 template <typename T>
-const double taxi_dist(const T* lhs, const T* rhs,
+const T taxi_dist(const T* lhs, const T* rhs,
         const unsigned size) {
-    double dist = 0;
+    T dist = 0;
 
     for (unsigned col = 0; col < size; col++) {
         dist += std::abs(lhs[col] - rhs[col]);

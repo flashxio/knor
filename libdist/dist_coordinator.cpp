@@ -253,7 +253,7 @@ void dist_coordinator::forgy_init() {
     }
 }
 
-void dist_coordinator::run_kmeans(kbase::kmeans_t& ret,
+void dist_coordinator::run(kbase::kmeans_t& ret,
         const std::string outdir) {
     if (mpi_rank == root) {
         if (outdir.empty())

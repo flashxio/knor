@@ -232,7 +232,7 @@ void kmeans_coordinator::run_init() {
 /**
  * Main driver for kmeans
  */
-kbase::kmeans_t kmeans_coordinator::run_kmeans(
+kbase::kmeans_t kmeans_coordinator::run(
         double* allocd_data, const bool numa_opt=false) {
 #ifdef PROFILER
     ProfilerStart("libman/kmeans_coordinator.perf");

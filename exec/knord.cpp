@@ -132,14 +132,14 @@ int main(int argc, char* argv[]) {
                     datafn, nrow, ncol, k, max_iters, nnodes, nthread,
                     p_centers, init, tolerance, dist_type);
         std::static_pointer_cast<knor::dist::dist_coordinator>(
-                dc)->run_kmeans(ret, outdir);
+                dc)->run(ret, outdir);
     } else {
         knor::prune::dist_task_coordinator::ptr dc =
             knor::prune::dist_task_coordinator::create(argc, argv,
                     datafn, nrow, ncol, k, max_iters, nnodes, nthread,
                     p_centers, init, tolerance, dist_type);
         std::static_pointer_cast<knor::prune::dist_task_coordinator>(
-                dc)->run_kmeans(ret, outdir);
+                dc)->run(ret, outdir);
     }
 
     if (p_centers) delete [] p_centers;

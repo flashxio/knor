@@ -174,13 +174,13 @@ int main(int argc, char* argv[])
                 knor::kmeans_coordinator::create(datafn,
                     nrow, ncol, k, max_iters, nnodes, nthread, p_centers,
                     init, tolerance, dist_type);
-            ret = kc->run_kmeans();
+            ret = kc->run();
         } else {
             kprune::kmeans_task_coordinator::ptr kc =
                 kprune::kmeans_task_coordinator::create(
                     datafn, nrow, ncol, k, max_iters, nnodes, nthread, p_centers,
                     init, tolerance, dist_type);
-            ret = kc->run_kmeans();
+            ret = kc->run();
         }
 #ifdef _OPENMP
     }

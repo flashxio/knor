@@ -67,8 +67,7 @@ public:
     void compute_dist(std::shared_ptr<base::prune_clusters> cl,
             const unsigned ncol);
     void compute_pairwise_dist(double* data,
-            const size_t nelem, const size_t ncol,
-            const knor::base::dist_t metric);
+            const size_t ncol, const knor::base::dist_t metric);
 };
 } } // End namespace knor, prune
 #endif
