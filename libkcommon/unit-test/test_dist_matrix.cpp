@@ -48,7 +48,6 @@ void test_dist_matrix() {
             assert(dense_dm[(row*NROW)+col] == dm->get(row, col));
         }
     }
-    printf("Successfully test_dist_matrix pairwise!\n");
 }
 
 int main() {
