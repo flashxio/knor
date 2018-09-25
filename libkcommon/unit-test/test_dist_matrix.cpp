@@ -45,12 +45,10 @@ void test_dist_matrix() {
 
     for (unsigned row = 0; row < NROW; row++) {
         for (unsigned col = row + 1; col < NROW; col++) {
-            printf("dense_dm[%u,%u] = %f =? dm[%u,%u] = %f\n",
-                    row, col, dense_dm[(row*NROW)+col],
-                    row, col, dm->get(row, col));
-            //assert(dense_dm[(row*NROW)+col] == dm->get(row, col));
+            assert(dense_dm[(row*NROW)+col] == dm->get(row, col));
         }
     }
+    printf("Successfully test_dist_matrix pairwise!\n");
 }
 
 int main() {

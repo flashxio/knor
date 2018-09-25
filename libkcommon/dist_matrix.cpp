@@ -126,10 +126,10 @@ void dist_matrix::compute_dist(knor::base::prune_clusters::ptr cls,
 void dist_matrix::compute_pairwise_dist(double* data,
         const size_t ncol, const knor::base::dist_t metric) {
 #ifdef _OPENMP
-//#pragma omp parallel
+#pragma omp parallel
 #endif
     for (size_t i = 0; i < rows; i++) {
-        for (size_t j = i+1; j < rows; j++) {
+        for (size_t j = i+1; j < rows+1; j++) {
             switch (metric) {
                 case (knor::base::dist_t::EUCL):
                     {
@@ -149,8 +149,6 @@ void dist_matrix::compute_pairwise_dist(double* data,
                     {
                         double dist = knor::base::taxi_dist<double>
                             (&(data[i*ncol]), &(data[j*ncol]), ncol);
-
-                        printf("Setting r: %lu, c: %lu = %f\n", i, j, dist);
                         set(i,j, dist);
                         break;
                     }
