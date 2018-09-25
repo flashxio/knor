@@ -20,7 +20,7 @@
 #include <random>
 #include <stdexcept>
 
-#include "pam_coordinator.hpp"
+#include "medoid_coordinator.hpp"
 #include "kmeans_thread.hpp"
 #include "io.hpp"
 #include "clusters.hpp"
@@ -28,7 +28,7 @@
 #include "exception.hpp"
 
 namespace knor {
-pam_coordinator::pam_coordinator(const std::string fn, const size_t nrow,
+medoid_coordinator::medoid_coordinator(const std::string fn, const size_t nrow,
         const size_t ncol, const unsigned k, const unsigned max_iters,
         const unsigned nnodes, const unsigned nthreads,
         const double* centers, const kbase::init_t it,
@@ -53,7 +53,7 @@ pam_coordinator::pam_coordinator(const std::string fn, const size_t nrow,
         prune::dist_matrix::create(nrow) = pw_dm;
     }
 
-void pam_coordinator::build_thread_state() {
+void medoid_coordinator::build_thread_state() {
     // NUMA node affinity binding policy is round-robin
     unsigned thds_row = nrow / nthreads;
     for (unsigned thd_id = 0; thd_id < nthreads; thd_id++) {
@@ -69,7 +69,7 @@ void pam_coordinator::build_thread_state() {
 }
 
 std::pair<unsigned, unsigned>
-pam_coordinator::get_rid_len_tup(const unsigned thd_id) {
+medoid_coordinator::get_rid_len_tup(const unsigned thd_id) {
     unsigned rows_per_thread = nrow / nthreads;
     unsigned start_rid = (thd_id*rows_per_thread);
 
@@ -78,12 +78,12 @@ pam_coordinator::get_rid_len_tup(const unsigned thd_id) {
     return std::pair<unsigned, unsigned>(start_rid, rows_per_thread);
 }
 
-void pam_coordinator::destroy_threads() {
+void medoid_coordinator::destroy_threads() {
     wake4run(EXIT);
 }
 
 // <Thread, within-thread-row-id>
-const double* pam_coordinator::get_thd_data(const unsigned row_id) const {
+const double* medoid_coordinator::get_thd_data(const unsigned row_id) const {
     // TODO: Cheapen
     unsigned parent_thd = std::upper_bound(thd_max_row_idx.begin(),
             thd_max_row_idx.end(), row_id) - thd_max_row_idx.begin();
@@ -93,7 +93,7 @@ const double* pam_coordinator::get_thd_data(const unsigned row_id) const {
             [(row_id-(parent_thd*rows_per_thread))*ncol]);
 }
 
-void pam_coordinator::update_clusters() {
+void medoid_coordinator::update_clusters() {
     num_changed = 0; // Always reset here since there's no pruning
     cltrs->clear();
 
@@ -119,25 +119,25 @@ void pam_coordinator::update_clusters() {
     assert(num_changed <= nrow);
 }
 
-double pam_coordinator::reduction_on_cuml_sum() {
+double medoid_coordinator::reduction_on_cuml_sum() {
     double tot = 0;
     for (thread_iter it = threads.begin(); it != threads.end(); ++it)
         tot += (*it)->get_cuml_dist();
     return tot;
 }
 
-void pam_coordinator::wake4run(const thread_state_t state) {
+void medoid_coordinator::wake4run(const thread_state_t state) {
     pending_threads = nthreads;
     for (unsigned thd_id = 0; thd_id < threads.size(); thd_id++)
         threads[thd_id]->wake(state);
 }
 
-void pam_coordinator::set_thread_clust_idx(const unsigned clust_idx) {
+void medoid_coordinator::set_thread_clust_idx(const unsigned clust_idx) {
     for (thread_iter it = threads.begin(); it != threads.end(); ++it)
         (*it)->set_clust_idx(clust_idx);
 }
 
-void pam_coordinator::random_partition_init() {
+void medoid_coordinator::random_partition_init() {
     std::default_random_engine generator;
     std::uniform_int_distribution<unsigned> distribution(0, k-1);
 
@@ -152,29 +152,46 @@ void pam_coordinator::random_partition_init() {
     cltrs->finalize_all();
 }
 
-void pam_coordinator::run_init() {
+// Default
+void medoid_coordinator::forgy_init() {
+    std::default_random_engine generator;
+    std::uniform_int_distribution<unsigned> distribution(0, nrow-1);
+
+    for (unsigned clust_idx = 0; clust_idx < k; clust_idx++) { // 0...k
+        unsigned rand_idx = distribution(generator);
+        cltrs->set_mean(get_thd_data(rand_idx), clust_idx);
+    }
+}
+
+void medoid_coordinator::run_init() {
     if (_init_t == kbase::init_t::RANDOM) {
-            random_partition_init();
+        random_partition_init();
+    } else if (_init_t == kbase::init_t::FORGY) {
+        forgy_init();
+
+        // Run one EM step
+        wake4run(EM);
+        wait4complete();
+        update_clusters();
     } else {
         throw kbase::parameter_exception("Unsupported initialization type");
     }
 }
 
 /**
- * Main driver for PAM
+ * Main driver
  */
-kbase::kmeans_t pam_coordinator::run(
-        double* allocd_data, const bool numa_opt=false) {
+kbase::kmeans_t medoid_coordinator::run(
+        double* allocd_data, const bool numa_opt) {
 #ifdef PROFILER
-    ProfilerStart("libman/pam_coordinator.perf");
+    ProfilerStart("libman/medoid_coordinator.perf");
 #endif
 
-    if (!numa_opt && NULL == allocd_data) {
-        wake4run(ALLOC_DATA);
-        wait4complete();
-    } else if (allocd_data) { // No NUMA opt
-        set_thread_data_ptr(allocd_data);
-    } // Do nothing for numa_opt .. done in binding/knori.hpp
+    if (numa_opt)
+        throw knor::base::not_implemented_exception();
+
+    set_thread_data_ptr(allocd_data); // Offset taken for each thread
+    pw_dm->compute_pairwise_dist(allocd_data, ncol, knor::base::dist_t::TAXI);
 
     struct timeval start, end;
     gettimeofday(&start , NULL);
@@ -188,9 +205,6 @@ kbase::kmeans_t pam_coordinator::run(
         iter++;
 
     while (iter <= max_iters && max_iters > 0) {
-        if (iter == 1)
-            clear_cluster_assignments();
-
         wake4run(EM);
         wait4complete();
 
@@ -242,7 +256,7 @@ kbase::kmeans_t pam_coordinator::run(
             cltrs->get_means());
 }
 
-pam_coordinator::~pam_coordinator() {
+medoid_coordinator::~medoid_coordinator() {
     thread_iter it = threads.begin();
     for (; it != threads.end(); ++it)
         (*it)->destroy_numa_mem();
@@ -253,7 +267,7 @@ pam_coordinator::~pam_coordinator() {
     destroy_threads();
 }
 
-void const pam_coordinator::print_thread_data() {
+void const medoid_coordinator::print_thread_data() {
     thread_iter it = threads.begin();
     for (; it != threads.end(); ++it) {
 #ifndef BIND
@@ -264,7 +278,7 @@ void const pam_coordinator::print_thread_data() {
 }
 
 // Testing
-void const pam_coordinator::print_thread_start_rids() {
+void const medoid_coordinator::print_thread_start_rids() {
     thread_iter it = threads.begin();
     for (; it != threads.end(); ++it) {
 #ifndef BIND

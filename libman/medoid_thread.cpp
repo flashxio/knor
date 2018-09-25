@@ -20,14 +20,14 @@
 #include <iostream>
 #include <cassert>
 
-#include "pam_thread.hpp"
+#include "medoid_thread.hpp"
 #include "types.hpp"
 #include "util.hpp"
 #include "io.hpp"
 #include "clusters.hpp"
 
 namespace knor {
-pam_thread::pam_thread(const int node_id, const unsigned thd_id,
+medoid_thread::medoid_thread(const int node_id, const unsigned thd_id,
         const unsigned start_rid,
         const unsigned nprocrows, const unsigned ncol,
         kbase::clusters::ptr g_clusters, unsigned* cluster_assignments,
@@ -50,7 +50,7 @@ pam_thread::pam_thread(const int node_id, const unsigned thd_id,
 #endif
         }
 
-void pam_thread::sleep() {
+void medoid_thread::sleep() {
     int rc;
     rc = pthread_mutex_lock(&mutex);
     if (rc) perror("pthread_mutex_lock");
@@ -65,7 +65,7 @@ void pam_thread::sleep() {
     pthread_mutex_unlock(&mutex);
 }
 
-void pam_thread::run() {
+void medoid_thread::run() {
     switch(state) {
         case TEST:
             test();
@@ -88,7 +88,7 @@ void pam_thread::run() {
     sleep();
 }
 
-void pam_thread::wait() {
+void medoid_thread::wait() {
     int rc;
     rc = pthread_mutex_lock(&mutex);
     if (rc) perror("pthread_mutex_lock");
@@ -102,7 +102,7 @@ void pam_thread::wait() {
     pthread_mutex_unlock(&mutex);
 }
 
-void pam_thread::wake(thread_state_t state) {
+void medoid_thread::wake(thread_state_t state) {
     int rc;
     rc = pthread_mutex_lock(&mutex);
     if (rc) perror("pthread_mutex_lock");
@@ -116,7 +116,7 @@ void pam_thread::wake(thread_state_t state) {
 }
 
 void* callback(void* arg) {
-    pam_thread* t = static_cast<pam_thread*>(arg);
+    medoid_thread* t = static_cast<medoid_thread*>(arg);
 #ifdef USE_NUMA
     t->bind2node_id();
 #endif
@@ -142,7 +142,7 @@ void* callback(void* arg) {
 #endif
 }
 
-void pam_thread::start(const thread_state_t state=WAIT) {
+void medoid_thread::start(const thread_state_t state=WAIT) {
     this->state = state;
     int rc = pthread_create(&hw_thd, NULL, callback, this);
     if (rc)
@@ -150,12 +150,12 @@ void pam_thread::start(const thread_state_t state=WAIT) {
                 "Thread creation (pthread_create) failed!", rc);
 }
 
-const unsigned pam_thread::
+const unsigned medoid_thread::
 get_global_data_id(const unsigned row_id) const {
     return start_rid+row_id;
 }
 
-void pam_thread::EM_step() {
+void medoid_thread::EM_step() {
     meta.num_changed = 0; // Always reset at the beginning of an EM-step
     local_clusters->clear();
     std::vector<double> local_dist;
@@ -191,7 +191,7 @@ void pam_thread::EM_step() {
     }
 }
 
-const void pam_thread::print_local_data() const {
+const void medoid_thread::print_local_data() const {
     kbase::print_mat(local_data, nprocrows, ncol);
 }
 } // End namespace knor

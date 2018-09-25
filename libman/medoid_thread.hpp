@@ -17,8 +17,8 @@
  * limitations under the License.
  */
 
-#ifndef __KNOR_PAM_THREAD_HPP__
-#define __KNOR_PAM_THREAD_HPP__
+#ifndef __KNOR_MEDOID_THREAD_HPP__
+#define __KNOR_MEDOID_THREAD_HPP__
 
 #include "thread.hpp"
 
@@ -29,13 +29,20 @@ namespace knor { namespace base {
 namespace kbase = knor::base;
 
 namespace knor {
-class pam_thread : public thread {
+class medoid_thread : public thread {
     private:
          // Pointer to global cluster data
         std::shared_ptr<kbase::clusters> g_clusters;
         unsigned nprocrows; // How many rows to process
 
-        pam_thread(const int node_id, const unsigned thd_id,
+        // Mediod candidate
+        unsigned medoid_id;
+        // Distance to medoid
+        unsigned medoid_candidate_id;
+        double medoid_candidate_dist;
+
+
+        medoid_thread(const int node_id, const unsigned thd_id,
                 const unsigned start_rid, const unsigned nprocrows,
                 const unsigned ncol,
                 std::shared_ptr<kbase::clusters> g_clusters,
@@ -49,7 +56,7 @@ class pam_thread : public thread {
                 std::shared_ptr<kbase::clusters> g_clusters,
                 unsigned* cluster_assignments, const std::string fn) {
             return thread::ptr(
-                    new pam_thread(node_id, thd_id, start_rid,
+                    new medoid_thread(node_id, thd_id, start_rid,
                         nprocrows, ncol, g_clusters,
                         cluster_assignments, fn));
         }

@@ -16,8 +16,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __KNOR_PAM_COORDINATOR_HPP__
-#define __KNOR_PAM_COORDINATOR_HPP__
+#ifndef __KNOR_MEDOID_COORDINATOR_HPP__
+#define __KNOR_MEDOID_COORDINATOR_HPP__
 
 #include "coordinator.hpp"
 #include "util.hpp"
@@ -37,7 +37,7 @@ namespace prune {
 
 class thread;
 
-class pam_coordinator : public coordinator {
+class medoid_coordinator : public coordinator {
     protected:
         // Metadata
         // max index stored within each threads partition
@@ -47,7 +47,7 @@ class pam_coordinator : public coordinator {
         // Pairwise distances for all samples
         std::shared_ptr<prune::dist_matrix> pw_dm;
 
-        pam_coordinator(const std::string fn, const size_t nrow,
+        medoid_coordinator(const std::string fn, const size_t nrow,
                 const size_t ncol, const unsigned k, const unsigned max_iters,
                 const unsigned nnodes, const unsigned nthreads,
                 const double* centers, const base::init_t it,
@@ -65,14 +65,14 @@ class pam_coordinator : public coordinator {
             base::dist_t _dist_t = base::get_dist_type(dist_type);
 #if KM_TEST
 #ifndef BIND
-            printf("PAM coordinator => NUMA nodes: %u, nthreads: %u, "
+            printf("medoid coordinator => NUMA nodes: %u, nthreads: %u, "
                     "nrow: %lu, ncol: %lu, init: '%s', dist_t: '%s', fn: '%s'"
                     "\n\n", nnodes, nthreads, nrow, ncol, init.c_str(),
                     dist_type.c_str(), fn.c_str());
 #endif
 #endif
             return coordinator::ptr(
-                    new pam_coordinator(fn, nrow, ncol, k, max_iters,
+                    new medoid_coordinator(fn, nrow, ncol, k, max_iters,
                     nnodes, nthreads, centers, _init_t, tolerance, _dist_t));
         }
 
@@ -83,7 +83,7 @@ class pam_coordinator : public coordinator {
         std::pair<unsigned, unsigned> get_rid_len_tup(const unsigned thd_id);
         // Pass file handle to threads to read & numa alloc
         virtual base::kmeans_t run(double* allocd_data,
-                const bool numa_opt) override;
+                const bool numa_opt=false) override;
         void update_clusters();
         void wake4run(knor::thread_state_t state) override;
         void destroy_threads() override;
@@ -91,8 +91,9 @@ class pam_coordinator : public coordinator {
         double reduction_on_cuml_sum() override;
         void run_init() override;
         void random_partition_init() override;
+        void forgy_init() override;
         const double* get_thd_data(const unsigned row_id) const override;
-        ~pam_coordinator();
+        ~medoid_coordinator();
 
         // For testing
         void const print_thread_data() override;
