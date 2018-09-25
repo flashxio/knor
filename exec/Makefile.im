@@ -27,7 +27,10 @@ else
 endif
 
 
-all: knori
+all: knori medoids
 
 knori: knori.o
 	$(CXX) -o knori knori.o $(LDFLAGS)
+
+medoids: medoids.o
+	$(CXX) -o medoids medoids.o $(LDFLAGS)
