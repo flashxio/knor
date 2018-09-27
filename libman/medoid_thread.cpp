@@ -121,7 +121,7 @@ void medoid_thread::wake(thread_state_t state) {
     rc = pthread_cond_signal(&cond);
 }
 
-void* callback(void* arg) {
+void* medoid_callback(void* arg) {
     medoid_thread* t = static_cast<medoid_thread*>(arg);
 #ifdef USE_NUMA
     t->bind2node_id();
@@ -150,7 +150,7 @@ void* callback(void* arg) {
 
 void medoid_thread::start(const thread_state_t state=WAIT) {
     this->state = state;
-    int rc = pthread_create(&hw_thd, NULL, callback, this);
+    int rc = pthread_create(&hw_thd, NULL, medoid_callback, this);
     if (rc)
         throw kbase::thread_exception(
                 "Thread creation (pthread_create) failed!", rc);
