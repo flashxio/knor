@@ -238,7 +238,7 @@ void dist_task_coordinator::forgy_init() {
     }
 }
 
-void dist_task_coordinator::run(kbase::kmeans_t& ret,
+void dist_task_coordinator::run(kbase::cluster_t& ret,
         const std::string outdir) {
 
     if (mpi_rank == root) {
@@ -434,7 +434,7 @@ void dist_task_coordinator::run(kbase::kmeans_t& ret,
                 kbase::assert_msg(!rc, "Root Failure receive local assignments");
             }
 
-            ret = kbase::kmeans_t(g_nrow, ncol, iters, k, &assignments[0],
+            ret = kbase::cluster_t(g_nrow, ncol, iters, k, &assignments[0],
                     &(cltrs_ptr->get_num_members_v()[0]),
                     cltrs_ptr->get_means());
 

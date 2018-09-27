@@ -25,7 +25,7 @@
 
 namespace knor { namespace base {
 
-kmeans_t::kmeans_t(const size_t nrow, const size_t ncol, const size_t iters,
+cluster_t::cluster_t(const size_t nrow, const size_t ncol, const size_t iters,
          const size_t k, const unsigned* assignments_buf,
          const size_t* assignment_count_buf,
          const std::vector<double>& centroids) {
@@ -34,7 +34,7 @@ kmeans_t::kmeans_t(const size_t nrow, const size_t ncol, const size_t iters,
     set_computed(assignments_buf, assignment_count_buf, centroids);
 }
 
-void kmeans_t::set_computed(const unsigned* assignments_buf,
+void cluster_t::set_computed(const unsigned* assignments_buf,
         const size_t* assignment_count_buf,
         const std::vector<double> centroids) {
 
@@ -49,7 +49,7 @@ void kmeans_t::set_computed(const unsigned* assignments_buf,
     this->centroids = centroids; // copy
 }
 
-const void kmeans_t::print() const {
+const void cluster_t::print() const {
 #ifndef BIND
     std::cout << "Iterations: " <<  iters << std::endl;
     std::cout << "Cluster count: ";
@@ -61,9 +61,9 @@ const void kmeans_t::print() const {
   * A simple text readable write
   * \param dirname: the name of the dir to write to
   */
-const void kmeans_t::write(const std::string dirname) const {
+const void cluster_t::write(const std::string dirname) const {
 
-    std::string fn = "kmeans_t.yml";
+    std::string fn = "cluster_t.yml";
     int ret =
         std::system((std::string("python exec/python/util.py ")
                     + dirname).c_str());
@@ -126,7 +126,7 @@ const void kmeans_t::write(const std::string dirname) const {
     f.close();
 }
 
-bool kmeans_t::operator==(const kmeans_t& other) {
+bool cluster_t::operator==(const cluster_t& other) {
     return (v_eq(this->assignments, other.assignments) &&
             v_eq(this->assignment_count, other.assignment_count) &&
             v_eq(this->centroids, other.centroids));

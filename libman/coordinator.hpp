@@ -78,7 +78,7 @@ public:
     virtual void random_partition_init() = 0;
     virtual void forgy_init() { };
 
-    virtual knor::base::kmeans_t run(
+    virtual knor::base::cluster_t run(
             double* allocd_data=NULL, const bool numa_opt=false) = 0;
     virtual void kmeanspp_init() { };
     virtual void wake4run(knor::thread_state_t state) = 0;

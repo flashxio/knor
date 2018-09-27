@@ -36,7 +36,7 @@ int main(int argc, char* argv[]) {
     // Read from disk
     std::cout << "Testing read from disk ..\n";
     {
-        kbase::kmeans_t ret = kbase::kmeans(
+        kbase::cluster_t ret = kbase::kmeans(
                 fn, nrow, ncol, k,
                 /*"/data/kmeans/r16_c3145728_k100_cw.dat", 3145728, 16, 100,*/
                 max_iters, nnodes, nthread, NULL);
@@ -50,7 +50,7 @@ int main(int argc, char* argv[]) {
         kbase::bin_rm_reader<double> br(fn);
         br.read(data);
 
-        kbase::kmeans_t ret = kbase::kmeans(
+        kbase::cluster_t ret = kbase::kmeans(
                 &data[0], nrow, ncol, k,
                 max_iters, nnodes, nthread, NULL,
                 "kmeanspp", -1, "eucl", true);
@@ -65,7 +65,7 @@ int main(int argc, char* argv[]) {
         kbase::bin_rm_reader<double> br(fn);
         br.read(data);
 
-        kbase::kmeans_t ret = kbase::kmeans(
+        kbase::cluster_t ret = kbase::kmeans(
                 &data[0], nrow, ncol, k,
                 max_iters, nnodes, nthread, NULL);
 
@@ -82,7 +82,7 @@ int main(int argc, char* argv[]) {
         kbase::bin_rm_reader<double> br2(centroidfn);
         br2.read(centroids);
 
-        kbase::kmeans_t ret_full = kbase::kmeans(
+        kbase::cluster_t ret_full = kbase::kmeans(
                 &data[0], nrow, ncol, k,
                 max_iters, nnodes, nthread, &centroids[0],
                 "none", -1, "eucl", true, false);
@@ -91,7 +91,7 @@ int main(int argc, char* argv[]) {
 
         //////////////////////////////////*****////////////////////////////
         //////////////////////////////////*****////////////////////////////
-        kbase::kmeans_t ret_numa_full = kbase::kmeans(
+        kbase::cluster_t ret_numa_full = kbase::kmeans(
                 &data[0], nrow, ncol, k,
                 max_iters, nnodes, nthread, &centroids[0],
                 "none", -1, "eucl", true, true);
@@ -103,7 +103,7 @@ int main(int argc, char* argv[]) {
         //////////////////////////////////*****////////////////////////////
         //////////////////////////////////*****////////////////////////////
         std::cout << "Testing PRUNED. Data + Centroid in-mem ...\n";
-        kbase::kmeans_t ret = kbase::kmeans(
+        kbase::cluster_t ret = kbase::kmeans(
                 &data[0], nrow, ncol, k,
                 max_iters, nnodes, nthread, &centroids[0],
                 "none");
@@ -113,7 +113,7 @@ int main(int argc, char* argv[]) {
         //////////////////////////////////*****////////////////////////////
         //////////////////////////////////*****////////////////////////////
         std::cout << "Testing PRUNED. Data + Centroid in-mem ...\n";
-        kbase::kmeans_t ret_numa = kbase::kmeans(
+        kbase::cluster_t ret_numa = kbase::kmeans(
                 &data[0], nrow, ncol, k,
                 max_iters, nnodes, nthread, &centroids[0],
                 "none", -1, "eucl", false, true);

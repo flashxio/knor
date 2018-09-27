@@ -132,7 +132,7 @@ int main(int argc, char* argv[])
         throw kbase::io_exception("File size does not match input size.");
 
     double* p_centers = NULL;
-    kbase::kmeans_t ret;
+    kbase::cluster_t ret;
 
     if (kbase::is_file_exist(centersfn.c_str())) {
         p_centers = new double [k*ncol];

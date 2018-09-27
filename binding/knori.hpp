@@ -41,7 +41,7 @@ namespace kprune = knor::prune;
 namespace knor { namespace base {
     // NOTE: It is the callers job to allocate/free data & p_centers
 
-kmeans_t kmeans(double* data, const size_t nrow,
+cluster_t kmeans(double* data, const size_t nrow,
         const size_t ncol, const unsigned k,
         size_t max_iters=std::numeric_limits<size_t>::max(),
         unsigned nnodes=get_num_nodes(),
@@ -53,7 +53,7 @@ kmeans_t kmeans(double* data, const size_t nrow,
     if (p_centers)
         init = "none";
 
-    kmeans_t ret;
+    cluster_t ret;
 
 #ifdef _OPENMP
     if (omp) {
@@ -98,7 +98,7 @@ kmeans_t kmeans(double* data, const size_t nrow,
     return ret;
 }
 
-kmeans_t kmeans(const std::string datafn, const size_t nrow,
+cluster_t kmeans(const std::string datafn, const size_t nrow,
         const size_t ncol, const unsigned k,
         size_t max_iters=std::numeric_limits<size_t>::max(),
         unsigned nnodes=get_num_nodes(),
@@ -110,7 +110,7 @@ kmeans_t kmeans(const std::string datafn, const size_t nrow,
     if (p_centers)
         init = "none";
 
-    kmeans_t ret;
+    cluster_t ret;
 
 #ifdef _OPEMP
     if (omp) {

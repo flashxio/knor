@@ -96,7 +96,7 @@ public:
     virtual void kmeanspp_init() override;
     virtual void random_partition_init() override;
     virtual void forgy_init() override;
-    virtual base::kmeans_t run(double* allocd_data,
+    virtual base::cluster_t run(double* allocd_data,
             const bool numa_opt) override;
 
     const double* get_thd_data(const unsigned row_id) const override;

@@ -277,7 +277,7 @@ static void EM_step(const double* matrix, kbase::clusters::ptr cls,
 
 namespace knor { namespace omp {
 
-kbase::kmeans_t compute_kmeans(const double* matrix, double* clusters_ptr,
+kbase::cluster_t compute_kmeans(const double* matrix, double* clusters_ptr,
         unsigned* cluster_assignments, size_t* cluster_assignment_counts,
         const size_t num_rows, const size_t num_cols, const unsigned k,
         const size_t MAX_ITERS, int max_threads, const std::string init,
@@ -477,7 +477,7 @@ kbase::kmeans_t compute_kmeans(const double* matrix, double* clusters_ptr,
             "/mnt/nfs/disa/data/big/");
 #endif
 
-    return kbase::kmeans_t (NUM_ROWS, NUM_COLS, iter, K,
+    return kbase::cluster_t (NUM_ROWS, NUM_COLS, iter, K,
             cluster_assignments, cluster_assignment_counts,
             clusters->get_means());
 }

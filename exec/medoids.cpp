@@ -118,7 +118,7 @@ int main(int argc, char* argv[]) {
         throw kbase::io_exception("File size does not match input size.");
 
     double* p_centers = NULL;
-    kbase::kmeans_t ret;
+    kbase::cluster_t ret;
 
     knor::medoid_coordinator::ptr kc =
         knor::medoid_coordinator::create("",

@@ -212,7 +212,7 @@ void medoid_coordinator::run_init() {
 /**
  * Main driver
  */
-kbase::kmeans_t medoid_coordinator::run(
+kbase::cluster_t medoid_coordinator::run(
         double* allocd_data, const bool numa_opt) {
 #ifdef PROFILER
     ProfilerStart("libman/medoid_coordinator.perf");
@@ -315,7 +315,7 @@ kbase::kmeans_t medoid_coordinator::run(
     printf("\n******************************************\n");
 #endif
 
-    return kbase::kmeans_t(this->nrow, this->ncol, iter, this->k,
+    return kbase::cluster_t(this->nrow, this->ncol, iter, this->k,
             &cluster_assignments[0], &cluster_assignment_counts[0],
             cltrs->get_means());
 }

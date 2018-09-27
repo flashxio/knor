@@ -124,7 +124,7 @@ int main(int argc, char* argv[]) {
         printf("Read centers!\n");
     }
 
-    kbase::kmeans_t ret; // Only root fills this
+    kbase::cluster_t ret; // Only root fills this
 
     if (no_prune) {
         knor::dist::dist_coordinator::ptr dc =

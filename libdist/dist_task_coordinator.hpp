@@ -71,7 +71,7 @@ public:
     void kmeanspp_init() override;
     void random_partition_init() override;
     void forgy_init() override;
-    void run(kbase::kmeans_t& ret, const std::string outdir="");
+    void run(kbase::cluster_t& ret, const std::string outdir="");
 
     const bool is_local(const size_t global_rid) const;
     const size_t global_rid(const size_t local_rid) const;
