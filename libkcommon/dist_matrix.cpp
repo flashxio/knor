@@ -41,9 +41,7 @@ dist_matrix::dist_matrix(const unsigned rows) {
 
 void dist_matrix::translate(unsigned& row, unsigned& col) {
     // First make sure the smaller is the row
-    if (row > col) {
-        std::swap(row, col);
-    }
+    if (row > col) std::swap(row, col);
 
     assert(row < rows);
     col = col - row - 1; // Translation

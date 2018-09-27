@@ -45,12 +45,13 @@ void test_dist_matrix() {
 
     for (unsigned row = 0; row < NROW; row++) {
         for (unsigned col = row + 1; col < NROW; col++) {
-            assert(dense_dm[(row*NROW)+col] == dm->get(row, col));
+            assert(dense_dm[(row*NROW)+col] == dm->pw_get(row, col));
         }
     }
 }
 
 int main() {
     test_dist_matrix();
+    printf("Successful 'test_dist_matrix' test ...\n");
     return EXIT_SUCCESS;
 }

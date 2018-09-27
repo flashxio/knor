@@ -59,6 +59,8 @@ public:
 
     /* Do a translation from raw id's to indexes in the distance matrix */
     double get(unsigned row, unsigned col);
+    double pw_get(const unsigned row, const unsigned col);
+
     // Testing purposes only
     double get_min_dist(const unsigned row);
     void set(unsigned row, unsigned col, double val);
@@ -69,5 +71,12 @@ public:
     void compute_pairwise_dist(double* data,
             const size_t ncol, const knor::base::dist_t metric);
 };
+
+inline double dist_matrix::pw_get(const unsigned row,
+        const unsigned col) {
+    if (row < col) return mat[row][col-row-1];
+    else if (row > col) return mat[col][row-col-1];
+    else return 0;
+}
 } } // End namespace knor, prune
 #endif
