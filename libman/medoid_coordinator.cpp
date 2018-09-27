@@ -222,7 +222,7 @@ kbase::kmeans_t medoid_coordinator::run(
         throw knor::base::not_implemented_exception();
 
     set_thread_data_ptr(allocd_data); // Offset taken for each thread
-    pw_dm->compute_pairwise_dist(allocd_data, ncol, knor::base::dist_t::TAXI);
+    pw_dm->compute_pairwise_dist(allocd_data, ncol, _dist_t);
 
     struct timeval start, end;
     gettimeofday(&start , NULL);

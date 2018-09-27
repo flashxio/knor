@@ -42,7 +42,7 @@ int main(int argc, char* argv[]) {
     std::string dist_type = "taxi";
     std::string centersfn = "";
     unsigned max_iters=std::numeric_limits<unsigned>::max();
-    std::string init = "kmeanspp";
+    std::string init = "forgy";
     double tolerance = -1;
 
     bool no_prune = false;
@@ -53,7 +53,7 @@ int main(int argc, char* argv[]) {
     std::string outdir = "";
 
     cxxopts::Options options(argv[0],
-            "knori data-file nsamples dim k [alg-options]\n");
+            "medoids -f data-file -n nsamples -m dim -k k [alg-options]\n");
     options.positional_help("[optional args]");
 
     options.add_options()
@@ -75,7 +75,7 @@ int main(int argc, char* argv[]) {
             cxxopts::value<bool>(no_prune))
       ("N,nnodes", "No. of numa nodes you want to use",
             cxxopts::value<unsigned>(nnodes))
-      ("d,dist", "Distance metric [eucl,cos]",
+      ("d,dist", "Distance metric [eucl,cos,taxi]",
             cxxopts::value<std::string>(dist_type))
       ("l,tol", "tolerance for convergence (1E-6)",
             cxxopts::value<std::string>())
@@ -93,11 +93,7 @@ int main(int argc, char* argv[]) {
         exit(EXIT_SUCCESS);
     }
 
-    if (nargs < 5) {
-        std::cout << "[ERROR]: Not enough default arguments\n";
-        std::cout << options.help() << std::endl;
-        exit(EXIT_SUCCESS);
-    }
+    cxxopts::check_required(options, {"datafn", "nsamples", "dim", "nclust"});
 
     kbase::assert_msg(kbase::is_file_exist(datafn.c_str()),
             "Data file name doesn't exit!");
@@ -124,13 +120,15 @@ int main(int argc, char* argv[]) {
     double* p_centers = NULL;
     kbase::kmeans_t ret;
 
-    if (no_prune) {
-        knor::medoid_coordinator::ptr kc =
-            knor::medoid_coordinator::create(datafn,
-                    nrow, ncol, k, max_iters, nnodes, nthread, p_centers,
-                    init, tolerance, dist_type);
-        ret = kc->run();
-    }
+    knor::medoid_coordinator::ptr kc =
+        knor::medoid_coordinator::create("",
+                nrow, ncol, k, max_iters, nnodes, nthread, p_centers,
+                init, tolerance, dist_type);
+
+    std::vector<double> data(nrow*ncol);
+    kbase::bin_io<double> br(datafn, nrow, ncol);
+    br.read(&data);
+    ret = kc->run(&data[0]);
 
     if (!outdir.empty()) {
         printf("\nWriting output to '%s'\n", outdir.c_str());
