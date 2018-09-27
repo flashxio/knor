@@ -46,6 +46,9 @@ class medoid_coordinator : public coordinator {
 
         // Pairwise distances for all samples
         std::shared_ptr<prune::dist_matrix> pw_dm;
+        // Cumulative distance of all members from the mediod
+        std::vector<double> medoid_energy;
+        bool medoids_changed;
 
         medoid_coordinator(const std::string fn, const size_t nrow,
                 const size_t ncol, const unsigned k, const unsigned max_iters,
@@ -90,15 +93,21 @@ class medoid_coordinator : public coordinator {
         void set_thread_clust_idx(const unsigned clust_idx) override;
         double reduction_on_cuml_sum() override;
         void run_init() override;
-        void random_partition_init() override;
+        void random_partition_init() override {
+            throw base::not_implemented_exception();
+        };
         void forgy_init() override;
         const double* get_thd_data(const unsigned row_id) const override;
         ~medoid_coordinator();
-
         // For testing
         void const print_thread_data() override;
         void build_thread_state() override;
         void const print_thread_start_rids();
+
+        // medoid specific
+        void compute_globals();
+        void sanity_check(); // Always call compute_globals before this
+        void choose_global_medoids(double* gdata);
 };
 }
 #endif

@@ -21,7 +21,7 @@
 #include <stdexcept>
 
 #include "medoid_coordinator.hpp"
-#include "kmeans_thread.hpp"
+#include "medoid_thread.hpp"
 #include "io.hpp"
 #include "clusters.hpp"
 #include "dist_matrix.hpp"
@@ -48,9 +48,11 @@ medoid_coordinator::medoid_coordinator(const std::string fn, const size_t nrow,
             }
         }
 
-        build_thread_state();
         // Create the pairwise distance matrix
-        prune::dist_matrix::create(nrow) = pw_dm;
+        pw_dm = prune::dist_matrix::create(nrow);
+        medoid_energy.assign(k, 0);
+        medoids_changed = true; // Run at least 1 iter
+        build_thread_state();
     }
 
 void medoid_coordinator::build_thread_state() {
@@ -59,9 +61,10 @@ void medoid_coordinator::build_thread_state() {
     for (unsigned thd_id = 0; thd_id < nthreads; thd_id++) {
         std::pair<unsigned, unsigned> tup = get_rid_len_tup(thd_id);
         thd_max_row_idx.push_back((thd_id*thds_row) + tup.second);
-        threads.push_back(kmeans_thread::create((thd_id % nnodes),
+        threads.push_back(medoid_thread::create((thd_id % nnodes),
                     thd_id, tup.first, tup.second,
-                    ncol, cltrs, &cluster_assignments[0], fn));
+                    ncol, cltrs, &cluster_assignments[0],
+                    fn, pw_dm, &medoid_energy[0]));
         threads[thd_id]->set_parent_cond(&cond);
         threads[thd_id]->set_parent_pending_threads(&pending_threads);
         threads[thd_id]->start(WAIT); // Thread puts itself to sleep
@@ -84,7 +87,6 @@ void medoid_coordinator::destroy_threads() {
 
 // <Thread, within-thread-row-id>
 const double* medoid_coordinator::get_thd_data(const unsigned row_id) const {
-    // TODO: Cheapen
     unsigned parent_thd = std::upper_bound(thd_max_row_idx.begin(),
             thd_max_row_idx.end(), row_id) - thd_max_row_idx.begin();
     unsigned rows_per_thread = nrow/nthreads; // All but the last thread
@@ -93,29 +95,73 @@ const double* medoid_coordinator::get_thd_data(const unsigned row_id) const {
             [(row_id-(parent_thd*rows_per_thread))*ncol]);
 }
 
-void medoid_coordinator::update_clusters() {
-    num_changed = 0; // Always reset here since there's no pruning
-    cltrs->clear();
-
-    // Serial aggreate of OMP_MAX_THREADS vectors
-    for (thread_iter it = threads.begin(); it != threads.end(); ++it) {
-        // Updated the changed cluster count
-        num_changed += (*it)->get_num_changed();
-        // Summation for cluster centers
-
-        cltrs->peq((*it)->get_local_clusters());
-    }
-
+void medoid_coordinator::sanity_check() {
     unsigned chk_nmemb = 0;
     for (unsigned clust_idx = 0; clust_idx < k; clust_idx++) {
-        cltrs->finalize(clust_idx);
-        cluster_assignment_counts[clust_idx] =
-            cltrs->get_num_members(clust_idx);
         chk_nmemb += cluster_assignment_counts[clust_idx];
     }
-    if (chk_nmemb != nrow)
-
     assert(chk_nmemb == nrow);
+}
+
+void medoid_coordinator::choose_global_medoids(double* gdata) {
+    // Do reduction on these
+    std::vector<unsigned> agg_candidate_medoids;
+    std::vector<double> agg_candidate_medoid_energy;
+
+    agg_candidate_medoids.assign(cltrs->get_nclust(), -1);
+    agg_candidate_medoid_energy.assign(cltrs->get_nclust(),
+            std::numeric_limits<double>::max());
+
+    // Accumulate the possible candidates and their energy
+    for (auto th : threads) {
+        auto t = std::static_pointer_cast<medoid_thread>(th);
+        auto cm = t->get_candidate_medoids();
+        auto ce = t->get_candidate_energy();
+
+        for (unsigned cid = 0; cid < k; cid++) {
+            if (ce[cid] < agg_candidate_medoid_energy[cid]) {
+                agg_candidate_medoid_energy[cid] = ce[cid];
+                agg_candidate_medoids[cid] = cm[cid];
+            }
+        }
+    }
+
+    // Determine if we need to update
+    for (unsigned cid = 0; cid < k; cid++) {
+        if (agg_candidate_medoid_energy[cid] < medoid_energy[cid]) {
+            medoids_changed = true;
+            // Update energy
+            medoid_energy[cid] = agg_candidate_medoid_energy[cid];
+            // Update new medoid id
+            cltrs->get_num_members_v()[cid] = agg_candidate_medoids[cid];
+            // Update new (centroid) medoid
+            cltrs->set_mean(&(gdata[agg_candidate_medoids[cid]]), cid);
+        }
+    }
+}
+
+void medoid_coordinator::compute_globals() {
+    // Always reset here since there's no pruning
+    num_changed = 0;
+    std::fill(cluster_assignment_counts.begin(),
+            cluster_assignment_counts.end(), 0);
+    std::fill(medoid_energy.begin(), medoid_energy.end(), 0);
+
+    for (auto th : threads) {
+        auto t = std::static_pointer_cast<medoid_thread>(th);
+
+        num_changed += t->get_num_changed();
+
+        for (size_t clust_idx = 0; clust_idx < k; clust_idx++) {
+            // Reduction on membership count
+            cluster_assignment_counts[clust_idx] +=
+                t->get_local_clusters()->get_num_members(clust_idx);
+
+            // Reduction on medoid energy
+            medoid_energy[clust_idx] += t->get_local_medoid_energy()[clust_idx];
+        }
+    }
+
     assert(num_changed <= nrow);
 }
 
@@ -137,21 +183,6 @@ void medoid_coordinator::set_thread_clust_idx(const unsigned clust_idx) {
         (*it)->set_clust_idx(clust_idx);
 }
 
-void medoid_coordinator::random_partition_init() {
-    std::default_random_engine generator;
-    std::uniform_int_distribution<unsigned> distribution(0, k-1);
-
-    for (unsigned row = 0; row < nrow; row++) {
-        unsigned asgnd_clust = distribution(generator);
-        const double* dp = get_thd_data(row);
-
-        cltrs->add_member(dp, asgnd_clust);
-        cluster_assignments[row] = asgnd_clust;
-    }
-
-    cltrs->finalize_all();
-}
-
 // Default
 void medoid_coordinator::forgy_init() {
     std::default_random_engine generator;
@@ -160,19 +191,19 @@ void medoid_coordinator::forgy_init() {
     for (unsigned clust_idx = 0; clust_idx < k; clust_idx++) { // 0...k
         unsigned rand_idx = distribution(generator);
         cltrs->set_mean(get_thd_data(rand_idx), clust_idx);
+
+        // NOTE: Use the member count as the ID of the chosen
+        cltrs->get_num_members_v()[clust_idx] = rand_idx;
     }
 }
 
 void medoid_coordinator::run_init() {
-    if (_init_t == kbase::init_t::RANDOM) {
-        random_partition_init();
-    } else if (_init_t == kbase::init_t::FORGY) {
+    if (_init_t == kbase::init_t::FORGY) {
         forgy_init();
-
-        // Run one EM step
+        // Run one EM step to assign samples to a cluster
         wake4run(EM);
         wait4complete();
-        update_clusters();
+        compute_globals();
     } else {
         throw kbase::parameter_exception("Unsupported initialization type");
     }
@@ -197,6 +228,18 @@ kbase::kmeans_t medoid_coordinator::run(
     gettimeofday(&start , NULL);
     run_init(); // Initialize clusters
 
+#ifndef BIND
+    std::cout << "AFTER INIT\n";
+    std::cout << "Means are: \n";
+    cltrs->print_means();
+    std::cout << "Cluster counts:\n";
+    kbase::print_vector(cluster_assignment_counts);
+    std::cout << "Medoid Energy:\n";
+    kbase::print_vector(medoid_energy);
+    sanity_check();
+    std::cout << "END INIT\n\n";
+#endif
+
     // Run kmeans loop
     bool converged = false;
     size_t iter = 0;
@@ -205,17 +248,38 @@ kbase::kmeans_t medoid_coordinator::run(
         iter++;
 
     while (iter <= max_iters && max_iters > 0) {
-        wake4run(EM);
+        wake4run(MEDOID);
         wait4complete();
+        // (Possibly) Sets: 1. new medoids, new energy
+        choose_global_medoids(allocd_data);
 
-        update_clusters();
-
-#if VERBOSE
 #ifndef BIND
-        printf("Cluster assignment counts: \n");
+        std::cout << "Medoid Energy:\n";
+        kbase::print_vector(medoid_energy);
+        std::cout << "Medoids are: \n";
+        cltrs->print_means();
 #endif
-        kbase::print_vector(cluster_assignment_counts);
+
+        if (medoids_changed) {
+            // Run kmeans step
+            wake4run(EM);
+            wait4complete();
+            compute_globals();
+#ifndef BIND
+            sanity_check();
 #endif
+
+            medoids_changed = false; // Reset
+
+#ifndef BIND
+            printf("Cluster assignment counts: \n");
+            kbase::print_vector(cluster_assignment_counts);
+            printf("\n******************************************\n");
+#endif
+        } else {
+            converged = true;
+            break;
+        }
 
         if (num_changed == 0 ||
                 ((num_changed/(double)nrow)) <= tolerance) {
@@ -236,11 +300,11 @@ kbase::kmeans_t medoid_coordinator::run(
 #endif
     if (converged) {
 #ifndef BIND
-        printf("K-means converged in %lu iterations\n", iter);
+        printf("K-medoids converged in %lu iterations\n", iter);
 #endif
     } else {
 #ifndef BIND
-        printf("[Warning]: K-means failed to converge in %lu"
+        printf("[Warning]: K-medoids failed to converge in %lu"
             " iterations\n", iter);
 #endif
     }
