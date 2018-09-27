@@ -108,7 +108,6 @@ void kmeans_coordinator::update_clusters() {
             cltrs->get_num_members(clust_idx);
         chk_nmemb += cluster_assignment_counts[clust_idx];
     }
-    if (chk_nmemb != nrow)
 
     assert(chk_nmemb == nrow);
     assert(num_changed <= nrow);
