@@ -68,7 +68,7 @@ public:
         return num_members_v[idx];
     }
 
-    const std::vector<size_t>& get_num_members_v() const {
+    std::vector<size_t>& get_num_members_v() {
         return num_members_v;
     }
 
@@ -182,8 +182,8 @@ public:
     }
 
     clusters& operator+=(clusters& rhs);
-    clusters& operator=(const clusters& other);
-    bool operator==(const clusters& other);
+    clusters& operator=(clusters& other);
+    bool operator==(clusters& other);
     void peq(ptr rhs);
     const void print_means() const;
     void clear();

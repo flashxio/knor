@@ -89,7 +89,7 @@ void clusters::set_num_members_v(const size_t* arg) {
     std::copy(&(arg[0]), &(arg[nclust]), num_members_v.begin());
 }
 
-clusters& clusters::operator=(const clusters& other) {
+clusters& clusters::operator=(clusters& other) {
     this->means = other.get_means();
     this->num_members_v = other.get_num_members_v();
     this->ncol = other.get_ncol();
@@ -97,7 +97,7 @@ clusters& clusters::operator=(const clusters& other) {
     return *this;
 }
 
-bool clusters::operator==(const clusters& other) {
+bool clusters::operator==(clusters& other) {
     return (get_ncol() == other.get_ncol() &&
             get_nclust() == other.get_nclust() &&
             v_eq(get_num_members_v(), other.get_num_members_v()) &&
