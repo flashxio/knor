@@ -41,8 +41,22 @@ cluster_t kmedoids(double* data, const size_t nrow,
         knor::medoid_coordinator::create("",
                 nrow, ncol, k, max_iters, nnodes, nthread, p_centers,
                 init, tolerance, dist_type);
-
     return kc->run(data);
+}
+
+cluster_t kmedoids(std::string datafn, const size_t nrow,
+        const size_t ncol, const unsigned k,
+        size_t max_iters=std::numeric_limits<size_t>::max(),
+        unsigned nnodes=get_num_nodes(),
+        unsigned nthread=get_num_omp_threads(),
+        double* p_centers=NULL, std::string init="forgy",
+        double tolerance=-1, std::string dist_type="taxi") {
+
+    std::vector<double> data(nrow*ncol);
+    kbase::bin_io<double> br(datafn, nrow, ncol);
+    br.read(&data);
+    return kmedoids(&data[0], nrow, ncol, k, max_iters, nnodes,
+            nthread, p_centers, init, tolerance, dist_type);
 }
 } } // End namespace knor::base
 #endif
