@@ -32,7 +32,7 @@ kmeans_task_thread::kmeans_task_thread(const int node_id, const unsigned thd_id,
         std::shared_ptr<kbase::prune_clusters> g_clusters,
         unsigned* cluster_assignments,
         const std::string fn) : thread(node_id, thd_id, ncol,
-            g_clusters->get_nclust(), cluster_assignments, start_rid, fn) {
+            cluster_assignments, start_rid, fn) {
 
             this->g_clusters = g_clusters;
             // Init task queue

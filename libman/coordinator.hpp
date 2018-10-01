@@ -87,7 +87,7 @@ public:
     virtual void set_thread_clust_idx(const unsigned clust_idx) = 0;
     virtual double reduction_on_cuml_sum() = 0;
     virtual void destroy_threads() = 0;
-    virtual void set_thd_dist_v_ptr(double* v) { };
+    virtual void set_thd_dist_v_ptr(double* v) { }
     void wait4complete();
     std::vector<std::shared_ptr<thread> >& get_threads() {
         return threads;

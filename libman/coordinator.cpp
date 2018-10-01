@@ -57,7 +57,6 @@ coordinator::coordinator(const std::string fn,
             &cluster_assignment_counts[k], 0);
 
     // Threading
-    pending_threads = 0; // NOTE: This must be initialized
     pthread_mutexattr_init(&mutex_attr);
     pthread_mutexattr_settype(&mutex_attr, PTHREAD_MUTEX_ERRORCHECK);
     pthread_mutex_init(&mutex, &mutex_attr);
