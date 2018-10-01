@@ -31,8 +31,9 @@ kmeans_thread::kmeans_thread(const int node_id, const unsigned thd_id,
         const unsigned start_rid,
         const unsigned nprocrows, const unsigned ncol,
         kbase::clusters::ptr g_clusters, unsigned* cluster_assignments,
-        const std::string fn) : thread(node_id, thd_id, ncol,
-            g_clusters->get_nclust(), cluster_assignments, start_rid, fn) {
+        const std::string fn, kbase::dist_t dist_metric) :
+            thread(node_id, thd_id, ncol,
+            cluster_assignments, start_rid, fn, dist_metric) {
 
             this->nprocrows = nprocrows;
             this->g_clusters = g_clusters;
@@ -168,7 +169,7 @@ void kmeans_thread::EM_step() {
                 clust_idx < g_clusters->get_nclust(); clust_idx++) {
             dist = kbase::dist_comp_raw<double>(&local_data[row*ncol],
                     &(g_clusters->get_means()[clust_idx*ncol]), ncol,
-                    kbase::dist_t::EUCL);
+                    dist_metric);
 
             if (dist < best) {
                 best = dist;
@@ -197,7 +198,7 @@ void kmeans_thread::kmspp_dist() {
 
         double dist = kbase::dist_comp_raw<double>(&local_data[row*ncol],
                 &((g_clusters->get_means())[clust_idx*ncol]), ncol,
-                kbase::dist_t::EUCL);
+                dist_metric);
 
         if (dist < dist_v[true_row_id]) { // Found a closer cluster than before
             dist_v[true_row_id] = dist;

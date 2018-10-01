@@ -34,8 +34,7 @@ medoid_thread::medoid_thread(const int node_id, const unsigned thd_id,
         kbase::clusters::ptr g_clusters, unsigned* cluster_assignments,
         const std::string fn, std::shared_ptr<kprune::dist_matrix> pw_dm,
         double* global_medoid_energy):
-            thread(node_id, thd_id, ncol, g_clusters->get_nclust(),
-            cluster_assignments, start_rid, fn) {
+            thread(node_id, thd_id, ncol, cluster_assignments, start_rid, fn) {
 
             this->nprocrows = nprocrows;
             this->g_clusters = g_clusters;

@@ -56,7 +56,7 @@ void kmeans_coordinator::build_thread_state() {
         thd_max_row_idx.push_back((thd_id*thds_row) + tup.second);
         threads.push_back(kmeans_thread::create((thd_id % nnodes),
                     thd_id, tup.first, tup.second,
-                    ncol, cltrs, &cluster_assignments[0], fn));
+                    ncol, cltrs, &cluster_assignments[0], fn, _dist_t));
         threads[thd_id]->set_parent_cond(&cond);
         threads[thd_id]->set_parent_pending_threads(&pending_threads);
         threads[thd_id]->start(WAIT); // Thread puts itself to sleep

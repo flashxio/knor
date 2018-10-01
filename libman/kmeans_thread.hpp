@@ -30,7 +30,7 @@ namespace kbase = knor::base;
 
 namespace knor {
 class kmeans_thread : public thread {
-    private:
+    protected:
          // Pointer to global cluster data
         std::shared_ptr<kbase::clusters> g_clusters;
         unsigned nprocrows; // How many rows to process
@@ -40,30 +40,32 @@ class kmeans_thread : public thread {
                 const unsigned ncol,
                 std::shared_ptr<kbase::clusters> g_clusters,
                 unsigned* cluster_assignments,
-                const std::string fn);
+                const std::string fn, kbase::dist_t dist_metric);
     public:
         static thread::ptr create(
                 const int node_id, const unsigned thd_id,
                 const unsigned start_rid, const unsigned nprocrows,
                 const unsigned ncol,
                 std::shared_ptr<kbase::clusters> g_clusters,
-                unsigned* cluster_assignments, const std::string fn) {
+                unsigned* cluster_assignments, const std::string fn,
+                kbase::dist_t dist_metric) {
             return thread::ptr(
                     new kmeans_thread(node_id, thd_id, start_rid,
                         nprocrows, ncol, g_clusters,
-                        cluster_assignments, fn));
+                        cluster_assignments, fn, dist_metric));
         }
 
-        void start(const thread_state_t state);
+        void start(const thread_state_t state) override;
         // Allocate and move data using this thread
-        void EM_step();
+        void EM_step() override;
         void kmspp_dist() override;
         const unsigned get_global_data_id(const unsigned row_id) const;
-        void run();
+        virtual void run() override;
+        void sleep() override;
+        void wake(thread_state_t state) override;
+        const void print_local_data() const override;
+
         void wait();
-        void sleep();
-        void wake(thread_state_t state);
-        const void print_local_data() const;
 };
 }
 #endif

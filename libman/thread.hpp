@@ -30,6 +30,7 @@
 
 #include "thread_state.hpp"
 #include "exception.hpp"
+#include "types.hpp"
 
 #define VERBOSE 0
 #define INVALID_THD_ID -1
@@ -62,11 +63,13 @@ protected:
     pthread_t hw_thd;
     unsigned node_id; // Which NUMA node are you on?
     int thd_id;
-    size_t start_rid; // With respect to the original data
     size_t ncol; // How many columns in the data
+    unsigned* cluster_assignments;
+    size_t start_rid; // With respect to the original data
     double* local_data; // Pointer to where the data begins that the thread works on
     size_t data_size; // true size of local_data at any point
     std::shared_ptr<kbase::clusters> local_clusters;
+    kbase::dist_t dist_metric; // dissimilarity metric
 
     pthread_mutex_t mutex;
     pthread_cond_t cond;
@@ -79,8 +82,6 @@ protected:
     //unsigned num_changed;
 
     FILE* f; // Data file on disk
-    unsigned* cluster_assignments;
-
     knor::thread_state_t state;
     double* dist_v;
     double cuml_dist;
@@ -89,20 +90,18 @@ protected:
     friend void* callback(void* arg);
 
     thread(const int node_id, const unsigned thd_id,
-            const unsigned ncol, const unsigned nclust,
+            const unsigned ncol,
             unsigned* cluster_assignments, const unsigned start_rid,
-            const std::string fn="") {
+            const std::string fn="",
+            kbase::dist_t dist_metric=kbase::dist_t::EUCL) :
+        node_id(node_id), thd_id(thd_id), ncol(ncol),
+        cluster_assignments(cluster_assignments),
+        start_rid(start_rid), preallocd_data(false) {
 
         pthread_mutexattr_init(&mutex_attr);
         pthread_mutexattr_settype(&mutex_attr, PTHREAD_MUTEX_ERRORCHECK);
         pthread_mutex_init(&mutex, &mutex_attr);
         pthread_cond_init(&cond, NULL);
-        this->node_id = node_id;
-        this->thd_id = thd_id;
-        this->ncol = ncol;
-        this->cluster_assignments = cluster_assignments;
-        this->start_rid = start_rid;
-        this->preallocd_data = false;
 
         if (!fn.empty()) {
             this->f = fopen(fn.c_str(), "rb");
