@@ -26,7 +26,9 @@ namespace knor {
         ALLOC_DATA, /*moving data for reduces rma*/
         KMSPP_INIT,
         EM, /*EM steps of kmeans*/
-        MEDOID,
+        MEDOID, /*Medoids step*/
+        BOUNDS, /*A reduction computation of some kind*/
+        NORMALIZE_DATA, /*Normalize the data*/
         WAIT, /*When the thread is waiting for a new task*/
         EXIT /* Say goodnight */
     };
