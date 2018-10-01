@@ -111,6 +111,8 @@ T dist_comp_raw(const T* arg0, const T* arg1,
         return eucl_dist<T>(arg0, arg1, len);
     else if (dt == dist_t::COS)
         return cos_dist(arg0, arg1, len);
+    else if (dt == dist_t::TAXI)
+        return taxi_dist(arg0, arg1, len);
     throw parameter_exception("Unknown distance metric\n");
 }
 
