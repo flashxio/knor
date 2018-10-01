@@ -79,6 +79,8 @@ int main(int argc, char* argv[])
             cxxopts::value<unsigned>(max_iters))
       ("C,centersfn", "Path to centroids on disk",
             cxxopts::value<std::string>(centersfn), "FILE")
+      ("t,init", "The type of initialization",
+            cxxopts::value<std::string>(init))
       ("O,omp", "Use OpenMP for ||ization rather than fast pthreads",
             cxxopts::value<bool>(omp))
       ("P,prune", "DO NOT use the minimal triangle inequality (~Elkan's alg)",
