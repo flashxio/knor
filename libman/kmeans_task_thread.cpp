@@ -31,8 +31,9 @@ kmeans_task_thread::kmeans_task_thread(const int node_id, const unsigned thd_id,
         const unsigned ncol,
         std::shared_ptr<kbase::prune_clusters> g_clusters,
         unsigned* cluster_assignments,
-        const std::string fn) : thread(node_id, thd_id, ncol,
-            cluster_assignments, start_rid, fn) {
+        const std::string fn, kbase::dist_t dist_metric):
+            thread(node_id, thd_id, ncol,
+            cluster_assignments, start_rid, fn, dist_metric) {
 
             this->g_clusters = g_clusters;
             // Init task queue
@@ -320,7 +321,7 @@ void kmeans_task_thread::EM_step() {
                 dist = kbase::dist_comp_raw<double>(
                         &curr_task->get_data_ptr()[row*ncol],
                         &(g_clusters->get_means()[clust_idx*ncol]), ncol,
-                        kbase::dist_t::EUCL);
+                        dist_metric);
 
                 if (dist < dist_v[true_row_id]) {
                     dist_v[true_row_id] = dist;
@@ -351,7 +352,7 @@ void kmeans_task_thread::EM_step() {
                                 &curr_task->get_data_ptr()[row*ncol],
                                 &(g_clusters->get_means()[cluster_assignments
                                     [true_row_id]*ncol]), ncol,
-                                kbase::dist_t::EUCL);
+                                dist_metric);
                         recalculated_v->set(true_row_id, true);
                     }
 
@@ -365,7 +366,7 @@ void kmeans_task_thread::EM_step() {
                     double jdist = kbase::dist_comp_raw(
                             &curr_task->get_data_ptr()[row*ncol],
                             &(g_clusters->get_means()[clust_idx*ncol]), ncol,
-                            kbase::dist_t::EUCL);
+                            dist_metric);
 
                     if (jdist < dist_v[true_row_id]) {
                         dist_v[true_row_id] = jdist;
@@ -402,7 +403,7 @@ void kmeans_task_thread::kmspp_dist() {
         double dist = kbase::dist_comp_raw<double>(
                 &(curr_task->get_data_ptr()[row*ncol]),
                 &((g_clusters->get_means())[clust_idx*ncol]), ncol,
-                kbase::dist_t::EUCL);
+                dist_metric);
 
         if (dist < dist_v[true_row_id]) { // Found a closer cluster than before
             dist_v[true_row_id] = dist;

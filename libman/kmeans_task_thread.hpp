@@ -59,18 +59,19 @@ protected: // Lazy
             const unsigned ncol,
             std::shared_ptr<kbase::prune_clusters> g_clusters,
             unsigned* cluster_assignments,
-            const std::string fn);
+            const std::string fn, kbase::dist_t dist_metric);
 public:
     static thread::ptr create(const int node_id,
             const unsigned thd_id,
             const unsigned start_rid, const unsigned nlocal_rows,
             const unsigned ncol,
             std::shared_ptr<kbase::prune_clusters> g_clusters,
-            unsigned* cluster_assignments, const std::string fn) {
+            unsigned* cluster_assignments, const std::string fn,
+            kbase::dist_t dist_metric) {
         return thread::ptr(
                 new kmeans_task_thread(node_id, thd_id, start_rid,
                     nlocal_rows, ncol, g_clusters,
-                    cluster_assignments, fn));
+                    cluster_assignments, fn, dist_metric));
     }
 
     void start(const knor::thread_state_t state);

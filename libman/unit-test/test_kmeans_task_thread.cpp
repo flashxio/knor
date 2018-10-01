@@ -66,7 +66,8 @@ static void test_thread_creation(const unsigned NTHREADS, const unsigned nnodes)
     for (unsigned i = 0; i < NTHREADS; i++) {
         kbase::prune_clusters::ptr cl = kbase::prune_clusters::create(2,2);
         threads.push_back(kprune::kmeans_task_thread::create
-                (i%nnodes, i, 69, 200, 1, cl, NULL, "/dev/null"));
+                (i%nnodes, i, 69, 200, 1, cl, NULL, "/dev/null",
+                 kbase::dist_t::EUCL));
         threads[i]->set_parent_cond(&cond);
         threads[i]->set_parent_pending_threads(&pending_threads);
         threads[i]->start(knor::thread_state_t::WAIT); // Thread puts itself to sleep
@@ -97,7 +98,7 @@ void test_numa_populate_data(const unsigned NTHREADS, const unsigned nnodes,
         kbase::prune_clusters::ptr cl = kbase::prune_clusters::create(2,2);
         threads.push_back(kprune::kmeans_task_thread::create
                 (i%nnodes, i, i*nprocrows, nprocrows, ncol,
-                 cl, NULL, fn));
+                 cl, NULL, fn, kbase::dist_t::EUCL));
         threads[i]->set_parent_cond(&cond);
         threads[i]->set_parent_pending_threads(&pending_threads);
         threads[i]->start(knor::thread_state_t::WAIT); // Thread puts itself to sleep
