@@ -35,16 +35,12 @@ int main(int argc, char* argv[]) {
 
     // optional args
     unsigned nthread = kbase::get_num_omp_threads();
-    std::string dist_type = "eucl";
+    std::string dist_type = "cos";
     std::string centersfn = "";
     unsigned max_iters=std::numeric_limits<unsigned>::max();
     std::string init = "forgy";
     double tolerance = -1;
 
-    bool no_prune = false;
-    bool omp = false;
-
-    if (omp) { }
     unsigned nnodes = kbase::get_num_nodes();
     std::string outdir = "";
 
@@ -67,10 +63,6 @@ int main(int argc, char* argv[]) {
             cxxopts::value<unsigned>(max_iters))
       ("C,centersfn", "Path to centroids on disk",
             cxxopts::value<std::string>(centersfn), "FILE")
-      ("O,omp", "Use OpenMP for ||ization rather than fast pthreads",
-            cxxopts::value<bool>(omp))
-      ("P,prune", "DO NOT use the minimal triangle inequality (~Elkan's alg)",
-            cxxopts::value<bool>(no_prune))
       ("N,nnodes", "No. of numa nodes you want to use",
             cxxopts::value<unsigned>(nnodes))
       ("d,dist", "Distance metric [eucl,cos]",

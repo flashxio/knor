@@ -98,6 +98,21 @@ const double cos_dist(const T* lhs, const T* rhs,
     return  1 - (numr / ((std::sqrt(ldenom)*std::sqrt(rdenom))));
 }
 
+#if 0
+static std::string dist_t_to_string(dist_t dt) {
+    switch(dt) {
+        case (dist_t::EUCL):
+            return "Euclidean";
+        case (dist_t::COS):
+            return "Cosine";
+        case (dist_t::TAXI):
+            return "Taxicab";
+        default:
+            return "UNKNOWN";
+    }
+}
+#endif
+
 /** \brief Choose the correct distance function and return it
  * \param arg0 A pointer to data
  * \param arg1 Another pointer to data

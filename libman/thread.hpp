@@ -96,7 +96,8 @@ protected:
             kbase::dist_t dist_metric=kbase::dist_t::EUCL) :
         node_id(node_id), thd_id(thd_id), ncol(ncol),
         cluster_assignments(cluster_assignments),
-        start_rid(start_rid), preallocd_data(false) {
+        start_rid(start_rid), dist_metric(dist_metric),
+        preallocd_data(false) {
 
         pthread_mutexattr_init(&mutex_attr);
         pthread_mutexattr_settype(&mutex_attr, PTHREAD_MUTEX_ERRORCHECK);
