@@ -39,63 +39,53 @@ namespace komp = knor::omp;
 namespace kprune = knor::prune;
 
 namespace knor { namespace base {
-    // NOTE: It is the callers job to allocate/free data & p_centers
 
+// NOTE: It is the callers job to allocate/free data & p_centers
+coordinator::ptr _kmeans(const size_t nrow,
+        const size_t ncol, const unsigned k,
+        size_t max_iters=std::numeric_limits<size_t>::max(),
+        unsigned nnodes=get_num_nodes(),
+        unsigned nthread=get_num_omp_threads(),
+        double* p_centers=NULL, std::string init="kmeanspp",
+        double tolerance=-1, std::string dist_type="eucl") {
+
+    if (p_centers)
+        init = "none";
+
+    return kprune::kmeans_task_coordinator::create(
+            "", nrow, ncol, k, max_iters, nnodes,
+            nthread, p_centers,
+            init, tolerance, dist_type);
+}
+
+coordinator::ptr _kmeans(const std::string datafn, const size_t nrow,
+        const size_t ncol, const unsigned k,
+        size_t max_iters=std::numeric_limits<size_t>::max(),
+        unsigned nnodes=get_num_nodes(),
+        unsigned nthread=get_num_omp_threads(),
+        double* p_centers=NULL, std::string init="kmeanspp",
+        double tolerance=-1, std::string dist_type="eucl") {
+
+    if (p_centers)
+        init = "none";
+
+    return kprune::kmeans_task_coordinator::create(
+            datafn, nrow, ncol, k, max_iters, nnodes, nthread, p_centers,
+            init, tolerance, dist_type);
+}
+
+
+// NOTE: It is the callers job to allocate/free data & p_centers
 cluster_t kmeans(double* data, const size_t nrow,
         const size_t ncol, const unsigned k,
         size_t max_iters=std::numeric_limits<size_t>::max(),
         unsigned nnodes=get_num_nodes(),
         unsigned nthread=get_num_omp_threads(),
         double* p_centers=NULL, std::string init="kmeanspp",
-        double tolerance=-1, std::string dist_type="eucl",
-        bool omp=false, bool numa_opt=false) {
+        double tolerance=-1, std::string dist_type="eucl") {
 
-    if (p_centers)
-        init = "none";
-
-    cluster_t ret;
-
-#ifdef _OPENMP
-    if (omp) {
-        std::vector<double> centroids (k*ncol);
-        std::fill(centroids.begin(), centroids.end(), 0);
-        std::vector<unsigned> assignments(nrow);
-        std::fill(assignments.begin(), assignments.end(), 0);
-        std::vector<size_t> counts(k);
-        std::fill(counts.begin(), counts.end(), 0);
-
-        if (max_iters < std::numeric_limits<size_t>::max())
-            max_iters++; // NOTE: This accounts for difference in pthread v. omp
-
-        ret = komp::compute_min_kmeans(data, &centroids[0], &assignments[0],
-                &counts[0], nrow, ncol, k, max_iters, nthread, init, tolerance,
-                dist_type);
-    } else {
-#endif
-        kprune::kmeans_task_coordinator::ptr kc =
-            kprune::kmeans_task_coordinator::create(
-                    "", nrow, ncol, k, max_iters, nnodes,
-                    nthread, p_centers,
-                    init, tolerance, dist_type);
-        if (numa_opt) {
-#ifdef USE_NUMA
-            kbind::memory_distributor<double>::ptr md =
-                kbind::memory_distributor<double>::create(data,
-                        nnodes, nrow, ncol);
-
-            md->numa_reorg(kc->get_threads());
-            ret = kc->run(NULL, true);
-#else
-            ret = kc->run(data);
-#endif
-        } else {
-            ret = kc->run(data);
-        }
-#if _OPENMP
-    }
-#endif
-
-    return ret;
+    return _kmeans(nrow, ncol, k, max_iters, nnodes, nthread,
+            p_centers, init, tolerance, dist_type)->run(data);
 }
 
 cluster_t kmeans(const std::string datafn, const size_t nrow,
@@ -104,47 +94,72 @@ cluster_t kmeans(const std::string datafn, const size_t nrow,
         unsigned nnodes=get_num_nodes(),
         unsigned nthread=get_num_omp_threads(),
         double* p_centers=NULL, std::string init="kmeanspp",
-        double tolerance=-1, std::string dist_type="eucl",
-        bool omp=false) {
+        double tolerance=-1, std::string dist_type="eucl") {
 
-    if (p_centers)
-        init = "none";
+    return _kmeans(datafn, nrow, ncol, k, max_iters, nnodes, nthread,
+            p_centers, init, tolerance, dist_type)->run();
+}
 
-    cluster_t ret;
+std::pair<std::pair<unsigned, double>, cluster_t> kmeansPP(
+        double* data, const size_t nrow,
+        const size_t ncol, const unsigned k, const unsigned nstart=1,
+        unsigned nthread=get_num_omp_threads(), std::string dist_type="eucl") {
 
-#ifdef _OPEMP
-    if (omp) {
-        // Read all the data
-        std::vector<double> data(nrow*ncol);
-        bin_io<double> br(datafn, nrow, ncol);
-        br.read(&data);
+    auto nnodes = get_num_nodes();
+    unsigned best_start = 1;
+    auto coord = std::static_pointer_cast<kprune::kmeans_task_coordinator>(
+            _kmeans(nrow, ncol, k, 0, nnodes, nthread,
+                NULL, "kmeanspp", -1, dist_type));
 
-        std::vector<double> centroids(k*ncol);
-        std::fill(centroids.begin(), centroids.end(), 0);
-        std::vector<unsigned> assignments(nrow);
-        std::fill(assignments.begin(), assignments.end(), 0);
-        std::vector<size_t> counts(k);
-        std::fill(counts.begin(), counts.end(), 0);
+    cluster_t best_cluster_t = coord->run(data);
+    coord->tally_assignment_counts();
+    double best_energy = coord->compute_cluster_energy();
 
-        if (max_iters < std::numeric_limits<size_t>::max())
-            max_iters++; // NOTE: This accounts for difference in pthread v. omp
+    for (unsigned start = 1; start < nstart; start++) {
+        coord->reinit();
+        coord->tally_assignment_counts();
+        auto energy = coord->compute_cluster_energy();
 
-        ret = komp::compute_kmeans(&data[0], &centroids[0], &assignments[0],
-                &counts[0], nrow, ncol, k, max_iters, nthread, init, tolerance,
-                dist_type);
-    } else {
-#endif
-        kprune::kmeans_task_coordinator::ptr kc =
-            kprune::kmeans_task_coordinator::create(
-                    datafn, nrow, ncol, k, max_iters, nnodes, nthread, p_centers,
-                    init, tolerance, dist_type);
-        ret = kc->run();
-#ifdef _OPEMP
+        if (energy < best_energy) {
+            best_cluster_t = coord->dump_state();
+            best_energy = energy;
+            best_start = start + 1;
+        }
     }
-#endif
 
-    // NOTE: the caller must take responsibility of cleaning up p_centers
-    return ret;
+    auto _ = std::pair<unsigned, double>(best_start, best_energy);
+    return std::pair<std::pair<unsigned, double>, cluster_t>(_, best_cluster_t);
+}
+
+std::pair<std::pair<unsigned, double>, cluster_t> kmeansPP(
+        std::string datafn, const size_t nrow,
+        const size_t ncol, const unsigned k, const unsigned nstart=1,
+        unsigned nthread=get_num_omp_threads(), std::string dist_type="eucl") {
+
+    auto nnodes = get_num_nodes();
+    unsigned best_start = 1;
+    auto coord = std::static_pointer_cast<kprune::kmeans_task_coordinator>(
+            _kmeans(datafn, nrow, ncol, k, 0, nnodes, nthread,
+                NULL, "kmeanspp", -1, dist_type));
+
+    cluster_t best_cluster_t = coord->run();
+    coord->tally_assignment_counts();
+    double best_energy = coord->compute_cluster_energy();
+
+    for (unsigned start = 1; start < nstart; start++) {
+        coord->reinit();
+        coord->tally_assignment_counts();
+        auto energy = coord->compute_cluster_energy();
+
+        if (energy < best_energy) {
+            best_cluster_t = coord->dump_state();
+            best_energy = energy;
+            best_start = start + 1;
+        }
+    }
+
+    auto _ = std::pair<unsigned, double>(best_start, best_energy);
+    return std::pair<std::pair<unsigned, double>, cluster_t>(_, best_cluster_t);
 }
 
 } } // End namespace knor::base
