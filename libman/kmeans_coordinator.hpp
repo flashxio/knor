@@ -74,8 +74,8 @@ class kmeans_coordinator : public coordinator {
 
         std::pair<unsigned, unsigned> get_rid_len_tup(const unsigned thd_id);
         // Pass file handle to threads to read & numa alloc
-        virtual base::cluster_t run(double* allocd_data,
-                const bool numa_opt) override;
+        virtual base::cluster_t run(double* allocd_data=NULL,
+            const bool numa_opt=false) override;
         void update_clusters();
         void kmeanspp_init() override;
         void wake4run(knor::thread_state_t state) override;
