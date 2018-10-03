@@ -53,7 +53,7 @@ int main(int argc, char* argv[]) {
         kbase::cluster_t ret = kbase::kmeans(
                 &data[0], nrow, ncol, k,
                 max_iters, nnodes, nthread, NULL,
-                "kmeanspp", -1, "eucl", true);
+                "kmeanspp", -1, "eucl");
 
         ret.print();
     }
@@ -85,7 +85,7 @@ int main(int argc, char* argv[]) {
         kbase::cluster_t ret_full = kbase::kmeans(
                 &data[0], nrow, ncol, k,
                 max_iters, nnodes, nthread, &centroids[0],
-                "none", -1, "eucl", true, false);
+                "none", -1, "eucl");
 
         ret_full.print();
 
@@ -94,7 +94,7 @@ int main(int argc, char* argv[]) {
         kbase::cluster_t ret_numa_full = kbase::kmeans(
                 &data[0], nrow, ncol, k,
                 max_iters, nnodes, nthread, &centroids[0],
-                "none", -1, "eucl", true, true);
+                "none", -1, "eucl");
 
         ret_numa_full.print();
         assert(ret_full == ret_numa_full);
@@ -116,17 +116,11 @@ int main(int argc, char* argv[]) {
         kbase::cluster_t ret_numa = kbase::kmeans(
                 &data[0], nrow, ncol, k,
                 max_iters, nnodes, nthread, &centroids[0],
-                "none", -1, "eucl", false, true);
+                "none", -1, "eucl");
 
         ret_numa.print();
         assert(ret == ret_numa);
         std::cout << "SUCCESS PRUNED. Data + Centroids in-mem (numa_opt)!\n\n";
-
-        //////////////////////////////////*****////////////////////////////
-        //////////////////////////////////*****////////////////////////////
-        // assert(ret_full == ret_numa); // FIXME: Fails but is the same ...
-        // std::cout << "SUCCESS PRUNED v FULL. Data + Centroids in-mem (numa_opt)!\n\n";
     }
-
     return EXIT_SUCCESS;
 }
