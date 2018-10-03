@@ -451,6 +451,10 @@ kbase::cluster_t kmeans_task_coordinator::run(
         }
         iter++;
     }
+
+    if (iter == 0 && _init_t == kbase::init_t::PLUSPLUS)
+        tally_assignment_counts();
+
 #ifdef PROFILER
     ProfilerStop();
 #endif
