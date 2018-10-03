@@ -35,7 +35,8 @@
 namespace kbase = knor::base;
 
 namespace knor { namespace prune {
-kmeans_task_coordinator::kmeans_task_coordinator(const std::string fn, const size_t nrow,
+kmeans_task_coordinator::kmeans_task_coordinator(const std::string fn,
+        const size_t nrow,
         const size_t ncol, const unsigned k, const unsigned max_iters,
         const unsigned nnodes, const unsigned nthreads,
         const double* centers, const kbase::init_t it,
@@ -45,6 +46,7 @@ kmeans_task_coordinator::kmeans_task_coordinator(const std::string fn, const siz
 
         cltrs = kbase::prune_clusters::create(k, ncol);
 
+        inited = false;
         if (centers) {
             if (kbase::init_t::NONE) {
                 cltrs->set_mean(centers);
@@ -211,11 +213,12 @@ void kmeans_task_coordinator::kmeanspp_init() {
     gettimeofday(&start , NULL);
     set_thd_dist_v_ptr(&dist_v[0]);
 
-    std::default_random_engine generator;
 
     // Choose c1 uniformly at random
-    std::uniform_int_distribution<unsigned> distribution(0, nrow-1);
-    unsigned selected_idx = distribution(generator);
+    if (!inited)
+        ui_distribution = std::uniform_int_distribution<unsigned>(0, nrow-1);
+
+    unsigned selected_idx = ui_distribution(generator);
 
     cltrs->set_mean(get_thd_data(selected_idx), 0);
     dist_v[selected_idx] = 0.0;
@@ -228,7 +231,10 @@ void kmeans_task_coordinator::kmeanspp_init() {
 #endif
     unsigned clust_idx = 0; // The number of clusters assigned
 
-    std::uniform_real_distribution<double> ur_distribution(0.0, 1.0);
+    if (!inited) {
+        ur_distribution = std::uniform_real_distribution<double>(0.0, 1.0);
+        inited = true;
+    }
 
     // Choose next center c_i with weighted prob
     while (true) {
@@ -345,6 +351,32 @@ void kmeans_task_coordinator::set_task_data_ptrs() {
             <prune::kmeans_task_thread>(*it);
         thd->get_task_queue()->set_data_ptr(thd->get_local_data());
     }
+}
+
+double kmeans_task_coordinator::compute_cluster_energy() {
+    double cluster_energy = 0;
+    for (size_t row = 0; row < nrow; row++)
+        cluster_energy += dist_v[row];
+    return cluster_energy;
+}
+
+void kmeans_task_coordinator::reinit() {
+    std::fill(&dist_v[0], &dist_v[nrow], std::numeric_limits<double>::max());
+    cluster_assignments.clear();
+    cluster_assignment_counts.assign(k, 0);
+    cltrs->clear();
+    run_init();
+}
+
+void kmeans_task_coordinator::tally_assignment_counts() {
+    for (size_t row = 0; row < nrow; row++)
+        cluster_assignment_counts[cluster_assignments[row]]++;
+}
+
+kbase::cluster_t kmeans_task_coordinator::dump_state() {
+    return kbase::cluster_t(this->nrow, this->ncol, 0, this->k,
+            &cluster_assignments[0], &cluster_assignment_counts[0],
+            cltrs->get_means());
 }
 
 /**

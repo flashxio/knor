@@ -44,6 +44,12 @@ protected: // So lazy ..
     std::vector<double> dist_v; // global
     std::shared_ptr<dist_matrix> dm;
 
+    //kmeansPP
+    std::default_random_engine generator;
+    std::uniform_real_distribution<double> ur_distribution;
+    std::uniform_int_distribution<unsigned> ui_distribution;
+    bool inited;
+
     kmeans_task_coordinator(const std::string fn, const size_t nrow,
             const size_t ncol, const unsigned k, const unsigned max_iters,
             const unsigned nnodes, const unsigned nthreads,
@@ -82,6 +88,12 @@ public:
         return dm;
     }
 
+    // For standalone kmeansPP
+    double compute_cluster_energy();
+    void reinit();
+    base::cluster_t dump_state();
+    void tally_assignment_counts();
+
     std::pair<size_t, size_t> get_rid_len_tup(const unsigned thd_id);
     // Pass file handle to threads to read & numa alloc
     void update_clusters(const bool prune_init);
@@ -96,8 +108,8 @@ public:
     virtual void kmeanspp_init() override;
     virtual void random_partition_init() override;
     virtual void forgy_init() override;
-    virtual base::cluster_t run(double* allocd_data,
-            const bool numa_opt) override;
+    virtual base::cluster_t run(double* allocd_data=NULL,
+            const bool numa_opt=false) override;
 
     const double* get_thd_data(const unsigned row_id) const override;
     void set_task_data_ptrs();
