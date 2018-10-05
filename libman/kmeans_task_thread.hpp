@@ -21,6 +21,7 @@
 #define __KNOR_KMEANS_TASK_THREAD_HPP__
 
 #include <atomic>
+#include <random>
 
 #include "thread.hpp"
 
@@ -54,6 +55,12 @@ protected: // Lazy
     std::shared_ptr<kbase::thd_safe_bool_vector> recalculated_v; // global
     bool _is_numa;
 
+    // Mini-batch
+    std::default_random_engine generator;
+    std::uniform_real_distribution<double> ur_distribution;
+    std::vector<unsigned> mb_selected; // Local ID of selected rows for mb
+    double mb_perctg;
+
     kmeans_task_thread(const int node_id, const unsigned thd_id,
             const unsigned start_rid, const unsigned nlocal_rows,
             const unsigned ncol,
@@ -74,9 +81,15 @@ public:
                     cluster_assignments, fn, dist_metric));
     }
 
+    // Mini-batch
+    void set_mb_perctg(const double mb_perctge) { this->mb_perctg = mb_perctg; }
+    void mb_finalize_centroids(const double* eta);
+    // End Mini-batch
+
     void start(const knor::thread_state_t state);
     // Allocate and move data using this thread
     void EM_step();
+    void mb_EM_step();
     void kmspp_dist();
     const unsigned get_global_data_id(const unsigned row_id) const;
     void run();

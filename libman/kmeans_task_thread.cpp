@@ -24,6 +24,8 @@
 #include "thd_safe_bool_vector.hpp"
 #include "dist_matrix.hpp"
 
+#if 1
+#endif
 namespace knor { namespace prune {
 
 kmeans_task_thread::kmeans_task_thread(const int node_id, const unsigned thd_id,
@@ -35,6 +37,7 @@ kmeans_task_thread::kmeans_task_thread(const int node_id, const unsigned thd_id,
             thread(node_id, thd_id, ncol,
             cluster_assignments, start_rid, fn, dist_metric) {
 
+            ur_distribution = std::uniform_real_distribution<double>(0.0, 1.0);
             this->g_clusters = g_clusters;
             // Init task queue
             tasks = new task_queue();
@@ -43,7 +46,7 @@ kmeans_task_thread::kmeans_task_thread(const int node_id, const unsigned thd_id,
             tasks->set_nrow(nlocal_rows);
             tasks->set_ncol(ncol);
             prune_init = true;
-            _is_numa = false; // TODO: param this
+            _is_numa = false;
             local_clusters =
                 kbase::clusters::create(g_clusters->get_nclust(), ncol);
 
@@ -216,6 +219,10 @@ void kmeans_task_thread::run() {
             EM_step();
             request_task();
             break;
+        case MB_EM: /* Mini-batch Super-E-step */
+            mb_EM_step();
+            request_task();
+            break;
         case EXIT:
             throw kbase::thread_exception(
                     "Thread state is EXIT but running!\n");
@@ -306,6 +313,108 @@ void kmeans_task_thread::start(const thread_state_t state=WAIT) {
 const unsigned kmeans_task_thread::
 get_global_data_id(const unsigned row_id) const {
     return row_id + curr_task->get_start_rid();
+}
+
+void kmeans_task_thread::mb_finalize_centroids(const double* eta) {
+    std::cout << "mb_finalize_centroids, thd:" << thd_id << ", with eta:\n";
+    kbase::print_arr<double>(eta, ncol);
+    for (unsigned local_rid : mb_selected) {
+        auto g_rid = start_rid + local_rid; // TODO: Test me
+        auto cid = cluster_assignments[g_rid];
+        g_clusters->scale_centroid(eta[cid], cid, &local_data[local_rid*ncol]);
+    }
+    // Clear mb_selected for the next iteration
+    mb_selected.clear();
+}
+
+void kmeans_task_thread::mb_EM_step() {
+    for (unsigned row = 0; row < curr_task->get_nrow(); row++) {
+
+        if (ur_distribution(generator) > mb_perctg)
+            continue; // Sample rows
+
+        unsigned true_row_id = get_global_data_id(row);
+        mb_selected.push_back(true_row_id - start_rid);
+        unsigned old_clust = cluster_assignments[true_row_id];
+
+        if (prune_init) {
+            double dist = std::numeric_limits<double>::max();
+
+            for (unsigned clust_idx = 0;
+                    clust_idx < g_clusters->get_nclust(); clust_idx++) {
+                dist = kbase::dist_comp_raw<double>(
+                        &curr_task->get_data_ptr()[row*ncol],
+                        &(g_clusters->get_means()[clust_idx*ncol]), ncol,
+                        dist_metric);
+
+                if (dist < dist_v[true_row_id]) {
+                    dist_v[true_row_id] = dist;
+                    cluster_assignments[true_row_id] = clust_idx;
+                }
+            }
+
+        } else {
+            recalculated_v->set(true_row_id, false);
+            dist_v[true_row_id] +=
+                g_clusters->get_prev_dist(cluster_assignments[true_row_id]);
+
+            if (dist_v[true_row_id] <=
+                    g_clusters->get_s_val(cluster_assignments[true_row_id])) {
+                // Skip all rows
+            } else {
+                for (unsigned clust_idx = 0;
+                        clust_idx < g_clusters->get_nclust(); clust_idx++) {
+
+                    if (dist_v[true_row_id] <= dm->get(cluster_assignments
+                                [true_row_id], clust_idx)) {
+                        // Skip this cluster
+                        continue;
+                    }
+
+                    if (!recalculated_v->get(true_row_id)) {
+                        dist_v[true_row_id] = kbase::dist_comp_raw<double>(
+                                &curr_task->get_data_ptr()[row*ncol],
+                                &(g_clusters->get_means()[cluster_assignments
+                                    [true_row_id]*ncol]), ncol,
+                                dist_metric);
+                        recalculated_v->set(true_row_id, true);
+                    }
+
+                    if (dist_v[true_row_id] <=
+                            dm->get(cluster_assignments[true_row_id], clust_idx)) {
+                        // Skip this cluster
+                        continue;
+                    }
+
+                    // Track 5
+                    double jdist = kbase::dist_comp_raw(
+                            &curr_task->get_data_ptr()[row*ncol],
+                            &(g_clusters->get_means()[clust_idx*ncol]), ncol,
+                            dist_metric);
+
+                    if (jdist < dist_v[true_row_id]) {
+                        dist_v[true_row_id] = jdist;
+                        cluster_assignments[true_row_id] = clust_idx;
+                    }
+                } // endfor
+            }
+        }
+
+        assert(cluster_assignments[true_row_id] >= 0 &&
+                cluster_assignments[true_row_id] < g_clusters->get_nclust());
+
+        // FIXME: Some rows may have no cluster_assignments
+        //if (prune_init) {
+            //meta.num_changed++;
+            //local_clusters->add_member(&(curr_task->get_data_ptr()[row*ncol]),
+                    //cluster_assignments[true_row_id]);
+        //} else if (old_clust != cluster_assignments[true_row_id]) {
+            //meta.num_changed++;
+            //local_clusters->swap_membership(
+                    //&(curr_task->get_data_ptr()[row*ncol]),
+                    //old_clust, cluster_assignments[true_row_id]);
+        //}
+    }
 }
 
 void kmeans_task_thread::EM_step() {

@@ -44,11 +44,14 @@ protected: // So lazy ..
     std::vector<double> dist_v; // global
     std::shared_ptr<dist_matrix> dm;
 
-    //kmeansPP
+    // For kmeansPP
     std::default_random_engine generator;
     std::uniform_real_distribution<double> ur_distribution;
     std::uniform_int_distribution<unsigned> ui_distribution;
     bool inited;
+
+    // For mini-batching
+    unsigned mb_size;
 
     kmeans_task_coordinator(const std::string fn, const size_t nrow,
             const size_t ncol, const unsigned k, const unsigned max_iters,
@@ -84,6 +87,12 @@ public:
         return cltrs;
     }
 
+    // Mini-batch
+    void set_mini_batch_size(const unsigned mb_size) { this->mb_size = mb_size; }
+    const unsigned get_mini_batch_size() { return mb_size; }
+    void mb_iteration_end();
+    // End Mini-batch
+
     std::shared_ptr<dist_matrix> get_dm() {
         return dm;
     }
@@ -110,6 +119,8 @@ public:
     virtual void forgy_init() override;
     virtual base::cluster_t run(double* allocd_data=NULL,
             const bool numa_opt=false) override;
+
+    base::cluster_t mb_run(double* allocd_data=NULL);
 
     const double* get_thd_data(const unsigned row_id) const override;
     void set_task_data_ptrs();

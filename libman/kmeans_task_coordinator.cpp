@@ -23,7 +23,6 @@
 
 #include <stdexcept>
 
-#include <random>
 #include "kmeans_task_coordinator.hpp"
 #include "kmeans_task_thread.hpp"
 #include "dist_matrix.hpp"
@@ -133,6 +132,10 @@ const double* kmeans_task_coordinator::get_thd_data(const unsigned row_id) const
             [(row_id-(parent_thd*rows_per_thread))*ncol]);
 }
 
+void kmeans_task_coordinator::mb_iteration_end() {
+    // TODO
+}
+
 void kmeans_task_coordinator::update_clusters(const bool prune_init) {
     if (prune_init) {
 #ifndef BIND
@@ -212,7 +215,6 @@ void kmeans_task_coordinator::kmeanspp_init() {
     struct timeval start, end;
     gettimeofday(&start , NULL);
     set_thd_dist_v_ptr(&dist_v[0]);
-
 
     // Choose c1 uniformly at random
     if (!inited)
@@ -375,6 +377,113 @@ void kmeans_task_coordinator::tally_assignment_counts() {
 
 kbase::cluster_t kmeans_task_coordinator::dump_state() {
     return kbase::cluster_t(this->nrow, this->ncol, 0, this->k,
+            &cluster_assignments[0], &cluster_assignment_counts[0],
+            cltrs->get_means());
+}
+
+kbase::cluster_t kmeans_task_coordinator::mb_run(double* allocd_data) {
+#ifdef PROFILER
+    ProfilerStart("libman/mb_kmeans_task_coordinator.perf");
+#endif
+
+    // First set the thread mini-batch size
+    for (auto th : threads) {
+        auto t = std::static_pointer_cast<kmeans_task_thread>(th);
+        t->set_mb_perctg(((double)mb_size / (nthreads*nrow)));
+    }
+
+    set_global_ptrs();
+
+    if (NULL == allocd_data) {
+        wake4run(ALLOC_DATA);
+        wait4complete();
+    } else {
+        set_thread_data_ptr(allocd_data);
+    }
+
+    struct timeval start, end;
+    gettimeofday(&start , NULL);
+    run_init(); // Initialize clusters
+
+    size_t iter = 0;
+    num_changed = 0;
+
+    bool converged = false;
+    while (iter <= max_iters && max_iters > 0) {
+#ifndef BIND
+        printf("E-step Iteration: %lu\n", iter);
+#if KM_TEST
+        printf("Main: Computing cluster distance matrix ...\n");
+#endif
+#endif
+        dm->compute_dist(cltrs, ncol);
+
+        wake4run(MB_EM);
+        wait4complete();
+
+        // Serial O(n)
+        std::vector<double>v; v.assign(k, 0);
+        for (size_t rid = 0; rid < nrow; rid++) {
+            auto cid = cluster_assignments[rid];
+            if (cid != base::INVALID_CLUSTER_ID)
+                v[cid]++;
+        }
+
+        for (size_t cid = 0; cid < k; cid++)
+            v[cid] = 1.0/v[cid];
+
+        // Serial O(n*b)
+        // NOTE: This updates global clusters
+        for (auto th : threads) {
+            auto t = std::static_pointer_cast<kmeans_task_thread>(th);
+            t->mb_finalize_centroids(&v[0]);
+        }
+
+        mb_iteration_end();
+
+        if (num_changed == 0 ||
+                ((num_changed/(double)nrow)) <= tolerance) {
+            converged = true;
+            break;
+        } else {
+            num_changed = 0;
+        }
+        iter++;
+    }
+
+    // TODO: Run an iteration to assign all other samples
+
+#ifdef PROFILER
+    ProfilerStop();
+#endif
+    gettimeofday(&end, NULL);
+
+#ifndef BIND
+    printf("\n\nAlgorithmic time taken = %.6f sec\n",
+        kbase::time_diff(start, end));
+    printf("\n******************************************\n");
+#endif
+
+    if (converged) {
+#ifndef BIND
+        printf("K-means converged in %lu iterations\n", iter);
+#endif
+    } else {
+#ifndef BIND
+        printf("[Warning]: K-means failed to converge in %lu iterations\n",
+                iter);
+#endif
+    }
+
+    // FIXME: Run regular EM step to assign all samples to a cluster
+
+#ifndef BIND
+    printf("Final cluster counts: \n");
+    kbase::print_vector(cluster_assignment_counts);
+    printf("\n******************************************\n");
+#endif
+
+    return kbase::cluster_t(this->nrow, this->ncol, iter, this->k,
             &cluster_assignments[0], &cluster_assignment_counts[0],
             cltrs->get_means());
 }
