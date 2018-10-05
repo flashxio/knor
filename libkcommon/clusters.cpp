@@ -176,6 +176,13 @@ const void clusters::print_membership_count() const {
 #endif
 }
 
+void clusters::scale_centroid(const double factor,
+        const unsigned idx, double* member) {
+    for (unsigned col = 0; col < ncol; col++)
+        means[ncol*idx+col] = ((1-factor)*means[ncol*idx+col])
+            + factor*member[col];
+}
+
 // Pruning clusters //
 void prune_clusters::reset_s_val_v() {
     std::fill(s_val_v.begin(), s_val_v.end(),

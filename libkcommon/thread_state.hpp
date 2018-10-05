@@ -29,6 +29,7 @@ namespace knor {
         MEDOID, /*Medoids step*/
         BOUNDS, /*A reduction computation of some kind*/
         NORMALIZE_DATA, /*Normalize the data*/
+        MB_EM, /*Mini-batch EM step*/
         WAIT, /*When the thread is waiting for a new task*/
         EXIT /* Say goodnight */
     };

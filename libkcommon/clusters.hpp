@@ -200,6 +200,10 @@ public:
     const void print_membership_count() const;
     void means_peq(const double* other);
     void num_members_v_peq(const size_t* other);
+
+    // Used for mini-batch
+    void scale_centroid(const double factor,
+            const unsigned idx, double* member);
 };
 
 class prune_clusters : public clusters {
