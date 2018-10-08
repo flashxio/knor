@@ -27,10 +27,13 @@ else
 endif
 
 
-all: knori medoids skmeans
+all: knori medoids skmeans mb_knori
 
 knori: knori.o
 	$(CXX) -o knori knori.o $(LDFLAGS)
+
+mb_knori: mb_knori.o
+	$(CXX) -o mb_knori mb_knori.o $(LDFLAGS)
 
 medoids: medoids.o
 	$(CXX) -o medoids medoids.o $(LDFLAGS)

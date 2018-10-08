@@ -18,6 +18,7 @@ exec/knori
 exec/medoids
 exec/knors
 exec/skmeans
+exec/mb_knori
 scratch/
 release-test/test_auto
 release-test/test_man
