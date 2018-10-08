@@ -99,6 +99,18 @@ void test_clusters() {
     printf("Success ...\n");
 }
 
+void test_scaling() {
+    kbase::clusters::ptr cls = kbase::clusters::create(NCLUST, NCOL, kv);
+    cls->print_means();
+
+    for (unsigned i = 0; i < NCLUST; i++) {
+        cls->scale_centroid(2, i, &kv[NCOL*i]);
+    }
+
+    kbase::clusters::ptr cls2 = kbase::clusters::create(NCLUST, NCOL, kv);
+    assert(*cls2 == *cls);
+}
+
 void test_prune_clusters() {
     printf("Testing prune_clusters ...\n");
     kbase::prune_clusters::ptr pcl =
@@ -140,5 +152,6 @@ void test_prune_clusters() {
 int main() {
     test_clusters();
     test_prune_clusters();
+    test_scaling();
     return EXIT_SUCCESS;
 }

@@ -203,7 +203,7 @@ public:
 
     // Used for mini-batch
     void scale_centroid(const double factor,
-            const unsigned idx, double* member);
+            const unsigned idx, const double* member);
 };
 
 class prune_clusters : public clusters {
