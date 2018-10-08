@@ -82,7 +82,7 @@ public:
     }
 
     // Mini-batch
-    void set_mb_perctg(const double mb_perctge) { this->mb_perctg = mb_perctg; }
+    void set_mb_perctg(const double mb_perctg) { this->mb_perctg = mb_perctg; }
     void mb_finalize_centroids(const double* eta);
     // End Mini-batch
 

@@ -133,7 +133,32 @@ const double* kmeans_task_coordinator::get_thd_data(const unsigned row_id) const
 }
 
 void kmeans_task_coordinator::mb_iteration_end() {
-    // TODO
+    // Serial O(n)
+    std::vector<double>v; v.assign(k, 0);
+    for (size_t rid = 0; rid < nrow; rid++) {
+        auto cid = cluster_assignments[rid];
+        if (cid != base::INVALID_CLUSTER_ID) // Skip those not sampled
+            v[cid]++;
+    }
+
+    for (size_t cid = 0; cid < k; cid++)
+        v[cid] = 1.0/v[cid];
+
+    // Serial O(n*b)
+    // NOTE: This updates global clusters
+    for (auto th : threads) {
+        std::static_pointer_cast<kmeans_task_thread>(th)
+            ->mb_finalize_centroids(&v[0]);
+    }
+
+    for (unsigned clust_idx = 0; clust_idx < k; clust_idx++) {
+        cltrs->set_prev_dist(
+                kbase::eucl_dist(&(cltrs->get_means()[clust_idx*ncol]),
+                &(cltrs->get_prev_means()[clust_idx*ncol]), ncol), clust_idx);
+
+        printf("Dist to prev mean for c: %u is %.6f\n",
+                clust_idx, cltrs->get_prev_dist(clust_idx));
+    }
 }
 
 void kmeans_task_coordinator::update_clusters(const bool prune_init) {
@@ -387,9 +412,10 @@ kbase::cluster_t kmeans_task_coordinator::mb_run(double* allocd_data) {
 #endif
 
     // First set the thread mini-batch size
+    double mb_perctg = (double)mb_size / (nthreads*nrow);
     for (auto th : threads) {
-        auto t = std::static_pointer_cast<kmeans_task_thread>(th);
-        t->set_mb_perctg(((double)mb_size / (nthreads*nrow)));
+        std::static_pointer_cast<kmeans_task_thread>(th)->
+            set_mb_perctg(mb_perctg);
     }
 
     set_global_ptrs();
@@ -405,7 +431,17 @@ kbase::cluster_t kmeans_task_coordinator::mb_run(double* allocd_data) {
     gettimeofday(&start , NULL);
     run_init(); // Initialize clusters
 
+#if 1
+    std::cout << "Global clusters:\n";
+    cltrs->print_means();
+    std::cout << "Assignment counts: \n";
+    kbase::print_vector(cluster_assignment_counts);
+    std::cout << "Assignments: \n";
+    kbase::print_vector<unsigned>(cluster_assignments);
+#endif
+
     size_t iter = 0;
+    // NOTE We haven't done anything to the global clusters
     num_changed = 0;
 
     bool converged = false;
@@ -417,29 +453,20 @@ kbase::cluster_t kmeans_task_coordinator::mb_run(double* allocd_data) {
 #endif
 #endif
         dm->compute_dist(cltrs, ncol);
-
         wake4run(MB_EM);
         wait4complete();
 
-        // Serial O(n)
-        std::vector<double>v; v.assign(k, 0);
-        for (size_t rid = 0; rid < nrow; rid++) {
-            auto cid = cluster_assignments[rid];
-            if (cid != base::INVALID_CLUSTER_ID)
-                v[cid]++;
-        }
-
-        for (size_t cid = 0; cid < k; cid++)
-            v[cid] = 1.0/v[cid];
-
-        // Serial O(n*b)
-        // NOTE: This updates global clusters
-        for (auto th : threads) {
-            auto t = std::static_pointer_cast<kmeans_task_thread>(th);
-            t->mb_finalize_centroids(&v[0]);
-        }
-
         mb_iteration_end();
+
+#if 1
+    std::cout << "Global clusters:\n";
+    cltrs->print_means();
+    std::cout << "Assignment counts: \n";
+    kbase::print_vector(cluster_assignment_counts);
+    std::cout << "Assignments: \n";
+    kbase::print_vector<unsigned>(cluster_assignments);
+    std::cout << "Num changed: " <<  num_changed << std::endl;
+#endif
 
         if (num_changed == 0 ||
                 ((num_changed/(double)nrow)) <= tolerance) {

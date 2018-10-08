@@ -37,29 +37,30 @@ kmeans_task_thread::kmeans_task_thread(const int node_id, const unsigned thd_id,
             thread(node_id, thd_id, ncol,
             cluster_assignments, start_rid, fn, dist_metric) {
 
-            ur_distribution = std::uniform_real_distribution<double>(0.0, 1.0);
-            this->g_clusters = g_clusters;
-            // Init task queue
-            tasks = new task_queue();
+                ur_distribution =
+                    std::uniform_real_distribution<double>(0.0, 1.0);
+                this->g_clusters = g_clusters;
+                // Init task queue
+                tasks = new task_queue();
 
-            tasks->set_start_rid(start_rid);
-            tasks->set_nrow(nlocal_rows);
-            tasks->set_ncol(ncol);
-            prune_init = true;
-            _is_numa = false;
-            local_clusters =
-                kbase::clusters::create(g_clusters->get_nclust(), ncol);
+                tasks->set_start_rid(start_rid);
+                tasks->set_nrow(nlocal_rows);
+                tasks->set_ncol(ncol);
+                prune_init = true;
+                _is_numa = false;
+                local_clusters =
+                    kbase::clusters::create(g_clusters->get_nclust(), ncol);
 
-            set_data_size(sizeof(double)*nlocal_rows*ncol);
+                set_data_size(sizeof(double)*nlocal_rows*ncol);
 #if VERBOSE
 #ifndef
-            std::cout << "Initializing thread. Metadata: thd_id: "
-                << this->thd_id << ", start_rid: " << this->start_rid <<
-                ", node_id: " << this->node_id << ", nlocal_rows: " <<
-                nlocal_rows << ", ncol: " << this->ncol << std::endl;
+                std::cout << "Initializing thread. Metadata: thd_id: "
+                    << this->thd_id << ", start_rid: " << this->start_rid <<
+                    ", node_id: " << this->node_id << ", nlocal_rows: " <<
+                    nlocal_rows << ", ncol: " << this->ncol << std::endl;
 #endif
 #endif
-        }
+            }
 
 void kmeans_task_thread::request_task() {
     int rc;
@@ -252,15 +253,18 @@ void kmeans_task_thread::wake(thread_state_t state) {
     set_thread_state(state);
 
     if (state == thread_state_t::EM ||
-            state == thread_state_t::KMSPP_INIT) {
+            state == thread_state_t::KMSPP_INIT ||
+            state == thread_state_t::MB_EM) {
         // Threads only sleep if they AND all other threads have no tasks
         tasks->reset(); // NOTE: Only place this is reset
         curr_task = tasks->get_task();
         assert(curr_task->get_nrow() <= tasks->get_nrow());
 
         // TODO: These are exceptions to the rule & therefore not good
-        if (state == thread_state_t::EM)
+        if (state == thread_state_t::EM || state == thread_state_t::MB_EM) {
             meta.num_changed = 0; // Always reset at the beginning of an EM-step
+        }
+
         if (state == thread_state_t::KMSPP_INIT)
             cuml_dist = 0;
 
@@ -318,11 +322,20 @@ get_global_data_id(const unsigned row_id) const {
 void kmeans_task_thread::mb_finalize_centroids(const double* eta) {
     std::cout << "mb_finalize_centroids, thd:" << thd_id << ", with eta:\n";
     kbase::print_arr<double>(eta, ncol);
+    std::cout << ", and cluster_assignments:\n";
+    knor::base::print_arr<unsigned>(cluster_assignments, 50);
+    std::cout << "mb_selected has size: " << mb_selected.size() << "\n";
+    std::cout << "g_clusters is: ";  g_clusters->print_means();
+
     for (unsigned local_rid : mb_selected) {
-        auto g_rid = start_rid + local_rid; // TODO: Test me
+        auto g_rid = start_rid + local_rid;
+        std::cout << "\t\t Processing lrid: " << local_rid << ", g_rid: " <<
+            g_rid << std::endl;
         auto cid = cluster_assignments[g_rid];
-        g_clusters->scale_centroid(eta[cid], cid, &local_data[local_rid*ncol]);
+        std::cout << "cid: " << cid << std::endl;
+        g_clusters->scale_centroid(eta[cid], cid, &(local_data[local_rid*ncol]));
     }
+
     // Clear mb_selected for the next iteration
     mb_selected.clear();
 }
@@ -333,11 +346,16 @@ void kmeans_task_thread::mb_EM_step() {
         if (ur_distribution(generator) > mb_perctg)
             continue; // Sample rows
 
+        std::cout << "\t ==> Processing row: " <<
+            get_global_data_id(row) << "\n";
+
         unsigned true_row_id = get_global_data_id(row);
         mb_selected.push_back(true_row_id - start_rid);
         unsigned old_clust = cluster_assignments[true_row_id];
 
+#if 0
         if (prune_init) {
+#endif
             double dist = std::numeric_limits<double>::max();
 
             for (unsigned clust_idx = 0;
@@ -353,6 +371,9 @@ void kmeans_task_thread::mb_EM_step() {
                 }
             }
 
+            if (old_clust != cluster_assignments[true_row_id])
+                meta.num_changed++;
+#if 0
         } else {
             recalculated_v->set(true_row_id, false);
             dist_v[true_row_id] +=
@@ -414,6 +435,7 @@ void kmeans_task_thread::mb_EM_step() {
                     //&(curr_task->get_data_ptr()[row*ncol]),
                     //old_clust, cluster_assignments[true_row_id]);
         //}
+#endif
     }
 }
 
