@@ -11,6 +11,7 @@ libkcommon/unit-test/test_dist_matrix
 libman/unit-test/test_kmeans_thread
 libman/unit-test/test_task_queue
 libman/unit-test/test_kmeans_task_thread
+libkcommon/unit-test/test_dense_matrix
 utils/
 utils/test/read_rrow_data
 exec/knord
@@ -19,6 +20,7 @@ exec/medoids
 exec/knors
 exec/skmeans
 exec/mb_knori
+exec/gmm
 scratch/
 release-test/test_auto
 release-test/test_man
