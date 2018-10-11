@@ -26,8 +26,7 @@ else
 	CXXFLAGS += -I.. -I../libauto -I../libman -I../libkcommon
 endif
 
-
-all: knori medoids skmeans mb_knori
+all: knori medoids skmeans mb_knori gmm
 
 knori: knori.o
 	$(CXX) -o knori knori.o $(LDFLAGS)
@@ -40,3 +39,6 @@ medoids: medoids.o
 
 skmeans: skmeans.o
 	$(CXX) -o skmeans skmeans.o $(LDFLAGS)
+
+gmm: gmm.o
+	$(CXX) -o gmm gmm.o $(LDFLAGS)
