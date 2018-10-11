@@ -204,34 +204,53 @@ void gmm_coordinator::forgy_init() {
     }
 }
 
-void gmm_coordinator::random_fill(base::dense_matrix<double>* dm,
+/**
+  * A random probabilistic fill such where each row sums to 1 as in a pdf
+**/
+void gmm_coordinator::random_prob_fill(base::dense_matrix<double>* dm,
         const double mix, const double max) {
+
     std::uniform_real_distribution<double> distribution(mix, max);
     std::default_random_engine generator;
+    const size_t nrow = dm->get_nrow();
+    const size_t ncol = dm->get_ncol();
 
-    for (size_t row = 0; row < dm->get_nrow(); row++) {
-        for (size_t col = 0; col < dm->get_ncol(); col++) {
-            dm->as_vector()[row*dm->get_ncol()+col] = distribution(generator);
+    for (size_t row = 0; row < nrow; row++) {
+        double sum = 0;
+        for (size_t col = 0; col < ncol; col++) {
+            double val = distribution(generator);
+            sum += val;
+            dm->as_vector()[row*ncol+col] = val;
         }
+        // Normalize row
+        for (size_t col = 0; col < dm->get_ncol(); col++)
+            dm->as_vector()[row*ncol+col] /= sum;
     }
 }
 
-void gmm_coordinator::random_fill(std::vector<double>& v,
+void gmm_coordinator::random_prob_fill(std::vector<double>& v,
         const double min, const double max) {
     std::default_random_engine generator;
     std::uniform_real_distribution<double> distribution(min, max);
 
+    double sum = 0;
+    for (size_t i = 0; i < v.size(); i++) {
+        double val = distribution(generator);
+        sum += val;
+        v[i] = val;
+    }
+
     for (size_t i = 0; i < v.size(); i++)
-        v[i] = distribution(generator);
+        v[i] /= sum;
 }
 
 void gmm_coordinator::random_init() {
     forgy_init();
 
-    random_fill(Pk);
-    random_fill(P_nk);
+    random_prob_fill(Pk);
+    random_prob_fill(P_nk);
     for(auto cov : sigma_k)
-        random_fill(cov);
+        random_prob_fill(cov);
 }
 
 void gmm_coordinator::run_init() {
@@ -278,8 +297,10 @@ base::gmm_t gmm_coordinator::soft_run(double* allocd_data) {
     std::cout << "P_nk:\n"; P_nk->print();
     std::cout << "cov_regularizer: " << cov_regularizer << "\n"
         << "sigma_k:\n";
-    for (auto cov : sigma_k)
+    for (auto cov : sigma_k) {
         cov->print();
+        std::cout << "\n";
+    }
     std::cout << "\n\n";
     std::cout << "DATA:\n";
     print_thread_data();

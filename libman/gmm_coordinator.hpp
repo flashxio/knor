@@ -86,9 +86,9 @@ class gmm_coordinator : public coordinator {
         };
 
         base::gmm_t soft_run(double* allocd_data=NULL);
-        void random_fill(base::dense_matrix<double>* dm,
+        void random_prob_fill(base::dense_matrix<double>* dm,
                 const double mix=0, const double max=1);
-        void random_fill(std::vector<double>& v,
+        void random_prob_fill(std::vector<double>& v,
                 const double min=0, const double max=1);
         void update_clusters();
         void wake4run(knor::thread_state_t state) override;
