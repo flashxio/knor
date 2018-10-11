@@ -24,6 +24,7 @@
 #include <limits>
 #include <vector>
 #include <string>
+#include "dense_matrix.hpp"
 
 namespace knor { namespace base {
 
@@ -61,6 +62,22 @@ public:
              const std::vector<double> centroids);
 
     ~cluster_t() { }
+};
+
+struct gmm_t {
+    size_t nrow, ncol, iters;
+    unsigned k;
+    std::vector<double> means;
+    std::vector<std::vector<double> > cov_mats;
+    std::vector<double> resp_mat;
+    std::vector<double> gaussian_prob;
+
+    gmm_t() { }
+    bool operator==(const gmm_t& other);
+    gmm_t(const size_t nrow, const size_t ncol, const size_t iters,
+            const size_t k, double* _means,
+            std::vector<base::dense_matrix<double>*>& _cov_mats,
+            double* _resp_mat, double* _gaussian_prob);
 };
 } }
 #endif

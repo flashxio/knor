@@ -132,4 +132,40 @@ bool cluster_t::operator==(const cluster_t& other) {
             v_eq(this->centroids, other.centroids));
 
 }
-}}
+
+gmm_t::gmm_t(const size_t nrow, const size_t ncol, const size_t iters,
+        const size_t k, double* _means,
+        std::vector<base::dense_matrix<double>*>& _cov_mats,
+        double* _resp_mat, double* _gaussian_prob) : nrow(nrow),
+    ncol(ncol), iters(iters), k(k) {
+
+        means.resize(k*ncol);
+        std::copy(&(_means[0]), &(_means[k*ncol]), means.begin());
+        for (auto dm : _cov_mats) {
+            std::vector<double> v(ncol*ncol);
+            std::copy(dm->as_vector().begin(), dm->as_vector().end(), v.begin());
+            cov_mats.push_back(v);
+        }
+
+        resp_mat.resize(nrow);
+        std::copy(&(_resp_mat[0]), &(_resp_mat[nrow]), resp_mat.begin());
+
+        gaussian_prob.resize(k);
+        std::copy(&(_gaussian_prob[0]), &(_gaussian_prob[k]),
+                gaussian_prob.begin());
+    }
+
+bool gmm_t::operator==(const gmm_t& other) {
+
+    for (size_t i = 0; i < cov_mats.size(); i++)
+        if (!v_eq(cov_mats[i], other.cov_mats[i]))
+            return false;
+
+    return nrow == other.nrow && ncol == other.ncol &&
+            iters == other.iters && k == other.k &&
+            v_eq(this->means, other.means) &&
+            v_eq(this->resp_mat, other.resp_mat) &&
+            v_eq(this->gaussian_prob, other.gaussian_prob);
+}
+
+}} // End namespace knor::base
