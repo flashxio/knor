@@ -24,6 +24,8 @@
 
 // Adapted from: https://www.geeksforgeeks.org/adjoint-inverse-matrix/
 
+#include "dense_matrix.hpp"
+
 namespace knor { namespace base {
 
     class linalg {
@@ -122,6 +124,48 @@ namespace knor { namespace base {
 
             return true;
         }
+
+        static void vdiff(double* left, double* right, const size_t size,
+                std::vector<double>& res) {
+            for (size_t i = 0; i < size; i++)
+                res[i] = left - right;
+        }
+
+        // Not blas but efficient
+        static void dot(double* v, double* mat,
+                const size_t nrow, const size_t ncol, std::vector<double>& res) {
+            res.assign(ncol, 0);
+            for (size_t row = 0; row < nrow; row++) {
+                for (size_t col = 0; col < ncol; col++) {
+                    res[col] += v[row]*mat[row*ncol+col];
+                }
+            }
+        }
+
+        //static void dot(double* mat, const size_t nrow,
+                //const size_t ncol, double* v, std::vector<double>& res) {
+            //// TODO
+        //}
+
+        static double dot(std::vector<double>& v1, std::vector<double>& v2) {
+            assert(v1.size() == v2.size());
+            double sum = 0;
+            for (size_t i = 0; i < v1.size(); i++)
+                sum += v1[i]*v2[i];
+            return sum;
+        }
+
+        static void scale(std::vector<double>& v, double factor,
+                std::vector<double>& res) {
+            if (res.size() == 0) {
+                for (auto val : v)
+                    res.push_back(val*factor);
+            } else {
+                for (size_t i = 0; i < v.size(); i++)
+                    res[i] = v[i]*factor;
+            }
+        }
+
     };
-} }
+} } // End namespace knor::base
 #endif

@@ -58,7 +58,7 @@ public:
     }
 
     /* Do a translation from raw id's to indexes in the distance matrix */
-    const T get(const size_t row, const size_t col) {
+    const T& get(const size_t row, const size_t col) {
         return mat[row*ncol+col];
     }
 
