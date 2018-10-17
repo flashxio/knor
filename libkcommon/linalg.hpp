@@ -79,6 +79,14 @@ namespace knor { namespace base {
             return D;
         }
 
+        static dense_matrix<double>::rawptr adjoint(dense_matrix<double>* A) {
+            dense_matrix<double>::rawptr adj =
+                dense_matrix<double>::create(A->get_nrow(), A->get_ncol());
+
+            adjoint(A->as_pointer(), adj->as_pointer(), A->get_nrow());
+            return adj;
+        }
+
         // Function to get adjoint of A[N][N] in adj[N][N].
         static void adjoint(double* A, double* adj, const size_t N) {
             if (N == 1) {
