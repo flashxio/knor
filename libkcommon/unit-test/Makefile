@@ -21,7 +21,7 @@ LDFLAGS := -L.. -lkcommon $(LDFLAGS)
 CXXFLAGS := -I.. $(CXXFLAGS)
 
 TESTFILES := test_thd_safe_bool_vector test_clusters test_reader\
-	test_dist_matrix test_dense_matrix test_linalg
+	test_dist_matrix test_dense_matrix test_linalg testeigen
 
 all: $(TESTFILES)
 
@@ -49,6 +49,9 @@ test_dense_matrix: test_dense_matrix.o ../libkcommon.a
 
 test_linalg: test_linalg.o ../libkcommon.a
 	$(CXX) -o test_linalg test_linalg.o $(LDFLAGS)
+
+testeigen: testeigen.o ../libkcommon.a
+	$(CXX) -o testeigen testeigen.o $(LDFLAGS)
 
 clean:
 	rm -f *.d

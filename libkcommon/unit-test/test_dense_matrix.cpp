@@ -69,8 +69,40 @@ void test_dense_matrix() {
     }
 }
 
+void test_dot() {
+    std::vector<double> lv = {1, 2, 3, 4};
+    std::vector<double> rv = {1, 2, 3, 5, 6, 7};
+
+    dense_matrix<double>::rawptr l = dense_matrix<double>::create(2,2);
+    l->set(&lv[0]);
+    dense_matrix<double>::rawptr r = dense_matrix<double>::create(2,3);
+    r->set(&rv[0]);
+
+    dense_matrix<double>::rawptr res = (*l)*(*r);
+
+    dense_matrix<double>::rawptr man_res = dense_matrix<double>::create(2,3);
+    std::vector<double> man_resv = {11, 14, 17, 23, 30, 37};
+
+    std::cout << "Manual result: \n";
+    print_mat(&man_resv[0], 2, 3);
+
+    std::cout << "Computed result:\n";
+    res->print();
+
+    man_res->set(&man_resv[0]);
+    assert((*res) == (*man_res));
+
+    delete (l);
+    delete (r);
+    delete (res);
+    delete (man_res);
+}
+
 int main() {
     test_dense_matrix();
     printf("Successful 'test_dense_matrix' test ...\n");
+
+    test_dot();
+    printf("Successful 'test_dot' for dense_matrix test ...\n");
     return EXIT_SUCCESS;
 }
