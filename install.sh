@@ -25,7 +25,7 @@ apt-get sudo apt-get -o Dpkg::Options::="--force-confold" --force-yes -y upgrade
 
 apt-get install -y python-pip python-dev build-essential
 # In memory dependencies
-apt-get install -y libboost-all-dev
+apt-get install -y libboost-all-dev libeigen3-dev
 # NUMA
 apt-get install -y libnuma-dbg libnuma-dev libnuma1
 
