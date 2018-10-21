@@ -51,21 +51,6 @@ kmeans_thread::kmeans_thread(const int node_id, const unsigned thd_id,
 #endif
         }
 
-void kmeans_thread::sleep() {
-    int rc;
-    rc = pthread_mutex_lock(&mutex);
-    if (rc) perror("pthread_mutex_lock");
-
-    (*parent_pending_threads)--;
-    set_thread_state(WAIT);
-
-    if (*parent_pending_threads == 0) {
-        rc = pthread_cond_signal(parent_cond); // Wake up parent thread
-        if (rc) perror("pthread_cond_signal");
-    }
-    pthread_mutex_unlock(&mutex);
-}
-
 void kmeans_thread::run() {
     switch(state) {
         case TEST:
@@ -89,33 +74,6 @@ void kmeans_thread::run() {
     sleep();
 }
 
-void kmeans_thread::wait() {
-    int rc;
-    rc = pthread_mutex_lock(&mutex);
-    if (rc) perror("pthread_mutex_lock");
-
-    while (state == WAIT) {
-        //printf("Thread %d begin cond_wait\n", thd_id);
-        rc = pthread_cond_wait(&cond, &mutex);
-        if (rc) perror("pthread_cond_wait");
-    }
-
-    pthread_mutex_unlock(&mutex);
-}
-
-void kmeans_thread::wake(thread_state_t state) {
-    int rc;
-    rc = pthread_mutex_lock(&mutex);
-    if (rc) perror("pthread_mutex_lock");
-    set_thread_state(state);
-    if (state == thread_state_t::KMSPP_INIT)
-        cuml_dist = 0;
-    rc = pthread_mutex_unlock(&mutex);
-    if (rc) perror("pthread_mutex_unlock");
-
-    rc = pthread_cond_signal(&cond);
-}
-
 void* callback(void* arg) {
     kmeans_thread* t = static_cast<kmeans_thread*>(arg);
 #ifdef USE_NUMA
@@ -127,11 +85,8 @@ void* callback(void* arg) {
             t->wait();
 
         if (t->get_state() == EXIT) {// No more work to do
-            //printf("Thread %d exiting ...\n", t->thd_id);
             break;
         }
-
-        //printf("Thread %d awake and doing a run()\n", t->thd_id);
         t->run(); // else
     }
 
@@ -151,8 +106,8 @@ void kmeans_thread::start(const thread_state_t state=WAIT) {
                 "Thread creation (pthread_create) failed!", rc);
 }
 
-const unsigned kmeans_thread::
-get_global_data_id(const unsigned row_id) const {
+const unsigned kmeans_thread::get_global_data_id(
+        const unsigned row_id) const {
     return start_rid+row_id;
 }
 
@@ -208,7 +163,7 @@ void kmeans_thread::kmspp_dist() {
     }
 }
 
-const void kmeans_thread::print_local_data() const {
+const void kmeans_thread::print_local_data() {
     kbase::print_mat(local_data, nprocrows, ncol);
 }
 } // End namespace knor

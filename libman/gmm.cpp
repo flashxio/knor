@@ -112,9 +112,6 @@ void gmm::run() {
         case ALLOC_DATA:
             numa_alloc_mem();
             break;
-        case KMSPP_INIT:
-            kmspp_dist();
-            break;
         case E:
             Estep();
             break;
@@ -129,49 +126,6 @@ void gmm::run() {
     }
     sleep();
 }
-
-void gmm::sleep() {
-    int rc;
-    rc = pthread_mutex_lock(&mutex);
-    if (rc) perror("pthread_mutex_lock");
-
-    (*parent_pending_threads)--;
-    set_thread_state(WAIT);
-
-    if (*parent_pending_threads == 0) {
-        rc = pthread_cond_signal(parent_cond); // Wake up parent thread
-        if (rc) perror("pthread_cond_signal");
-    }
-    pthread_mutex_unlock(&mutex);
-}
-
-void gmm::wait() {
-    int rc;
-    rc = pthread_mutex_lock(&mutex);
-    if (rc) perror("pthread_mutex_lock");
-
-    while (state == WAIT) {
-        //printf("Thread %d begin cond_wait\n", thd_id);
-        rc = pthread_cond_wait(&cond, &mutex);
-        if (rc) perror("pthread_cond_wait");
-    }
-
-    pthread_mutex_unlock(&mutex);
-}
-
-void gmm::wake(thread_state_t state) {
-    int rc;
-    rc = pthread_mutex_lock(&mutex);
-    if (rc) perror("pthread_mutex_lock");
-    set_thread_state(state);
-    if (state == thread_state_t::KMSPP_INIT)
-        cuml_dist = 0;
-    rc = pthread_mutex_unlock(&mutex);
-    if (rc) perror("pthread_mutex_unlock");
-
-    rc = pthread_cond_signal(&cond);
-}
-
 void* callback(void* arg) {
     gmm* t = static_cast<gmm*>(arg);
 #ifdef USE_NUMA
@@ -207,12 +161,12 @@ void gmm::start(const thread_state_t state=WAIT) {
                 "Thread creation (pthread_create) failed!", rc);
 }
 
+const void gmm::print_local_data() {
+    kbase::print_mat(local_data, nprocrows, ncol);
+}
+
 const unsigned gmm::
 get_global_data_id(const unsigned row_id) const {
     return start_rid+row_id;
-}
-
-const void gmm::print_local_data() const {
-    kbase::print_mat(local_data, nprocrows, ncol);
 }
 } // End namespace knor

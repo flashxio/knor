@@ -77,11 +77,8 @@ class medoid_thread : public thread {
         void EM_step();
         void medoid_step();
         const unsigned get_global_data_id(const unsigned row_id) const;
-        void run();
-        void wait();
-        void sleep();
-        void wake(thread_state_t state);
-        const void print_local_data() const;
+        void run() override;;
+        const void print_local_data() override;
 
         // Medoid specific
         std::vector<double>& get_local_medoid_energy() {

@@ -55,21 +55,6 @@ medoid_thread::medoid_thread(const int node_id, const unsigned thd_id,
 #endif
         }
 
-void medoid_thread::sleep() {
-    int rc;
-    rc = pthread_mutex_lock(&mutex);
-    if (rc) perror("pthread_mutex_lock");
-
-    (*parent_pending_threads)--;
-    set_thread_state(WAIT);
-
-    if (*parent_pending_threads == 0) {
-        rc = pthread_cond_signal(parent_cond); // Wake up parent thread
-        if (rc) perror("pthread_cond_signal");
-    }
-    pthread_mutex_unlock(&mutex);
-}
-
 void medoid_thread::run() {
     switch(state) {
         case TEST:
@@ -91,33 +76,6 @@ void medoid_thread::run() {
             throw kbase::thread_exception("Unknown thread state\n");
     }
     sleep();
-}
-
-void medoid_thread::wait() {
-    int rc;
-    rc = pthread_mutex_lock(&mutex);
-    if (rc) perror("pthread_mutex_lock");
-
-    while (state == WAIT) {
-        //printf("Thread %d begin cond_wait\n", thd_id);
-        rc = pthread_cond_wait(&cond, &mutex);
-        if (rc) perror("pthread_cond_wait");
-    }
-
-    pthread_mutex_unlock(&mutex);
-}
-
-void medoid_thread::wake(thread_state_t state) {
-    int rc;
-    rc = pthread_mutex_lock(&mutex);
-    if (rc) perror("pthread_mutex_lock");
-    set_thread_state(state);
-    if (state == thread_state_t::KMSPP_INIT)
-        cuml_dist = 0;
-    rc = pthread_mutex_unlock(&mutex);
-    if (rc) perror("pthread_mutex_unlock");
-
-    rc = pthread_cond_signal(&cond);
 }
 
 void* medoid_callback(void* arg) {
@@ -237,7 +195,7 @@ void medoid_thread::medoid_step() {
     }
 }
 
-const void medoid_thread::print_local_data() const {
+const void medoid_thread::print_local_data() {
     kbase::print_mat(local_data, nprocrows, ncol);
 }
 } // End namespace knor

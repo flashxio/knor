@@ -33,7 +33,7 @@ class kmeans_thread : public thread {
     protected:
          // Pointer to global cluster data
         std::shared_ptr<kbase::clusters> g_clusters;
-        unsigned nprocrows; // How many rows to process
+        unsigned nprocrows; // The number of rows in this threads partition
 
         kmeans_thread(const int node_id, const unsigned thd_id,
                 const unsigned start_rid, const unsigned nprocrows,
@@ -57,15 +57,11 @@ class kmeans_thread : public thread {
 
         void start(const thread_state_t state) override;
         // Allocate and move data using this thread
-        void EM_step() override;
-        void kmspp_dist() override;
+        void EM_step();
+        void kmspp_dist();
         const unsigned get_global_data_id(const unsigned row_id) const;
         virtual void run() override;
-        void sleep() override;
-        void wake(thread_state_t state) override;
-        const void print_local_data() const override;
-
-        void wait();
+        const void print_local_data() override;
 };
 }
 #endif
