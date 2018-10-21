@@ -35,7 +35,7 @@ namespace knor {
         class dist_matrix;
     }
 
-class medoid_thread : public thread {
+class medoid : public thread {
     private:
          // Pointer to global cluster data
         std::shared_ptr<kbase::clusters> g_clusters;
@@ -49,7 +49,7 @@ class medoid_thread : public thread {
         std::vector<double> candidate_medoid_energy;
         // End Medoid specific
 
-        medoid_thread(const int node_id, const unsigned thd_id,
+        medoid(const int node_id, const unsigned thd_id,
                 const unsigned start_rid, const unsigned nprocrows,
                 const unsigned ncol,
                 std::shared_ptr<kbase::clusters> g_clusters,
@@ -67,7 +67,7 @@ class medoid_thread : public thread {
                 std::shared_ptr<kprune::dist_matrix> pw_dm,
                 double* global_medoid_energy) {
             return thread::ptr(
-                    new medoid_thread(node_id, thd_id, start_rid,
+                    new medoid(node_id, thd_id, start_rid,
                         nprocrows, ncol, g_clusters,
                         cluster_assignments, fn, pw_dm, global_medoid_energy));
         }

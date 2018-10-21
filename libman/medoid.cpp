@@ -20,7 +20,7 @@
 #include <iostream>
 #include <cassert>
 
-#include "medoid_thread.hpp"
+#include "medoid.hpp"
 #include "types.hpp"
 #include "util.hpp"
 #include "io.hpp"
@@ -28,7 +28,7 @@
 #include "dist_matrix.hpp"
 
 namespace knor {
-medoid_thread::medoid_thread(const int node_id, const unsigned thd_id,
+medoid::medoid(const int node_id, const unsigned thd_id,
         const unsigned start_rid,
         const unsigned nprocrows, const unsigned ncol,
         kbase::clusters::ptr g_clusters, unsigned* cluster_assignments,
@@ -55,7 +55,7 @@ medoid_thread::medoid_thread(const int node_id, const unsigned thd_id,
 #endif
         }
 
-void medoid_thread::run() {
+void medoid::run() {
     switch(state) {
         case TEST:
             test();
@@ -79,7 +79,7 @@ void medoid_thread::run() {
 }
 
 void* medoid_callback(void* arg) {
-    medoid_thread* t = static_cast<medoid_thread*>(arg);
+    medoid* t = static_cast<medoid*>(arg);
 #ifdef USE_NUMA
     t->bind2node_id();
 #endif
@@ -105,7 +105,7 @@ void* medoid_callback(void* arg) {
 #endif
 }
 
-void medoid_thread::start(const thread_state_t state=WAIT) {
+void medoid::start(const thread_state_t state=WAIT) {
     this->state = state;
     int rc = pthread_create(&hw_thd, NULL, medoid_callback, this);
     if (rc)
@@ -113,12 +113,12 @@ void medoid_thread::start(const thread_state_t state=WAIT) {
                 "Thread creation (pthread_create) failed!", rc);
 }
 
-const unsigned medoid_thread::
+const unsigned medoid::
 get_global_data_id(const unsigned row_id) const {
     return start_rid+row_id;
 }
 
-void medoid_thread::EM_step() {
+void medoid::EM_step() {
     meta.num_changed = 0; // Always reset at the beginning of an EM-step
     local_clusters->clear();
     local_medoid_energy.assign(g_clusters->get_nclust(), 0);
@@ -161,7 +161,7 @@ void medoid_thread::EM_step() {
     }
 }
 
-void medoid_thread::medoid_step() {
+void medoid::medoid_step() {
     // Reset
     candidate_medoids.assign(g_clusters->get_nclust(), -1);
     candidate_medoid_energy.assign(g_clusters->get_nclust(),
@@ -195,7 +195,7 @@ void medoid_thread::medoid_step() {
     }
 }
 
-const void medoid_thread::print_local_data() {
+const void medoid::print_local_data() {
     kbase::print_mat(local_data, nprocrows, ncol);
 }
 } // End namespace knor

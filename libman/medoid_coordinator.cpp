@@ -21,7 +21,7 @@
 #include <stdexcept>
 
 #include "medoid_coordinator.hpp"
-#include "medoid_thread.hpp"
+#include "medoid.hpp"
 #include "io.hpp"
 #include "clusters.hpp"
 #include "dist_matrix.hpp"
@@ -61,7 +61,7 @@ void medoid_coordinator::build_thread_state() {
     for (unsigned thd_id = 0; thd_id < nthreads; thd_id++) {
         std::pair<unsigned, unsigned> tup = get_rid_len_tup(thd_id);
         thd_max_row_idx.push_back((thd_id*thds_row) + tup.second);
-        threads.push_back(medoid_thread::create((thd_id % nnodes),
+        threads.push_back(medoid::create((thd_id % nnodes),
                     thd_id, tup.first, tup.second,
                     ncol, cltrs, &cluster_assignments[0],
                     fn, pw_dm, &medoid_energy[0]));
@@ -114,7 +114,7 @@ void medoid_coordinator::choose_global_medoids(double* gdata) {
 
     // Accumulate the possible candidates and their energy
     for (auto th : threads) {
-        auto t = std::static_pointer_cast<medoid_thread>(th);
+        auto t = std::static_pointer_cast<medoid>(th);
         auto cm = t->get_candidate_medoids();
         auto ce = t->get_candidate_energy();
 
@@ -148,7 +148,7 @@ void medoid_coordinator::compute_globals() {
     std::fill(medoid_energy.begin(), medoid_energy.end(), 0);
 
     for (auto th : threads) {
-        auto t = std::static_pointer_cast<medoid_thread>(th);
+        auto t = std::static_pointer_cast<medoid>(th);
 
         num_changed += t->get_num_changed();
 
