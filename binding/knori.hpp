@@ -17,8 +17,8 @@
  * limitations under the License.
  */
 
-#ifndef __KNORI_HPP__
-#define __KNORI_HPP__
+#ifndef __KNOR_BIND_KNORI_HPP__
+#define __KNOR_BIND_KNORI_HPP__
 
 #include "io.hpp"
 #include "../libauto/kmeans.hpp"

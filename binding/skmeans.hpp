@@ -17,8 +17,8 @@
  * limitations under the License.
  */
 
-#ifndef __KNOR_SKMEANS_HPP__
-#define __KNOR_SKMEANS_HPP__
+#ifndef __KNOR_BIND_SKMEANS_HPP__
+#define __KNOR_BIND_SKMEANS_HPP__
 
 #include "skmeans_coordinator.hpp"
 

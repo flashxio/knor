@@ -17,8 +17,8 @@
  * limitations under the License.
  */
 
-#ifndef __KNOR_MEDOID_THREAD_HPP__
-#define __KNOR_MEDOID_THREAD_HPP__
+#ifndef __KNOR_MEDOID_HPP__
+#define __KNOR_MEDOID_HPP__
 
 #include <vector>
 #include "thread.hpp"

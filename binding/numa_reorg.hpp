@@ -17,8 +17,8 @@
  * limitations under the License.
  */
 
-#ifndef __KNOR_NUMA_REORG__
-#define __KNOR_NUMA_REORG__
+#ifndef __KNOR_BIND_NUMA_REORG__
+#define __KNOR_BIND_NUMA_REORG__
 
 #include <numa.h>
 #include <string.h>

@@ -17,8 +17,8 @@
  * limitations under the License.
  */
 
-#ifndef __KNOR_KMEDOIDS_HPP__
-#define __KNOR_KMEDOIDS_HPP__
+#ifndef __KNOR_BIND_KMEDOIDS_HPP__
+#define __KNOR_BIND_KMEDOIDS_HPP__
 
 #include "medoid_coordinator.hpp"
 
