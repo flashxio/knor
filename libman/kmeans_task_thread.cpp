@@ -34,103 +34,14 @@ kmeans_task_thread::kmeans_task_thread(const int node_id, const unsigned thd_id,
         std::shared_ptr<kbase::prune_clusters> g_clusters,
         unsigned* cluster_assignments,
         const std::string fn, kbase::dist_t dist_metric):
-            thread(node_id, thd_id, ncol,
-            cluster_assignments, start_rid, fn, dist_metric) {
+            task_thread(node_id, thd_id, start_rid, nlocal_rows, ncol,
+            g_clusters, cluster_assignments, fn, dist_metric) {
 
-                ur_distribution =
-                    std::uniform_real_distribution<double>(0.0, 1.0);
-                this->g_clusters = g_clusters;
-                // Init task queue
-                tasks = new task_queue();
-
-                tasks->set_start_rid(start_rid);
-                tasks->set_nrow(nlocal_rows);
-                tasks->set_ncol(ncol);
-                prune_init = true;
-                _is_numa = false;
-                local_clusters =
-                    kbase::clusters::create(g_clusters->get_nclust(), ncol);
-
-                set_data_size(sizeof(double)*nlocal_rows*ncol);
-#if VERBOSE
-#ifndef
-                std::cout << "Initializing thread. Metadata: thd_id: "
-                    << this->thd_id << ", start_rid: " << this->start_rid <<
-                    ", node_id: " << this->node_id << ", nlocal_rows: " <<
-                    nlocal_rows << ", ncol: " << this->ncol << std::endl;
-#endif
-#endif
             }
-
-void kmeans_task_thread::request_task() {
-    int rc;
-    rc = pthread_mutex_lock(&mutex);
-    if (rc) perror("pthread_mutex_lock");
-
-    if (tasks->has_task()) {
-        // Grab another task but drop the old task
-        if (curr_task)
-            delete curr_task;
-
-        /*printf("Thd :%u getting own task with rid: %u\n",
-            get_thd_id(), tasks->get_nxt_rid());*/
-
-        curr_task = tasks->get_task();
-        assert(curr_task->get_nrow() <= tasks->get_nrow());
-
-        // FIXME: someone got the last task
-        //printf("request_task: Thd: %u, Task ==> ", get_thd_id()); curr_task.print();
-        kbase::assert_msg(curr_task->get_nrow(), "FIXME: Empty task");
-        pthread_mutex_unlock(&mutex);
-    }
-#if 0
-    else {
-        if (try_steal_task())
-            // Try to steal
-        }
-#else
-    else {
-        sleep();
-        pthread_mutex_unlock(&mutex);
-    }
-#endif
-}
 
 /* \brief NUMA aware or oblivious task stealing
    \param return true if I got a task tasks
  **/
-#if 0
-bool kmeans_task_thread::try_steal_task() {
-  std::vector<std::shared_ptr<prune::kmeans_task_thread> > workers =
-    (static_cast<kmeans_task_coordinator*>(driver))->get_threads(); // Myself included
-  for (unsigned i = 0; i < workers.size(); i++) {
-    if (i != get_thd_id()) { // If I'm stealing I have no work
-      // TODO: No lock yet ...
-      if (workers[i]->get_task_queue()->has_task()) { // TODO: No preference yet
-        int ret = pthread_mutex_trylock(&workers[i]->get_lock());
-
-        if (ret != EBUSY) {
-          printf("Thread %u stealing task from thread %u\n", get_thd_id(), i);
-
-          if (NULL != curr_task)
-            delete curr_task; // Free me breh
-
-          curr_task = workers[i]->get_task_queue()->get_task(); // Stolen a task
-          pthread_mutex_unlock(&workers[i]->get_lock());
-          break;
-        }
-      }
-    }
-  }
-
-  if (!curr_task->get_nrow()) {
-    printf("Thread %u failed to steal task!\n", get_thd_id());
-    return false; // Can happen if last task was stolen
-  }
-  return true;
-}
-
-#else
 
 bool kmeans_task_thread::try_steal_task() {
   std::vector<std::shared_ptr<knor::thread> > workers =
@@ -172,34 +83,6 @@ bool kmeans_task_thread::try_steal_task() {
   } while (one_locked);
   return false;
 }
-#endif
-
-void kmeans_task_thread::lock_sleep() {
-    int rc;
-    rc = pthread_mutex_lock(&mutex);
-    if (rc) perror("pthread_mutex_lock");
-
-    (*parent_pending_threads)--;
-    set_thread_state(WAIT);
-
-    if (*parent_pending_threads == 0) {
-        rc = pthread_cond_signal(parent_cond); // Wake up parent thread
-        if (rc) perror("pthread_cond_signal");
-    }
-    rc = pthread_mutex_unlock(&mutex);
-    if (rc) perror("pthread_mutex_unlock");
-}
-
-// Assumes caller has lock already ... or else ...
-void kmeans_task_thread::sleep() {
-    (*parent_pending_threads)--;
-    set_thread_state(WAIT);
-
-    if (*parent_pending_threads == 0) {
-        int rc = pthread_cond_signal(parent_cond); // Wake up parent thread
-        if (rc) perror("pthread_cond_signal");
-    }
-}
 
 void kmeans_task_thread::run() {
     switch(state) {
@@ -230,20 +113,6 @@ void kmeans_task_thread::run() {
         default:
             throw kbase::thread_exception("Unknown thread state\n");
     }
-}
-
-void kmeans_task_thread::wait() {
-    int rc;
-    rc = pthread_mutex_lock(&mutex);
-    if (rc) perror("pthread_mutex_lock");
-
-    while (state == WAIT) {
-        //printf("Thread %d begin cond_wait\n", thd_id);
-        rc = pthread_cond_wait(&cond, &mutex);
-        if (rc) perror("pthread_cond_wait");
-    }
-
-    pthread_mutex_unlock(&mutex);
 }
 
 void kmeans_task_thread::wake(thread_state_t state) {
@@ -312,11 +181,6 @@ void kmeans_task_thread::start(const thread_state_t state=WAIT) {
     if (rc)
         throw kbase::thread_exception(
                 "Thread creation (pthread_create) failed!", rc);
-}
-
-const unsigned kmeans_task_thread::
-get_global_data_id(const unsigned row_id) const {
-    return row_id + curr_task->get_start_rid();
 }
 
 void kmeans_task_thread::mb_finalize_centroids(const double* eta) {
@@ -543,14 +407,5 @@ void kmeans_task_thread::kmspp_dist() {
 
         cuml_dist += dist_v[true_row_id];
     }
-}
-
-const void kmeans_task_thread::print_local_data() const {
-    kbase::print_mat(local_data,
-            (get_data_size()/(sizeof(double)*ncol)), ncol);
-}
-
-kmeans_task_thread::~kmeans_task_thread() {
-  delete tasks;
 }
 } } // End namespace knor, prune

@@ -23,44 +23,25 @@
 #include <atomic>
 #include <random>
 
-#include "thread.hpp"
+#include "task_thread.hpp"
+
+namespace kbase = knor::base;
 
 namespace knor {
+
 class task_queue;
 class task;
+
     namespace base {
     class thd_safe_bool_vector;
     class prune_clusters;
     }
+
     namespace prune {
-    class dist_matrix;
-    }
-}
 
-namespace kbase = knor::base;
+class dist_matrix;
 
-namespace knor { namespace prune {
-
-class kmeans_task_thread : public knor::thread {
-protected: // Lazy
-    std::shared_ptr<kbase::prune_clusters> g_clusters; // Ptr to global cluster data
-    unsigned start_rid; // The row id of the first item in this partition
-
-    void* driver; // Hacky, but no time ...
-    knor::task_queue* tasks;
-    knor::task* curr_task;
-
-    bool prune_init;
-    std::shared_ptr<dist_matrix> dm; // global
-    std::shared_ptr<kbase::thd_safe_bool_vector> recalculated_v; // global
-    bool _is_numa;
-
-    // Mini-batch
-    std::default_random_engine generator;
-    std::uniform_real_distribution<double> ur_distribution;
-    std::vector<unsigned> mb_selected; // Local ID of selected rows for mb
-    double mb_perctg;
-
+class kmeans_task_thread : public task_thread {
     kmeans_task_thread(const int node_id, const unsigned thd_id,
             const unsigned start_rid, const unsigned nlocal_rows,
             const unsigned ncol,
@@ -68,14 +49,14 @@ protected: // Lazy
             unsigned* cluster_assignments,
             const std::string fn, kbase::dist_t dist_metric);
 public:
-    static thread::ptr create(const int node_id,
+    static task_thread::ptr create(const int node_id,
             const unsigned thd_id,
             const unsigned start_rid, const unsigned nlocal_rows,
             const unsigned ncol,
             std::shared_ptr<kbase::prune_clusters> g_clusters,
             unsigned* cluster_assignments, const std::string fn,
             kbase::dist_t dist_metric) {
-        return thread::ptr(
+        return task_thread::ptr(
                 new kmeans_task_thread(node_id, thd_id, start_rid,
                     nlocal_rows, ncol, g_clusters,
                     cluster_assignments, fn, dist_metric));
@@ -91,57 +72,9 @@ public:
     void EM_step();
     void mb_EM_step();
     void kmspp_dist();
-    const unsigned get_global_data_id(const unsigned row_id) const;
-    void run();
-    void wait();
-    void wake(knor::thread_state_t state);
-    void request_task();
-    void lock_sleep();
-    void sleep();
-    virtual bool try_steal_task();
-
-    const void print_local_data() const;
-    ~kmeans_task_thread();
-
-    // Override
-    void set_driver(void* driver) {
-        this->driver = driver;
-    }
-
-    double* get_dist_v_ptr() { return &dist_v[0]; }
-
-    void set_parent_cond(pthread_cond_t* cond) {
-        parent_cond = cond;
-    }
-
-    void set_parent_pending_threads(std::atomic<unsigned>* ppt) {
-        parent_pending_threads = ppt;
-    }
-
-    void set_prune_init(const bool prune_init) {
-        this->prune_init = prune_init;
-    }
-
-    const bool is_prune_init() {
-        return prune_init;
-    }
-
-    void set_recalc_v_ptr(std::shared_ptr<kbase::thd_safe_bool_vector>
-            recalculated_v) {
-        this->recalculated_v = recalculated_v;
-    }
-
-    void set_dist_mat_ptr(std::shared_ptr<dist_matrix> dm) {
-        this->dm = dm;
-    }
-
-    knor::task_queue* get_task_queue() {
-      return tasks;
-    }
-
-    const unsigned get_thd_id() {
-      return thd_id;
-    }
+    void run() override;
+    void wake(knor::thread_state_t state) override;
+    virtual bool try_steal_task() override;
 };
 } } // End namespace knor, prune
 #endif
