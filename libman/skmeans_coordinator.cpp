@@ -21,7 +21,7 @@
 #include <stdexcept>
 
 #include "skmeans_coordinator.hpp"
-#include "skmeans_thread.hpp"
+#include "skmeans.hpp"
 #include "io.hpp"
 #include "clusters.hpp"
 
@@ -54,7 +54,7 @@ void skmeans_coordinator::build_thread_state() {
     for (unsigned thd_id = 0; thd_id < nthreads; thd_id++) {
         std::pair<unsigned, unsigned> tup = get_rid_len_tup(thd_id);
         thd_max_row_idx.push_back((thd_id*thds_row) + tup.second);
-        threads.push_back(skmeans_thread::create((thd_id % nnodes),
+        threads.push_back(skmeans::create((thd_id % nnodes),
                     thd_id, tup.first, tup.second,
                     ncol, cltrs, &cluster_assignments[0], fn, _dist_t));
         threads[thd_id]->set_parent_cond(&cond);
@@ -68,7 +68,7 @@ void skmeans_coordinator::bounds_reduction() {
     g_feature_min.assign(ncol, std::numeric_limits<double>::max());
 
     for (auto th : threads) {
-        auto t = std::static_pointer_cast<skmeans_thread>(th);
+        auto t = std::static_pointer_cast<skmeans>(th);
 
         auto min_fv = t->get_min_feature_val();
         auto max_fv = t->get_max_feature_val();
@@ -82,7 +82,7 @@ void skmeans_coordinator::bounds_reduction() {
 
     // Pass the final min/max to each thread
     for (unsigned thd_id = 0; thd_id < nthreads; thd_id++) {
-        auto t = std::static_pointer_cast<skmeans_thread>(threads[thd_id]);
+        auto t = std::static_pointer_cast<skmeans>(threads[thd_id]);
         t->get_min_feature_val() = g_feature_min;
         t->get_max_feature_val() = g_feature_max;
     }

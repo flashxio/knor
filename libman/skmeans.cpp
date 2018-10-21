@@ -17,13 +17,13 @@
  * limitations under the License.
  */
 
-#include "skmeans_thread.hpp"
+#include "skmeans.hpp"
 
 #include "kmeans_thread.hpp"
 #include "clusters.hpp"
 
 namespace knor {
-    skmeans_thread::skmeans_thread(const int node_id, const unsigned thd_id,
+    skmeans::skmeans(const int node_id, const unsigned thd_id,
             const unsigned start_rid, const unsigned nprocrows,
             const unsigned ncol,
             std::shared_ptr<kbase::clusters> g_clusters,
@@ -38,7 +38,7 @@ namespace knor {
         }
 
     // Min & Max of all features
-    void skmeans_thread::feature_bounds_reduction() {
+    void skmeans::feature_bounds_reduction() {
         for (unsigned row = 0; row < nprocrows; row++) {
             for (unsigned col = 0; col < ncol; col++) {
                 if (local_data[row*ncol+col] < min_feature_val[col])
@@ -50,7 +50,7 @@ namespace knor {
     }
 
     // Min-Max normilization
-    void skmeans_thread::feature_normalize() {
+    void skmeans::feature_normalize() {
        // NOTE: Only use AFTER feature_bounds_reduction AND coordinator reduce
         for (unsigned row = 0; row < nprocrows; row++) {
             for (unsigned col = 0; col < ncol; col++) {
@@ -61,7 +61,7 @@ namespace knor {
         }
     }
 
-    void skmeans_thread::run() {
+    void skmeans::run() {
         switch(state) {
             case ALLOC_DATA:
                 numa_alloc_mem();

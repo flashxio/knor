@@ -17,8 +17,8 @@
  * limitations under the License.
  */
 
-#ifndef __KNOR_SKMEANS_THREAD_HPP__
-#define __KNOR_SKMEANS_THREAD_HPP__
+#ifndef __KNOR_SKMEANS_HPP__
+#define __KNOR_SKMEANS_HPP__
 
 #include <vector>
 #include "kmeans_thread.hpp"
@@ -30,14 +30,14 @@ namespace knor { namespace base {
 namespace kbase = knor::base;
 
 namespace knor {
-class skmeans_thread : public kmeans_thread  {
+class skmeans : public kmeans_thread  {
     private:
         using kmeans_thread::kmeans_thread;
 
         std::vector<double> min_feature_val; // min
         std::vector<double> max_feature_val; // max
 
-        skmeans_thread(const int node_id, const unsigned thd_id,
+        skmeans(const int node_id, const unsigned thd_id,
                 const unsigned start_rid, const unsigned nprocrows,
                 const unsigned ncol,
                 std::shared_ptr<kbase::clusters> g_clusters,
@@ -52,7 +52,7 @@ class skmeans_thread : public kmeans_thread  {
                 unsigned* cluster_assignments, const std::string fn,
                 const kbase::dist_t dist_metric) {
             return thread::ptr(
-                    new skmeans_thread(node_id, thd_id, start_rid,
+                    new skmeans(node_id, thd_id, start_rid,
                         nprocrows, ncol, g_clusters,
                         cluster_assignments, fn, dist_metric));
         }
