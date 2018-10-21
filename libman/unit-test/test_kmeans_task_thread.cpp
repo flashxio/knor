@@ -23,7 +23,6 @@
 #include <pthread.h>
 #include <iostream>
 
-#include "kmeans_thread.hpp"
 #include "thread_state.hpp"
 #include "clusters.hpp"
 #include "io.hpp"
