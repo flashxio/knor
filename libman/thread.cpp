@@ -24,11 +24,55 @@
 #include "thread.hpp"
 #include "exception.hpp"
 #include "util.hpp"
+#include "io.hpp"
 
 #define VERBOSE 0
 #define INVALID_THD_ID -1
 
 namespace knor {
+
+void thread::sleep() {
+    int rc;
+    rc = pthread_mutex_lock(&mutex);
+    if (rc) perror("pthread_mutex_lock");
+
+    (*parent_pending_threads)--;
+    set_thread_state(WAIT);
+
+    if (*parent_pending_threads == 0) {
+        rc = pthread_cond_signal(parent_cond); // Wake up parent thread
+        if (rc) perror("pthread_cond_signal");
+    }
+    pthread_mutex_unlock(&mutex);
+}
+
+void thread::wait() {
+    int rc;
+    rc = pthread_mutex_lock(&mutex);
+    if (rc) perror("pthread_mutex_lock");
+
+    while (state == WAIT) {
+        //printf("Thread %d begin cond_wait\n", thd_id);
+        rc = pthread_cond_wait(&cond, &mutex);
+        if (rc) perror("pthread_cond_wait");
+    }
+
+    pthread_mutex_unlock(&mutex);
+}
+
+void thread::wake(thread_state_t state) {
+    int rc;
+    rc = pthread_mutex_lock(&mutex);
+    if (rc) perror("pthread_mutex_lock");
+    set_thread_state(state);
+    if (state == thread_state_t::KMSPP_INIT)
+        cuml_dist = 0;
+    rc = pthread_mutex_unlock(&mutex);
+    if (rc) perror("pthread_mutex_unlock");
+
+    rc = pthread_cond_signal(&cond);
+}
+
 
 void thread::destroy_numa_mem() {
     if (!preallocd_data) {

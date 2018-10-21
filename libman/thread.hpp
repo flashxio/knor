@@ -17,8 +17,8 @@
  * limitations under the License.
  */
 
-#ifndef __KNOR_BASE_THREAD_HPP__
-#define __KNOR_BASE_THREAD_HPP__
+#ifndef __KNOR_THREAD_HPP__
+#define __KNOR_THREAD_HPP__
 
 #include <pthread.h>
 
@@ -126,19 +126,12 @@ public:
 
     virtual void start(const knor::thread_state_t state) = 0;
     // Allocate and move data using this thread
-    virtual void EM_step() = 0;
-    virtual void kmspp_dist() { }; // TODO: Remove from here
     virtual const unsigned get_global_data_id(const unsigned row_id) const = 0;
     virtual void run() = 0;
-    virtual void sleep() = 0;
+    virtual void sleep();
+    virtual void wait();
+    virtual void wake(knor::thread_state_t state);
 
-    // Used by `task' thread classes
-    virtual void set_driver(void* driver) {
-        throw kbase::abstract_exception();
-    }
-    virtual void wake(knor::thread_state_t state) {
-        throw kbase::abstract_exception();
-    }
     virtual void set_prune_init(const bool prune_init) {
         throw kbase::abstract_exception();
     }
@@ -153,9 +146,8 @@ public:
     virtual task_queue* get_task_queue() {
         throw kbase::abstract_exception();
     }
-    virtual const void print_local_data() const {
-        throw kbase::abstract_exception();
-    };
+
+    virtual const void print_local_data() = 0;
 
     void test() {
     }
@@ -236,8 +228,8 @@ public:
     // Move data ~equally to all nodes
     void numa_alloc_mem();
     void set_local_data_ptr(double* data, bool offset=true);
-    ~thread();
     void bind2node_id();
+    ~thread();
 };
 }
 #endif
