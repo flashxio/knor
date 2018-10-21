@@ -40,10 +40,15 @@ class gmm_coordinator : public coordinator {
 
         base::dense_matrix<double>* mu_k; // estimated guassians (k means)
         std::vector<base::dense_matrix<double>*> sigma_k; // k Covar matrices
+        std::vector<base::dense_matrix<double>*> inv_sigma_k; // k Covar matrices
+        std::vector<double> dets; // Determinants
         base::dense_matrix<double>* P_nk; // responsibility matrix (nxk)
         std::vector<double> Pk; // Frac of points in component k
         double cov_regularizer;
+        std::vector<double> Px;
+        std::vector<double> Pnk_sum; // 1 x k
         unsigned k;
+        double L;
 
         gmm_coordinator(const std::string fn, const size_t nrow,
                 const size_t ncol, const unsigned k,
@@ -85,7 +90,9 @@ class gmm_coordinator : public coordinator {
             throw base::not_implemented_exception();
         };
 
+        void compute_cov_mat();
         base::gmm_t soft_run(double* allocd_data=NULL);
+        void compute_shared_linalg();
         void random_prob_fill(base::dense_matrix<double>* dm,
                 const double mix=0, const double max=1);
         void random_prob_fill(std::vector<double>& v,

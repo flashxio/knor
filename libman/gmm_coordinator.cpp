@@ -25,6 +25,7 @@
 #include "gmm.hpp"
 #include "dense_matrix.hpp"
 #include "io.hpp"
+#include "linalg.hpp"
 
 namespace knor {
 gmm_coordinator::gmm_coordinator(const std::string fn, const size_t nrow,
@@ -41,11 +42,17 @@ gmm_coordinator::gmm_coordinator(const std::string fn, const size_t nrow,
         this->k = k;
         this->mu_k = base::dense_matrix<double>::create(k, ncol);
 
-        for (unsigned i = 0; i < k; i++)
+        for (unsigned i = 0; i < k; i++) {
             sigma_k.push_back(base::dense_matrix<double>::create(ncol, ncol));
+            inv_sigma_k.push_back(
+                    base::dense_matrix<double>::create(ncol, ncol));
+        }
 
         this->P_nk = base::dense_matrix<double>::create(nrow, k);
         this->Pk.resize(k);
+        this->dets.resize(k);
+        this->Px.assign(nrow, 0);
+        Pnk_sum.resize(k);
 
         if (mu_k) {
             this->_init_t = base::init_t::NONE;
@@ -67,7 +74,8 @@ void gmm_coordinator::build_thread_state() {
         threads[thd_id]->set_parent_pending_threads(&pending_threads);
         threads[thd_id]->start(WAIT); // Thread puts itself to sleep
         std::static_pointer_cast<gmm>(threads[thd_id])->set_alg_metadata(
-                k, mu_k, &(sigma_k[0]), P_nk, &Pk[0]);
+                k, mu_k, &(sigma_k[0]), P_nk, &Pk[0],
+                &inv_sigma_k[0], &dets[0], &Px[0]);
     }
 }
 
@@ -97,28 +105,23 @@ const double* gmm_coordinator::get_thd_data(const unsigned row_id) const {
 }
 
 void gmm_coordinator::update_clusters() {
-    //num_changed = 0; // Always reset here since there's no pruning
-    //cltrs->clear();
+    L = 0; // Reset
+    Pnk_sum.assign(k, 0);
+    for (size_t row = 0; row < nrow; row++) {
+        for (size_t col = 0; col < ncol; col++) {
+            Pnk_sum[col] += P_nk->get(row, col);
+        }
+    }
 
-    //// Serial aggreate of OMP_MAX_THREADS vectors
-    //for (thread_iter it = threads.begin(); it != threads.end(); ++it) {
-        //// Updated the changed cluster count
-        //num_changed += (*it)->get_num_changed();
-        //// Summation for cluster
+    for (auto th : threads) {
+        // Now L is complete
+        L += std::static_pointer_cast<gmm>(th)->get_L();
+    }
 
-        //cltrs->peq((*it)->get_local_clusters());
-    //}
 
-    //unsigned chk_nmemb = 0;
-    //for (unsigned clust_idx = 0; clust_idx < k; clust_idx++) {
-        //cltrs->finalize(clust_idx);
-        //cluster_assignment_counts[clust_idx] =
-            //cltrs->get_num_members(clust_idx);
-        //chk_nmemb += cluster_assignment_counts[clust_idx];
-    //}
-
-    //assert(chk_nmemb == nrow);
-    //assert(num_changed <= nrow);
+    // Updates pointer data in threads
+    compute_shared_linalg();
+    Px.assign(nrow, 0); // reset
 }
 
 double gmm_coordinator::reduction_on_cuml_sum() {
@@ -244,6 +247,13 @@ void gmm_coordinator::random_prob_fill(std::vector<double>& v,
         v[i] /= sum;
 }
 
+void gmm_coordinator::compute_cov_mat() {
+    throw not_implemented_exception(); // TODO
+#pragma omp parallel for
+    for (size_t i = 0; i < mu_k->get_nrow(); i++) {
+    }
+}
+
 void gmm_coordinator::random_init() {
     forgy_init();
 
@@ -268,6 +278,17 @@ void gmm_coordinator::run_init() {
             break;
         default:
             throw std::runtime_error("Unknown initialization type");
+    }
+}
+
+void gmm_coordinator::compute_shared_linalg() {
+    // Compute Inverse sigma
+    dets.clear();
+    for (size_t cid = 0; cid < k; cid++) {
+        base::linalg::inverse(sigma_k[cid]->as_pointer(),
+                inv_sigma_k[cid]->as_pointer(), sigma_k[cid]->get_nrow());
+        dets[cid] = base::linalg::determinant(sigma_k[cid]->as_pointer(),
+                sigma_k[cid]->get_nrow(), sigma_k[cid]->get_nrow());
     }
 }
 
@@ -318,10 +339,11 @@ base::gmm_t gmm_coordinator::soft_run(double* allocd_data) {
         if (iter == 1)
             clear_cluster_assignments();
 
-        wake4run(EM);
+        wake4run(E);
         wait4complete();
 
         update_clusters();
+        wake4run(M);
 
 #if VERBOSE
 #ifndef BIND
@@ -381,8 +403,10 @@ gmm_coordinator::~gmm_coordinator() {
 
     // destroy metadata
     delete mu_k; // estimated guassians (k means)
-    for (size_t i = 0; i < sigma_k.size(); i++)
+    for (size_t i = 0; i < sigma_k.size(); i++) {
         delete sigma_k[i];
+        delete inv_sigma_k[i];
+    }
     delete P_nk; // responsibility matrix (nxk)
 }
 

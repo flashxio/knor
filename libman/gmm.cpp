@@ -17,6 +17,7 @@
  * limitations under the License.
  */
 
+#include <math.h>
 #include <iostream>
 #include <cassert>
 
@@ -24,6 +25,7 @@
 #include "types.hpp"
 #include "util.hpp"
 #include "io.hpp"
+#include "linalg.hpp"
 
 namespace knor {
 gmm::gmm(const int node_id, const unsigned thd_id,
@@ -35,6 +37,7 @@ gmm::gmm(const int node_id, const unsigned thd_id,
 
             this->nprocrows = nprocrows;
             local_clusters = nullptr;
+            this->L = 0;
 
             set_data_size(sizeof(double)*nprocrows*ncol);
 #if VERBOSE
@@ -49,14 +52,56 @@ gmm::gmm(const int node_id, const unsigned thd_id,
 
 void gmm::set_alg_metadata(unsigned k, base::dense_matrix<double>* mu_k,
         base::dense_matrix<double>** sigma_k, base::dense_matrix<double>* P_nk,
-        double* P_k) {
+        double* Pk, base::dense_matrix<double>** isk, double* dets,
+        double* Px) {
     this->k = k;
     this->mu_k = mu_k;
     this->sigma_k = sigma_k;
     this->P_nk = P_nk;
+    inv_sigma_k = isk;
+    this->dets = dets;
+    this->Pk = Pk;
+    this->Px = Px;
 }
 
-void gmm::EM_step() {
+void gmm::Estep() {
+    // Compute Pnk
+    L = 0; // Reset
+    for (unsigned row = 0; row < nprocrows; row++) {
+        unsigned true_row_id = get_global_data_id(row);
+
+        for (unsigned cid = 0; cid < k; cid++) {
+            std::vector<double> diff(ncol);
+            base::linalg::vdiff(&local_data[row*ncol],
+                    &(mu_k->as_pointer()[row*ncol]), ncol, diff);
+
+            std::vector<double> resdot(inv_sigma_k[cid]->get_ncol());
+            base::linalg::dot(&diff[0],
+                    inv_sigma_k[cid]->as_pointer(),
+                    inv_sigma_k[cid]->get_nrow(),
+                    inv_sigma_k[cid]->get_ncol(), resdot);
+            double lhs = -.5*(base::linalg::dot(resdot, diff));
+            double rhs = .5*M*std::log2(2*M_PI) - (.5*std::log2(dets[cid]));
+            double gaussian_density = lhs - rhs; // for one of the k guassians
+
+            auto tmp = gaussian_density * Pk[cid];
+            Px[true_row_id] += tmp;
+            P_nk->set(row, cid, tmp);
+        }
+
+        // Finish P_nk
+        for (unsigned cid = 0; cid < k; cid++) {
+            P_nk->set(row, cid, P_nk->get(row, cid)/Px[true_row_id]);
+        }
+
+        // L is Per thread
+        if (L == 0) L = Px[true_row_id];
+        else L *= Px[true_row_id];
+    }
+}
+
+void gmm::Mstep() {
+
 }
 
 void gmm::run() {
@@ -70,8 +115,11 @@ void gmm::run() {
         case KMSPP_INIT:
             kmspp_dist();
             break;
-        case EM: /*E step of kmeans*/
-            EM_step();
+        case E:
+            Estep();
+            break;
+        case M:
+            Mstep();
             break;
         case EXIT:
             throw kbase::thread_exception(

@@ -35,9 +35,14 @@ class gmm : public thread {
         unsigned nprocrows; // How many rows to process
         unsigned k;
         base::dense_matrix<double>* mu_k;
+        base::dense_matrix<double>* local_mu_k;
         base::dense_matrix<double>** sigma_k;
         base::dense_matrix<double>* P_nk;
         double* Pk;
+        double* dets; // The determinant of each covariance matrix
+        base::dense_matrix<double>** inv_sigma_k; // Inverse of sigma
+        double* Px;
+        double L;
 
         gmm(const int node_id, const unsigned thd_id,
                 const unsigned start_rid, const unsigned nprocrows,
@@ -58,11 +63,16 @@ class gmm : public thread {
 
         void set_alg_metadata(unsigned k, base::dense_matrix<double>* mu_k,
                 base::dense_matrix<double>** sigma_k,
-                base::dense_matrix<double>* P_nk, double* Pk);
+                base::dense_matrix<double>* P_nk, double* Pk,
+                base::dense_matrix<double>** isk, double* dets, double* Px);
 
+        double get_L() { return L; }
         void start(const thread_state_t state) override;
         // Allocate and move data using this thread
-        void EM_step() override;
+        void EM_step() override { throw base::not_implemented_exception(); }
+        void Estep();
+        void Mstep();
+
         const unsigned get_global_data_id(const unsigned row_id) const;
         virtual void run() override;
         void sleep() override;
