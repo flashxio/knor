@@ -174,6 +174,13 @@ namespace knor { namespace base {
             }
         }
 
+        static void pow(std::vector<double>& v,
+                std::vector<double>& res, double exp) {
+            if (!res.size()) {
+                for (double el : v)
+                    res.push_back(std::pow(el, exp));
+            }
+        }
     };
 } } // End namespace knor::base
 #endif

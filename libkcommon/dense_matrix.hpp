@@ -20,10 +20,13 @@
 #ifndef __KNOR_DENSE_MATRIX_HPP__
 #define __KNOR_DENSE_MATRIX_HPP__
 
+#include <omp.h>
+
+#include <cmath>
 #include <vector>
+
 #include "io.hpp"
 #include "exception.hpp"
-#include <omp.h>
 
 namespace knor { namespace base {
 
@@ -150,6 +153,54 @@ public:
             }
         }
         return res;
+    }
+
+    dense_matrix* operator-(dense_matrix<T>& other) {
+        assert(nrow == other.get_nrow() && ncol == other.get_ncol());
+
+        dense_matrix<T>* res = create(nrow, ncol);
+        double* rp = res->as_pointer();
+        double* otherp = other.as_pointer();
+
+        for (size_t i = 0; i < nrow*ncol; i++)
+            rp[i] = mat[i] - otherp[i];
+        return res;
+    }
+
+    T frobenius_norm() {
+        T sum = 0;
+        for (size_t i = 0; i < nrow*ncol; i++)
+            sum += mat[i]*mat[i];
+        return std::sqrt(sum);
+    }
+
+    void sum(const unsigned axis, std::vector<T>& res) {
+        // column wise
+        if (axis == 0) {
+            res.assign(ncol, 0);
+            for (size_t row = 0; row < nrow; row++) {
+                for (size_t col = 0; col < ncol; col++) {
+                    res[col] += mat[row*ncol+col];
+                }
+            }
+        } else if (axis == 1) { /* row wise */
+            res.assign(nrow, 0);
+#pragma omp parallel for
+            for (size_t row = 0; row < nrow; row++) {
+                for (size_t col = 0; col < ncol; col++) {
+                    res[row] += mat[row*ncol+col];
+                }
+            }
+        } else {
+            throw parameter_exception("axis for sum must be 0 or 1");
+        }
+    }
+
+    T sum() {
+        T sum = 0;
+        for (size_t i = 0; i < nrow*ncol; i++)
+            sum += mat[i];
+        return sum;
     }
 
     dense_matrix& operator/=(const T val) {
