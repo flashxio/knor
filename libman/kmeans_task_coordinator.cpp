@@ -77,7 +77,8 @@ void kmeans_task_coordinator::build_thread_state() {
         threads[thd_id]->set_parent_cond(&cond);
         threads[thd_id]->set_parent_pending_threads(&pending_threads);
         threads[thd_id]->start(WAIT); // Thread puts itself to sleep
-        threads[thd_id]->set_driver(this); // For computation stealing
+        std::static_pointer_cast<task_thread>(threads[thd_id])
+            ->set_driver(this); // For computation stealing
     }
 }
 
