@@ -24,6 +24,7 @@
 
 #include <cmath>
 #include <vector>
+#include <limits>
 
 #include "io.hpp"
 #include "exception.hpp"
@@ -167,6 +168,18 @@ public:
         return res;
     }
 
+    dense_matrix* operator+(dense_matrix<T>& other) {
+        assert(nrow == other.get_nrow() && ncol == other.get_ncol());
+
+        dense_matrix<T>* res = create(nrow, ncol);
+        double* rp = res->as_pointer();
+        double* otherp = other.as_pointer();
+
+        for (size_t i = 0; i < nrow*ncol; i++)
+            rp[i] = mat[i] + otherp[i];
+        return res;
+    }
+
     T frobenius_norm() {
         T sum = 0;
         for (size_t i = 0; i < nrow*ncol; i++)
@@ -209,7 +222,32 @@ public:
         return *this;
     }
 
-    bool operator==(dense_matrix<T>& other) {
+    dense_matrix& operator/=(std::vector<T> v) {
+        if (v.size() == nrow) {
+            for (size_t row = 0; row < nrow; row++) {
+                for (size_t col = 0; col < ncol; col++) {
+                    mat[row*ncol+col] /= v[row];
+                }
+            }
+        } else if (v.size() == ncol) {
+            for (size_t row = 0; row < nrow; row++) {
+                for (size_t col = 0; col < ncol; col++) {
+                    mat[row*ncol+col] /= v[col];
+                }
+            }
+        } else {
+            throw std::runtime_error("Vector division must have size = nrow/ncol");
+        }
+        return *this;
+    }
+
+    // Raise every element to the power `exp` and assign
+    void pow_eq(T exp) {
+        for (size_t i = 0; i < nrow*ncol; i++)
+            mat[i] = std::pow(mat[i], exp);
+    }
+
+    bool operator==(dense_matrix& other) {
         if (nrow != other.get_nrow() || ncol != other.get_ncol())
             return false;
 
@@ -218,6 +256,54 @@ public:
                 return false;
         }
         return true;
+    }
+
+    void operator=(dense_matrix<T>& other) {
+        other.resize(nrow, ncol);
+        for (size_t i = 0; i < nrow*ncol; i++)
+            std::copy(mat.begin(), mat.end(), other.as_pointer());
+    }
+
+    void argmax(size_t axis, std::vector<unsigned>& idx) {
+        std::vector<T> vals;
+
+        // axis = 1: row wise
+        if (axis == 0) {
+            idx.assign(nrow, 0);
+            vals.assign(nrow, std::numeric_limits<double>::min());
+
+            for (size_t row = 0; row < nrow; row++) {
+                for (size_t col = 0; col < ncol; col++) {
+                    T val = mat[row*ncol+col];
+                    if (val > vals[row]) {
+                        vals[row] = val;
+                        idx[row] = col;
+                    }
+                }
+            }
+        // axis = 0: col wise
+        } else if (axis == 1) {
+            idx.assign(ncol, 0);
+            vals.assign(ncol, std::numeric_limits<double>::min());
+
+            for (size_t row = 0; row < nrow; row++) {
+                for (size_t col = 0; col < ncol; col++) {
+                    T val = mat[row*ncol+col];
+                    if (val > vals[col]) {
+                        vals[col] = val;
+                        idx[col] = row;
+                    }
+                }
+            }
+        }  else {
+            throw parameter_exception("axis for argmax must be 0 or 1");
+        }
+    }
+
+    void resize(const size_t nrow, const size_t ncol) {
+        mat.resize(nrow*ncol);
+        this->nrow = nrow;
+        this->ncol = ncol;
     }
 
     void print() {
