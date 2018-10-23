@@ -21,18 +21,27 @@
 #include "types.hpp"
 #include "dense_matrix.hpp"
 #include "io.hpp"
+#include "util.hpp"
 
 namespace knor {
 fcm::fcm(const int node_id, const unsigned thd_id,
             const unsigned start_rid, const unsigned nprocrows,
-           const unsigned ncol, const unsigned nclust,
-            const unsigned fuzz_idx,
+            const unsigned ncol, const unsigned nclust,
+            const unsigned fuzzindex,
+            base::dense_matrix<double>* um,
+            base::dense_matrix<double>* centers,
+            double* colsums,
             const std::string fn, base::dist_t dist_metric) :
         thread(node_id, thd_id, ncol, NULL, start_rid, fn, dist_metric) {
 
-            this->fuzz_idx = fuzz_idx;
             this->nclust = nclust;
             this->nprocrows = nprocrows;
+            this->fuzzindex = fuzzindex;
+            this->um = um;
+            this->colsums = colsums;
+            this->centers = centers;
+            this->innerprod =
+                base::dense_matrix<double>::create(nclust, ncol, true);
 
             set_data_size(sizeof(double)*nprocrows*ncol);
 #if VERBOSE
@@ -46,11 +55,30 @@ fcm::fcm(const int node_id, const unsigned thd_id,
     }
 
 void fcm::Estep() {
-    // TODO
+    for (unsigned row = 0; row < nprocrows; row++) {
+        unsigned true_row_id = get_global_data_id(row);
+        for (unsigned cid = 0; cid < nclust; cid++) {
+            double dist = base::dist_comp_raw<double>(&local_data[row*ncol],
+                    &(centers->as_pointer()[cid*ncol]), ncol, dist_metric);
+             if (dist > 0) {
+                 um->set(cid,true_row_id,
+                         std::pow((1.0 / dist), (1.0 / (fuzzindex-1))));
+             }
+        }
+    }
 }
 
 void fcm::Mstep() {
-    // TODO
+    for (unsigned row = 0; row < nprocrows; row++) {
+        unsigned true_row_id = get_global_data_id(row);
+        for (unsigned cid = 0; cid < nclust; cid++) {
+
+            double dist = um->get(true_row_id, cid);
+            auto colsum = colsums[cid]; // TODO: Compute
+            // TODO: Assume multiplication works
+            // centers->set(true_row_id, cid, );
+        }
+    }
 }
 
 void fcm::run() {
@@ -113,5 +141,9 @@ void fcm::start(const thread_state_t state=WAIT) {
 
 const void fcm::print_local_data() {
     kbase::print_mat(local_data, nprocrows, ncol);
+}
+
+const unsigned fcm::get_global_data_id(const unsigned row_id) const {
+    return start_rid+row_id;
 }
 } // End namespace knor
