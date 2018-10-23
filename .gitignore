@@ -23,6 +23,7 @@ exec/knors
 exec/skmeans
 exec/mb_knori
 exec/gmm
+exec/fcm
 scratch/
 release-test/test_auto
 release-test/test_man
