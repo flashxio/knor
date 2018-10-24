@@ -19,6 +19,7 @@
 
 #include <stdio.h>
 #include <iostream>
+#include "io.hpp"
 
 #include <cassert>
 #include "dense_matrix.hpp"
@@ -98,11 +99,74 @@ void test_dot() {
     delete (man_res);
 }
 
+void test_basic() {
+    std::vector<double> lv = {1, 2, 3, 5, 6, 7};
+    dense_matrix<double>::rawptr l = dense_matrix<double>::create(2,3);
+    l->set(&lv[0]);
+
+    dense_matrix<double>* tmp = dense_matrix<double>::create();
+    tmp->copy_from(l);
+
+    // Make sure attributes are copied over
+    assert(tmp->get_nrow() == l->get_nrow());
+    assert(tmp->get_ncol() == l->get_ncol());
+
+    printf("tmp:\n"); tmp->print();
+    printf("l:\n"); l->print();
+
+    // Make sure the data is copied over
+    for (size_t row = 0; row < l->get_nrow(); row++)
+        for (size_t col = 0; col < l->get_ncol(); col++)
+            assert(tmp->get(row, col) == l->get(row, col));
+
+    // Make sure it's not a reference and is a deep copy
+    l->set(0,0,0);
+    assert(tmp->get(0,0) != l->get(0,0));
+    tmp->set(0,0,0);
+
+    ///////////////////////////////// Test Mean ////////////////////////////////
+    std::vector<double> mean;
+    l->mean(mean, 1);
+
+    assert(mean.size() == 3);
+    assert(mean[0] == 2.5);
+    assert(mean[1] == 4);
+    assert(mean[2] == 5);
+
+    tmp->mean(mean,0);
+    assert(mean.size() == 2);
+    assert(mean[0] == (5/((double)3)));
+    assert(mean[1] == 6);
+    ////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////// Test Sub /////////////////////////////////
+
+    auto sub = (*tmp) - (*l);
+    assert(sub->get_nrow() == 2 && sub->get_ncol() == 3);
+
+    for (size_t row = 0; row < sub->get_nrow(); row++)
+        for (size_t col = 0; col < sub->get_ncol(); col++)
+            assert(sub->get(row, col) == 0);
+
+    ////////////////////////////////////////////////////////////////////////////
+
+    *tmp += *l;
+    printf("Sum: \n"); tmp->print();
+
+    *tmp += *tmp;
+    printf("Sum: \n"); tmp->print();
+
+    delete (tmp);
+    delete (l);
+}
+
 int main() {
     test_dense_matrix();
     printf("Successful 'test_dense_matrix' test ...\n");
 
     test_dot();
     printf("Successful 'test_dot' for dense_matrix test ...\n");
+
+    test_basic();
+    printf("Successful 'test_basic' for dense_matrix test ...\n");
     return EXIT_SUCCESS;
 }

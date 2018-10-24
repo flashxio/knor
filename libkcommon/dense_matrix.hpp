@@ -42,6 +42,8 @@ private:
 public:
     typedef dense_matrix* rawptr;
 
+    dense_matrix() { nrow = 0; ncol = 0; }
+
     dense_matrix(const size_t nrow, const size_t ncol, bool zeros=false) :
     nrow(nrow), ncol(ncol) {
         if (zeros)
@@ -50,12 +52,16 @@ public:
             mat.resize(nrow*ncol);
     }
 
+    static rawptr create() {
+        return new dense_matrix();
+    }
+
     static rawptr create(const size_t nrow, const size_t ncol,
             bool zeros=false) {
         return new dense_matrix(nrow, ncol, zeros);
     }
 
-    static rawptr create(dense_matrix<T>* other) {
+    static rawptr create(dense_matrix* other) {
         rawptr ret = new dense_matrix(other->get_nrow(), other->get_ncol());
         std::copy(other->as_pointer(),
                 other->as_pointer()+(other->get_nrow()*other->get_ncol()),
@@ -114,7 +120,9 @@ public:
         }
     }
 
-    dense_matrix<T>* operator-(std::vector<T>& v) {
+    dense_matrix* operator-(std::vector<T>& v) {
+        assert(nrow == ncol);
+
         dense_matrix* ret = create(this);
         T* retp = ret->as_pointer();
 
@@ -137,8 +145,8 @@ public:
         return ret;
     }
 
-    dense_matrix* operator*(dense_matrix<T>& other) {
-        dense_matrix<T>* res = create(this->nrow, other.get_ncol(), true);
+    dense_matrix* operator*(dense_matrix& other) {
+        dense_matrix* res = create(this->nrow, other.get_ncol(), true);
         double* rp = res->as_pointer();
 
         // lhs is this object and rhs is other
@@ -156,10 +164,10 @@ public:
         return res;
     }
 
-    dense_matrix* operator-(dense_matrix<T>& other) {
+    dense_matrix* operator-(dense_matrix& other) {
         assert(nrow == other.get_nrow() && ncol == other.get_ncol());
 
-        dense_matrix<T>* res = create(nrow, ncol);
+        dense_matrix* res = create(nrow, ncol);
         double* rp = res->as_pointer();
         double* otherp = other.as_pointer();
 
@@ -168,16 +176,24 @@ public:
         return res;
     }
 
-    dense_matrix* operator+(dense_matrix<T>& other) {
+    dense_matrix* operator+(dense_matrix& other) {
         assert(nrow == other.get_nrow() && ncol == other.get_ncol());
 
-        dense_matrix<T>* res = create(nrow, ncol);
+        dense_matrix* res = create(nrow, ncol);
         double* rp = res->as_pointer();
         double* otherp = other.as_pointer();
 
         for (size_t i = 0; i < nrow*ncol; i++)
             rp[i] = mat[i] + otherp[i];
         return res;
+    }
+
+    void operator+=(dense_matrix& other) {
+        assert(nrow == other.get_nrow() && ncol == other.get_ncol());
+        double* otherp = other.as_pointer();
+
+        for (size_t i = 0; i < nrow*ncol; i++)
+            mat[i] += otherp[i];
     }
 
     T frobenius_norm() {
@@ -258,10 +274,11 @@ public:
         return true;
     }
 
-    void operator=(dense_matrix<T>& other) {
-        other.resize(nrow, ncol);
-        for (size_t i = 0; i < nrow*ncol; i++)
-            std::copy(mat.begin(), mat.end(), other.as_pointer());
+    void copy_from(dense_matrix* dm) {
+        resize(dm->get_nrow(), dm->get_ncol());
+        std::copy(dm->as_pointer(),
+                dm->as_pointer()+(dm->get_nrow()*dm->get_ncol()),
+                mat.begin());
     }
 
     void argmax(size_t axis, std::vector<unsigned>& idx) {
