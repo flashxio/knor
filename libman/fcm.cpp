@@ -30,7 +30,6 @@ fcm::fcm(const int node_id, const unsigned thd_id,
             const unsigned fuzzindex,
             base::dense_matrix<double>* um,
             base::dense_matrix<double>* centers,
-            double* colsums,
             const std::string fn, base::dist_t dist_metric) :
         thread(node_id, thd_id, ncol, NULL, start_rid, fn, dist_metric) {
 
@@ -38,10 +37,8 @@ fcm::fcm(const int node_id, const unsigned thd_id,
             this->nprocrows = nprocrows;
             this->fuzzindex = fuzzindex;
             this->um = um;
-            this->colsums = colsums;
             this->centers = centers;
-            this->innerprod =
-                base::dense_matrix<double>::create(nclust, ncol, true);
+            this->innerprod = base::dense_matrix<double>::create(nclust, ncol);
 
             set_data_size(sizeof(double)*nprocrows*ncol);
 #if VERBOSE
@@ -56,29 +53,48 @@ fcm::fcm(const int node_id, const unsigned thd_id,
 
 void fcm::Estep() {
     for (unsigned row = 0; row < nprocrows; row++) {
-        unsigned true_row_id = get_global_data_id(row);
+        unsigned true_rid = get_global_data_id(row);
         for (unsigned cid = 0; cid < nclust; cid++) {
             double dist = base::dist_comp_raw<double>(&local_data[row*ncol],
                     &(centers->as_pointer()[cid*ncol]), ncol, dist_metric);
-             if (dist > 0) {
-                 um->set(cid,true_row_id,
-                         std::pow((1.0 / dist), (1.0 / (fuzzindex-1))));
-             }
+            if (dist > 0) {
+                //TODO: Fix bad access pattern
+                um->set(cid, true_rid,
+                        std::pow((1.0 / dist), (1.0 / (fuzzindex-1))));
+            } else {
+                um->set(cid, true_rid, 2.2E-16);
+            }
         }
     }
 }
 
+// NOTE: Sequential access on all 3 matrices, but lh matrix (um) has strided
+//  access.
 void fcm::Mstep() {
-    for (unsigned row = 0; row < nprocrows; row++) {
-        unsigned true_row_id = get_global_data_id(row);
-        for (unsigned cid = 0; cid < nclust; cid++) {
+#if 0
+    innerprod->zero(); // Reset this
+    for (unsigned lcid = start_rid; lcid < start_rid+nprocrows; lcid++) {
+        for (unsigned lrid = 0; lrid < nclust; lrid++) {
+            for (unsigned rrid = 0; rrid < nprocrows; rrid++) {
+                unsigned true_rid = get_global_data_id(rrid);
 
-            double dist = um->get(true_row_id, cid);
-            auto colsum = colsums[cid]; // TODO: Compute
-            // TODO: Assume multiplication works
-            // centers->set(true_row_id, cid, );
+                for (unsigned rcol = 0; rcol < ncol; rcol++) {
+                    auto prod = um->get(lrid, lcid)*local_data[rrid*ncol+rcol];
+                    innerprod->peq(lrid, rcol, prod);
+                }
+            }
         }
     }
+#else
+    base::dense_matrix<double>* _data =
+        base::dense_matrix<double>::create(nprocrows, ncol);
+    _data->set(local_data);
+    auto ip = ((*um) * (*_data));
+    innerprod->copy_from(ip);
+
+    std::cout << "Thread: " << thd_id << ", has inner product: \n";
+    innerprod->print();
+#endif
 }
 
 void fcm::run() {
@@ -145,5 +161,9 @@ const void fcm::print_local_data() {
 
 const unsigned fcm::get_global_data_id(const unsigned row_id) const {
     return start_rid+row_id;
+}
+
+fcm::~fcm() {
+    delete (innerprod);
 }
 } // End namespace knor

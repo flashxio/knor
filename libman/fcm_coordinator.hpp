@@ -36,7 +36,6 @@ class fcm_coordinator : public coordinator {
         base::dense_matrix<double>* centers; // k x ncol
         base::dense_matrix<double>* prev_centers; // k x ncol
         base::dense_matrix<double>* um; // nrow x k
-        std::vector<double> colsums; // 1 x k
         unsigned fuzzindex;
 
         fcm_coordinator(const std::string fn, const size_t nrow,
@@ -80,7 +79,8 @@ class fcm_coordinator : public coordinator {
 
         void kmeanspp_init();
         void soft_run(double* allocd_data=NULL);
-        void update_clusters();
+        void update_contribution_matrix();
+        void update_centers();
         void wake4run(knor::thread_state_t state) override;
         void destroy_threads() override;
         void set_thread_clust_idx(const unsigned clust_idx) override;

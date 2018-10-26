@@ -33,7 +33,6 @@ class fcm : public thread {
         base::dense_matrix<double>* centers;
         base::dense_matrix<double>* um; // Contribution matrix
         base::dense_matrix<double>* innerprod;
-        double* colsums;
         unsigned nclust;
         unsigned fuzzindex;
 
@@ -45,7 +44,6 @@ class fcm : public thread {
                 base::dense_matrix<double>* um,
                 base::dense_matrix<double>* centers,
                 // Partition of result matrix of um.dot(data)
-                double* colsums,
                 const std::string fn, base::dist_t dist_metric);
     public:
         static thread::ptr create(
@@ -54,12 +52,11 @@ class fcm : public thread {
                 const unsigned ncol, const unsigned nclust,
                 const unsigned fuzzindex, base::dense_matrix<double>* um,
                 base::dense_matrix<double>* centers,
-                double* colsums, const std::string fn,
-                base::dist_t dist_metric) {
+                const std::string fn, base::dist_t dist_metric) {
             return thread::ptr(
                     new fcm(node_id, thd_id, start_rid,
                         nprocrows, ncol, nclust, fuzzindex, um,
-                        centers, colsums, fn, dist_metric));
+                        centers, fn, dist_metric));
         }
 
         void start(const thread_state_t state) override;
@@ -70,6 +67,10 @@ class fcm : public thread {
         const unsigned get_global_data_id(const unsigned row_id) const;
         virtual void run() override;
         const void print_local_data() override;
+        base::dense_matrix<double>* get_innerprod() {
+            return innerprod;
+        }
+        ~fcm();
 };
 }
 #endif

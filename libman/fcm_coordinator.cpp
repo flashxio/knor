@@ -39,7 +39,6 @@ fcm_coordinator::fcm_coordinator(const std::string fn, const size_t nrow,
         this->centers = base::dense_matrix<double>::create(k, ncol);
         this->prev_centers = base::dense_matrix<double>::create(k, ncol);
         this->um = base::dense_matrix<double>::create(k, nrow);
-        this->colsums.resize(k);
 
         if (centers)
             this->centers->set(centers);
@@ -56,8 +55,7 @@ void fcm_coordinator::build_thread_state() {
         threads.push_back(
                 fcm::create((thd_id % nnodes),
                     thd_id, tup.first, tup.second,
-                    ncol, k, fuzzindex, um, centers,
-                    &colsums[0], fn, _dist_t));
+                    ncol, k, fuzzindex, um, centers, fn, _dist_t));
         threads[thd_id]->set_parent_cond(&cond);
         threads[thd_id]->set_parent_pending_threads(&pending_threads);
         threads[thd_id]->start(WAIT); // Thread puts itself to sleep
@@ -123,6 +121,11 @@ fcm_coordinator::~fcm_coordinator() {
     pthread_mutex_destroy(&mutex);
     pthread_mutexattr_destroy(&mutex_attr);
     destroy_threads();
+
+    // fcm specific
+    delete (centers);
+    delete (prev_centers);
+    delete (um);
 }
 
 void const fcm_coordinator::print_thread_data() {
@@ -196,6 +199,7 @@ void fcm_coordinator::kmeanspp_init() {
 }
 
 void fcm_coordinator::forgy_init() {
+#if 0
     std::default_random_engine generator;
     std::uniform_int_distribution<unsigned> distribution(0, nrow-1);
 
@@ -203,6 +207,12 @@ void fcm_coordinator::forgy_init() {
         unsigned rand_idx = distribution(generator);
         centers->set_row(get_thd_data(rand_idx), clust_idx);
     }
+#else
+    assert(k == 3);
+    centers->set_row(get_thd_data(91),0);
+    centers->set_row(get_thd_data(63),1);
+    centers->set_row(get_thd_data(103),2);
+#endif
 }
 
 void fcm_coordinator::run_init() {
@@ -220,12 +230,36 @@ void fcm_coordinator::run_init() {
     }
 }
 
-void fcm_coordinator::update_clusters() {
+void fcm_coordinator::update_contribution_matrix() {
+    std::vector<double> colsums;
     um->sum(0, colsums); // k x nrow
     // TODO: Combine into one step
+    //std::cout << "u.sum(axis=0): "; base::print_vector<double>(colsums, 200);
+    //std::cout << "u: \n";  um->print();
     (*um) /= colsums;
     um->pow_eq(fuzzindex); // um is complete
-    (*prev_centers) = (*centers);
+}
+
+void fcm_coordinator::update_centers() {
+    if (threads.size() == 1) {
+        centers->copy_from(std::static_pointer_cast<fcm>(
+                    threads[0])->get_innerprod());
+    } else {
+        auto sum = *(std::static_pointer_cast<fcm>(threads[0])->get_innerprod()) +
+                *(std::static_pointer_cast<fcm>(threads[1])->get_innerprod());
+        centers->copy_from(sum);
+        delete (sum);
+
+        for (size_t tid = 2; tid < threads.size(); tid++) {
+            *centers += *(std::static_pointer_cast<fcm>(
+                            threads[0])->get_innerprod());
+        }
+    }
+
+    // Take sum along axis
+    std::vector<double> sum;
+    um->sum(1, sum);
+    (*centers) /= sum;
 }
 
 /**
@@ -243,9 +277,18 @@ void fcm_coordinator::soft_run(double* allocd_data) {
         set_thread_data_ptr(allocd_data);
     }
 
+#if 0
+    std::cout << "Printing the data:\n";
+    print_thread_data();
+    std::cout << "\n\n";
+#endif
+
     struct timeval start, end;
     gettimeofday(&start , NULL);
     run_init(); // Initialize clusters
+
+    std::cout << "After init centers are: \n";
+    centers->print();
 
     // Run kmeans loop
     bool converged = false;
@@ -255,23 +298,35 @@ void fcm_coordinator::soft_run(double* allocd_data) {
         iter++;
 
     while (iter <= max_iters && max_iters > 0) {
-        //if (iter == 1)
-            //clear_cluster_assignments();
-
+        std::cout << "Running iteration: "  << iter << std::endl;
         // Compute new um
         wake4run(E);
         wait4complete();
 
-        update_clusters();
+        update_contribution_matrix();
+        std::cout << "After Estep contribution matrix is: \n";
+        um->print();
 
         // Compute new centers
+        prev_centers->copy_from(centers);
+
+        std::cout << "Mstep: \n";
         wake4run(M);
         wait4complete();
+        update_centers();
+        std::cout << "After Mstep centers are: \n";
+        centers->print();
 
-        if ((*centers - *prev_centers)->frobenius_norm() < tolerance ) {
+        auto diff = (*centers - *prev_centers);
+        std::cout << "Centers frob diff: " << diff->frobenius_norm() << "\n";
+
+        if (diff->frobenius_norm() < tolerance) {
             converged = true;
+            delete (diff);
             break;
         }
+
+        delete (diff);
         iter++;
     }
 #ifdef PROFILER
@@ -298,7 +353,7 @@ void fcm_coordinator::soft_run(double* allocd_data) {
 #ifndef BIND
     printf("Final cluster assignment: \n");
     std::vector<unsigned> cluster_assignment;
-    um->argmax(0, cluster_assignment);
+    um->argmax(1, cluster_assignment);
     kbase::print_vector(cluster_assignment);
 
     printf("Final cluster assignment count:\n");
