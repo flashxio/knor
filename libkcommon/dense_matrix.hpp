@@ -152,7 +152,6 @@ public:
         // lhs is this object and rhs is other
 #pragma omp parallel for
         for (size_t lrow = 0; lrow < this->nrow; lrow++) {
-            printf("Thread %d working ...\n", omp_get_thread_num());
             for (size_t rrow = 0; rrow < other.get_nrow(); rrow++) {
                 for (size_t rcol = 0; rcol < other.get_ncol(); rcol++) {
                     rp[lrow*other.get_ncol()+rcol] +=
@@ -196,11 +195,19 @@ public:
             mat[i] += otherp[i];
     }
 
+    void peq(const size_t row, size_t col, T val) {
+        mat[row*ncol+col] += val;
+    }
+
     T frobenius_norm() {
         T sum = 0;
         for (size_t i = 0; i < nrow*ncol; i++)
             sum += mat[i]*mat[i];
         return std::sqrt(sum);
+    }
+
+    void zero() {
+        std::fill(mat.begin(), mat.end(), 0);
     }
 
     void sum(const unsigned axis, std::vector<T>& res) {
@@ -239,6 +246,10 @@ public:
     }
 
     dense_matrix& operator/=(std::vector<T> v) {
+        if (nrow == ncol)
+            throw parameter_exception("Cannot determine which axis "
+                    "to div for square matrix.");
+
         if (v.size() == nrow) {
             for (size_t row = 0; row < nrow; row++) {
                 for (size_t col = 0; col < ncol; col++) {
