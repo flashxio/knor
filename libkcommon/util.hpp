@@ -71,6 +71,19 @@ const double eucl_dist(const T* lhs, const T* rhs,
 }
 
 template <typename T>
+const double sqeucl_dist(const T* lhs, const T* rhs,
+        const unsigned size) {
+    double dist = 0;
+    double diff;
+
+    for (unsigned col = 0; col < size; col++) {
+        diff = lhs[col] - rhs[col];
+        dist += diff * diff;
+    }
+    return dist;
+}
+
+template <typename T>
 const T taxi_dist(const T* lhs, const T* rhs,
         const unsigned size) {
     T dist = 0;
@@ -122,13 +135,18 @@ static std::string dist_t_to_string(dist_t dt) {
 template <typename T>
 T dist_comp_raw(const T* arg0, const T* arg1,
         const unsigned len, dist_t dt) {
-    if (dt == dist_t::EUCL)
-        return eucl_dist<T>(arg0, arg1, len);
-    else if (dt == dist_t::COS)
-        return cos_dist(arg0, arg1, len);
-    else if (dt == dist_t::TAXI)
-        return taxi_dist(arg0, arg1, len);
-    throw parameter_exception("Unknown distance metric\n");
+    switch (dt) {
+        case dist_t::EUCL:
+            return eucl_dist<T>(arg0, arg1, len);
+        case dist_t::COS:
+            return cos_dist(arg0, arg1, len);
+        case dist_t::TAXI:
+            return taxi_dist(arg0, arg1, len);
+        case dist_t::SQEUCL:
+            return sqeucl_dist<T>(arg0, arg1, len);
+        default:
+            throw parameter_exception("Unknown distance metric\n");
+    }
 }
 
 /**
