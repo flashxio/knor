@@ -58,7 +58,7 @@ void fcm::Estep() {
             double dist = base::dist_comp_raw<double>(&local_data[row*ncol],
                     &(centers->as_pointer()[cid*ncol]), ncol, dist_metric);
             if (dist > 0) {
-                //TODO: Fix bad access pattern
+                //TODO: Fix bad access pattern. um -> col major
                 um->set(cid, true_rid,
                         std::pow((1.0 / dist), (1.0 / (fuzzindex-1))));
             } else {
@@ -71,28 +71,25 @@ void fcm::Estep() {
 // NOTE: Sequential access on all 3 matrices, but lh matrix (um) has strided
 //  access.
 void fcm::Mstep() {
-#if 0
+#if 1
     innerprod->zero(); // Reset this
-    for (unsigned lcid = start_rid; lcid < start_rid+nprocrows; lcid++) {
-        for (unsigned lrid = 0; lrid < nclust; lrid++) {
-            for (unsigned rrid = 0; rrid < nprocrows; rrid++) {
-                unsigned true_rid = get_global_data_id(rrid);
 
-                for (unsigned rcol = 0; rcol < ncol; rcol++) {
-                    auto prod = um->get(lrid, lcid)*local_data[rrid*ncol+rcol];
-                    innerprod->peq(lrid, rcol, prod);
-                }
+    for (unsigned lcid = start_rid; lcid < start_rid+nprocrows; lcid++) {
+        unsigned rrid = lcid - start_rid;
+        for (unsigned lrid = 0; lrid < nclust; lrid++) {
+            for (unsigned rcid = 0; rcid < ncol; rcid++) {
+                auto prod = um->get(lrid, lcid) * local_data[rrid*ncol+rcid];
+                innerprod->peq(lrid, rcid, prod);
             }
         }
     }
 #else
+    // For testing matrix mult
     base::dense_matrix<double>* _data =
         base::dense_matrix<double>::create(nprocrows, ncol);
     _data->set(local_data);
     auto ip = ((*um) * (*_data));
     innerprod->copy_from(ip);
-
-    std::cout << "Thread: " << thd_id << ", has inner product: \n";
     innerprod->print();
 #endif
 }

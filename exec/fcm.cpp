@@ -35,11 +35,11 @@ int main(int argc, char* argv[]) {
 
     // optional args
     unsigned nthread = kbase::get_num_omp_threads();
-    std::string dist_type = "eucl";
+    std::string dist_type = "sqeucl";
     std::string centersfn = "";
     unsigned max_iters=std::numeric_limits<unsigned>::max();
-    std::string init = "random";
-    double tolerance = -1;
+    std::string init = "forgy";
+    double tolerance = 1E-6;
     unsigned fuzzindex = 2;
 
     unsigned nnodes = kbase::get_num_nodes();
@@ -74,8 +74,7 @@ int main(int argc, char* argv[]) {
             cxxopts::value<std::string>())
       ("o,outdir", "Write output to an output directory of this name",
             cxxopts::value<std::string>(outdir))
-      ("h,help", "Print help")
-    ;
+      ("h,help", "Print help");
 
     options.parse_positional({"datafn", "nsamples", "dim",
             "nclust"});

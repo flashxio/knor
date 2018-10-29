@@ -150,56 +150,11 @@ void const fcm_coordinator::print_thread_start_rids() {
 }
 
 void fcm_coordinator::kmeanspp_init() {
-    // TODO
-#if 0
-    struct timeval start, end;
-    gettimeofday(&start , NULL);
-
-    std::vector<double> dist_v;
-    dist_v.assign(nrow, std::numeric_limits<double>::max());
-    set_thd_dist_v_ptr(&dist_v[0]);
-
-    std::default_random_engine generator;
-    std::uniform_int_distribution<unsigned> distribution(0, nrow-1);
-
-    // Choose c1 uniformly at random
-    unsigned selected_idx = distribution(generator);
-    cltrs->set_mean(get_thd_data(selected_idx), 0);
-    dist_v[selected_idx] = 0.0;
-    cluster_assignments[selected_idx] = 0;
-
-    unsigned clust_idx = 0; // The number of clusters assigned
-
-    std::uniform_real_distribution<double> ur_distribution(0.0, 1.0);
-
-    // Choose next center c_i with weighted prob
-    while (true) {
-        set_thread_clust_idx(clust_idx); // Set the current cluster index
-        wake4run(KMSPP_INIT); // Run || distance comp to clust_idx
-        wait4complete();
-        double cuml_dist = reduction_on_cuml_sum(); // Sum the per thread cumulative dists
-
-        cuml_dist = (cuml_dist * ur_distribution(generator)) / (RAND_MAX - 1.0);
-        if (++clust_idx >= k)  // No more centers needed
-            break;
-
-        for (size_t row = 0; row < nrow; row++) {
-            cuml_dist -= dist_v[row];
-            if (cuml_dist <= 0) {
-                cltrs->set_mean(get_thd_data(row), clust_idx);
-                cluster_assignments[row] = clust_idx;
-                break;
-            }
-        }
-        assert(cuml_dist <= 0);
-    }
-
-    gettimeofday(&end, NULL);
-#endif
+    throw base::not_implemented_exception();
 }
 
 void fcm_coordinator::forgy_init() {
-#if 0
+#if 1
     std::default_random_engine generator;
     std::uniform_int_distribution<unsigned> distribution(0, nrow-1);
 
@@ -208,6 +163,7 @@ void fcm_coordinator::forgy_init() {
         centers->set_row(get_thd_data(rand_idx), clust_idx);
     }
 #else
+    // Testing for iris with k = 3
     assert(k == 3);
     centers->set_row(get_thd_data(91),0);
     centers->set_row(get_thd_data(63),1);
@@ -233,11 +189,7 @@ void fcm_coordinator::run_init() {
 void fcm_coordinator::update_contribution_matrix() {
     std::vector<double> colsums;
     um->sum(0, colsums); // k x nrow
-    // TODO: Combine into one step
-    //std::cout << "u.sum(axis=0): "; base::print_vector<double>(colsums, 200);
-    //std::cout << "u: \n";  um->print();
-    (*um) /= colsums;
-    um->pow_eq(fuzzindex); // um is complete
+    um->div_eq_pow(colsums, 0, fuzzindex);
 }
 
 void fcm_coordinator::update_centers() {
@@ -252,7 +204,7 @@ void fcm_coordinator::update_centers() {
 
         for (size_t tid = 2; tid < threads.size(); tid++) {
             *centers += *(std::static_pointer_cast<fcm>(
-                            threads[0])->get_innerprod());
+                            threads[tid])->get_innerprod());
         }
     }
 
@@ -277,18 +229,9 @@ void fcm_coordinator::soft_run(double* allocd_data) {
         set_thread_data_ptr(allocd_data);
     }
 
-#if 0
-    std::cout << "Printing the data:\n";
-    print_thread_data();
-    std::cout << "\n\n";
-#endif
-
     struct timeval start, end;
     gettimeofday(&start , NULL);
     run_init(); // Initialize clusters
-
-    std::cout << "After init centers are: \n";
-    centers->print();
 
     // Run kmeans loop
     bool converged = false;
@@ -304,21 +247,31 @@ void fcm_coordinator::soft_run(double* allocd_data) {
         wait4complete();
 
         update_contribution_matrix();
+
+#if VERBOSE
+#ifndef BIND
         std::cout << "After Estep contribution matrix is: \n";
         um->print();
-
+#endif
+#endif
         // Compute new centers
         prev_centers->copy_from(centers);
 
-        std::cout << "Mstep: \n";
         wake4run(M);
         wait4complete();
         update_centers();
+
+#if VERBOSE
+#ifndef BIND
         std::cout << "After Mstep centers are: \n";
         centers->print();
+#endif
+#endif
 
         auto diff = (*centers - *prev_centers);
-        std::cout << "Centers frob diff: " << diff->frobenius_norm() << "\n";
+#ifndef BIND
+        std::cout << "Centers frob diff: " << diff->frobenius_norm() << "\n\n";
+#endif
 
         if (diff->frobenius_norm() < tolerance) {
             converged = true;
