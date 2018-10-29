@@ -268,6 +268,24 @@ public:
         return *this;
     }
 
+    void div_eq(std::vector<T>& v, const unsigned axis) {
+        if (axis == 0 && v.size() == ncol) {
+            for (size_t row = 0; row < nrow; row++) {
+                for (size_t col = 0; col < ncol; col++) {
+                    mat[row*ncol+col] /= v[col];
+                }
+            }
+        } else if (axis == 1 && v.size() == nrow) {
+            for (size_t row = 0; row < nrow; row++) {
+                for (size_t col = 0; col < ncol; col++) {
+                    mat[row*ncol+col] /= v[row];
+                }
+            }
+        } else {
+            throw std::runtime_error("Vector division must have size = nrow/ncol");
+        }
+    }
+
     void div_eq_pow(std::vector<T>& v, const unsigned axis,
             const unsigned exp) {
 

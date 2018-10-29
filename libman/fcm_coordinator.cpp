@@ -211,7 +211,7 @@ void fcm_coordinator::update_centers() {
     // Take sum along axis
     std::vector<double> sum;
     um->sum(1, sum);
-    (*centers) /= sum;
+    centers->div_eq(sum, 1);
 }
 
 /**
