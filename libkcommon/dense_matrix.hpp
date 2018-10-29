@@ -245,7 +245,7 @@ public:
         return *this;
     }
 
-    dense_matrix& operator/=(std::vector<T> v) {
+    dense_matrix& operator/=(std::vector<T>& v) {
         if (nrow == ncol)
             throw parameter_exception("Cannot determine which axis "
                     "to div for square matrix.");
@@ -266,6 +266,29 @@ public:
             throw std::runtime_error("Vector division must have size = nrow/ncol");
         }
         return *this;
+    }
+
+    void div_eq_pow(std::vector<T>& v, const unsigned axis,
+            const unsigned exp) {
+
+        if (axis == 0 && v.size() == ncol) {
+            for (size_t row = 0; row < nrow; row++) {
+                for (size_t col = 0; col < ncol; col++) {
+                    mat[row*ncol+col] =
+                        std::pow(mat[row*ncol+col] / v[col], exp);
+                }
+            }
+        } else if (axis == 1 && v.size() == nrow) {
+            for (size_t row = 0; row < nrow; row++) {
+                for (size_t col = 0; col < ncol; col++) {
+                    mat[row*ncol+col] =
+                        std::pow(mat[row*ncol+col] / v[row], exp);
+                }
+            }
+        } else {
+            throw std::runtime_error(
+                    "Vector division must have size = nrow/ncol");
+        }
     }
 
     // Raise every element to the power `exp` and assign
