@@ -78,7 +78,7 @@ class fcm_coordinator : public coordinator {
         }
 
         void kmeanspp_init();
-        void soft_run(double* allocd_data=NULL);
+        base::cluster_t soft_run(double* allocd_data=NULL);
         void update_contribution_matrix();
         void update_centers();
         void wake4run(knor::thread_state_t state) override;

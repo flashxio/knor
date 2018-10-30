@@ -217,7 +217,7 @@ void fcm_coordinator::update_centers() {
 /**
  * Main driver
  */
-void fcm_coordinator::soft_run(double* allocd_data) {
+base::cluster_t fcm_coordinator::soft_run(double* allocd_data) {
 #ifdef PROFILER
     ProfilerStart("libman/fcm_coordinator.perf");
 #endif
@@ -241,7 +241,9 @@ void fcm_coordinator::soft_run(double* allocd_data) {
         iter++;
 
     while (iter <= max_iters && max_iters > 0) {
+#ifndef BIND
         std::cout << "Running iteration: "  << iter << std::endl;
+#endif
         // Compute new um
         wake4run(E);
         wait4complete();
@@ -303,20 +305,24 @@ void fcm_coordinator::soft_run(double* allocd_data) {
 #endif
     }
 
-#ifndef BIND
-    printf("Final cluster assignment: \n");
-    std::vector<unsigned> cluster_assignment;
-    um->argmax(1, cluster_assignment);
-    kbase::print_vector(cluster_assignment);
-
-    printf("Final cluster assignment count:\n");
+    std::vector<unsigned> cluster_assignments;
+    um->argmax(1, cluster_assignments);
     std::vector<size_t> cluster_assignment_counts;
     cluster_assignment_counts.assign(k, 0);
-
-    for (auto i : cluster_assignment)
+    for (auto i : cluster_assignments)
         cluster_assignment_counts[i]++;
+
+#ifndef BIND
+    printf("Final cluster assignment: \n");
+    kbase::print_vector(cluster_assignments);
+
+    printf("Final cluster assignment count:\n");
     kbase::print_vector(cluster_assignment_counts);
     printf("\n******************************************\n");
 #endif
+
+    return kbase::cluster_t(this->nrow, this->ncol, iter, this->k,
+            &cluster_assignments[0], &cluster_assignment_counts[0],
+            centers->as_vector());
 }
 }
