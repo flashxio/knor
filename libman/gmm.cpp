@@ -27,6 +27,35 @@
 #include "io.hpp"
 #include "linalg.hpp"
 
+namespace {
+void* callback(void* arg) {
+    knor::gmm* t = static_cast<knor::gmm*>(arg);
+#ifdef USE_NUMA
+    t->bind2node_id();
+#endif
+
+    while (true) { // So we can receive task after task
+        if (t->get_state() == knor::WAIT)
+            t->wait();
+
+        if (t->get_state() == knor::EXIT) {// No more work to do
+            //printf("Thread %d exiting ...\n", t->thd_id);
+            break;
+        }
+
+        //printf("Thread %d awake and doing a run()\n", t->thd_id);
+        t->run(); // else
+    }
+
+    // We've stopped running so exit
+    pthread_exit(NULL);
+
+#ifdef _WIN32
+    return NULL;
+#endif
+}
+}
+
 namespace knor {
 gmm::gmm(const int node_id, const unsigned thd_id,
         const unsigned start_rid,
@@ -125,32 +154,6 @@ void gmm::run() {
             throw kbase::thread_exception("Unknown thread state\n");
     }
     sleep();
-}
-void* callback(void* arg) {
-    gmm* t = static_cast<gmm*>(arg);
-#ifdef USE_NUMA
-    t->bind2node_id();
-#endif
-
-    while (true) { // So we can receive task after task
-        if (t->get_state() == WAIT)
-            t->wait();
-
-        if (t->get_state() == EXIT) {// No more work to do
-            //printf("Thread %d exiting ...\n", t->thd_id);
-            break;
-        }
-
-        //printf("Thread %d awake and doing a run()\n", t->thd_id);
-        t->run(); // else
-    }
-
-    // We've stopped running so exit
-    pthread_exit(NULL);
-
-#ifdef _WIN32
-    return NULL;
-#endif
 }
 
 void gmm::start(const thread_state_t state=WAIT) {

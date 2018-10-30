@@ -26,6 +26,33 @@
 #include "io.hpp"
 #include "clusters.hpp"
 
+
+namespace {
+void* callback(void* arg) {
+    knor::kmeans_thread* t = static_cast<knor::kmeans_thread*>(arg);
+#ifdef USE_NUMA
+    t->bind2node_id();
+#endif
+
+    while (true) { // So we can receive task after task
+        if (t->get_state() == knor::WAIT)
+            t->wait();
+
+        if (t->get_state() == knor::EXIT) {// No more work to do
+            break;
+        }
+        t->run(); // else
+    }
+
+    // We've stopped running so exit
+    pthread_exit(NULL);
+
+#ifdef _WIN32
+    return NULL;
+#endif
+}
+}
+
 namespace knor {
 kmeans_thread::kmeans_thread(const int node_id, const unsigned thd_id,
         const unsigned start_rid,
@@ -72,30 +99,6 @@ void kmeans_thread::run() {
             throw kbase::thread_exception("Unknown thread state\n");
     }
     sleep();
-}
-
-void* callback(void* arg) {
-    kmeans_thread* t = static_cast<kmeans_thread*>(arg);
-#ifdef USE_NUMA
-    t->bind2node_id();
-#endif
-
-    while (true) { // So we can receive task after task
-        if (t->get_state() == WAIT)
-            t->wait();
-
-        if (t->get_state() == EXIT) {// No more work to do
-            break;
-        }
-        t->run(); // else
-    }
-
-    // We've stopped running so exit
-    pthread_exit(NULL);
-
-#ifdef _WIN32
-    return NULL;
-#endif
 }
 
 void kmeans_thread::start(const thread_state_t state=WAIT) {

@@ -24,8 +24,35 @@
 #include "thd_safe_bool_vector.hpp"
 #include "dist_matrix.hpp"
 
-#if 1
+namespace {
+void* callback(void* arg) {
+    knor::prune::kmeans_task_thread* t =
+        static_cast<knor::prune::kmeans_task_thread*>(arg);
+#ifdef USE_NUMA
+    t->bind2node_id();
 #endif
+
+    while (true) { // So we can receive task after task
+        if (t->get_state() == knor::WAIT)
+            t->wait();
+
+        if (t->get_state() == knor::EXIT) {// No more work to do
+            //printf("Thread %d exiting ...\n", t->thd_id);
+            break;
+        }
+
+        //printf("Thread %d awake and doing a run()\n", t->thd_id);
+        t->run(); // else
+    }
+
+    // We've stopped running so exit
+    pthread_exit(NULL);
+#ifdef _WIN32
+    return NULL;
+#endif
+}
+}
+
 namespace knor { namespace prune {
 
 kmeans_task_thread::kmeans_task_thread(const int node_id, const unsigned thd_id,
@@ -146,32 +173,6 @@ void kmeans_task_thread::wake(thread_state_t state) {
     if (rc) perror("pthread_mutex_unlock");
 
     rc = pthread_cond_signal(&cond);
-}
-
-void* callback(void* arg) {
-    kmeans_task_thread* t = static_cast<kmeans_task_thread*>(arg);
-#ifdef USE_NUMA
-    t->bind2node_id();
-#endif
-
-    while (true) { // So we can receive task after task
-        if (t->get_state() == WAIT)
-            t->wait();
-
-        if (t->get_state() == EXIT) {// No more work to do
-            //printf("Thread %d exiting ...\n", t->thd_id);
-            break;
-        }
-
-        //printf("Thread %d awake and doing a run()\n", t->thd_id);
-        t->run(); // else
-    }
-
-    // We've stopped running so exit
-    pthread_exit(NULL);
-#ifdef _WIN32
-    return NULL;
-#endif
 }
 
 void kmeans_task_thread::start(const thread_state_t state=WAIT) {

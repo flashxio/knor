@@ -23,6 +23,32 @@
 #include "io.hpp"
 #include "util.hpp"
 
+namespace {
+void* callback(void* arg) {
+    knor::fcm* t = static_cast<knor::fcm*>(arg);
+#ifdef USE_NUMA
+    t->bind2node_id();
+#endif
+
+    while (true) { // So we can receive task after task
+        if (t->get_state() == knor::WAIT)
+            t->wait();
+
+        if (t->get_state() == knor::EXIT) {// No more work to do
+            break;
+        }
+        t->run(); // else
+    }
+
+    // We've stopped running so exit
+    pthread_exit(NULL);
+
+#ifdef _WIN32
+    return NULL;
+#endif
+}
+}
+
 namespace knor {
 fcm::fcm(const int node_id, const unsigned thd_id,
             const unsigned start_rid, const unsigned nprocrows,
@@ -115,33 +141,6 @@ void fcm::run() {
             throw kbase::thread_exception("Unknown thread state\n");
     }
     sleep();
-}
-
-void* callback(void* arg) {
-    fcm* t = static_cast<fcm*>(arg);
-#ifdef USE_NUMA
-    t->bind2node_id();
-#endif
-
-    while (true) { // So we can receive task after task
-        if (t->get_state() == WAIT)
-            t->wait();
-
-        if (t->get_state() == EXIT) {// No more work to do
-            //printf("Thread %d exiting ...\n", t->thd_id);
-            break;
-        }
-
-        //printf("Thread %d awake and doing a run()\n", t->thd_id);
-        t->run(); // else
-    }
-
-    // We've stopped running so exit
-    pthread_exit(NULL);
-
-#ifdef _WIN32
-    return NULL;
-#endif
 }
 
 void fcm::start(const thread_state_t state=WAIT) {
