@@ -133,10 +133,21 @@ namespace knor { namespace base {
             return true;
         }
 
-        static void vdiff(double* left, double* right, const size_t size,
-                std::vector<double>& res) {
+        static void vdiff(const double* left, const double* right,
+                const size_t size, std::vector<double>& res) {
+            if (!res.size()) res.resize(size);
+
             for (size_t i = 0; i < size; i++)
-                res[i] = left - right;
+                res[i] = left[i] - right[i];
+        }
+
+        template <typename T>
+        static T frobenius_norm(const T* v, const size_t size) {
+            T sum = 0;
+            for (size_t i = 0; i < size; i++)
+                sum += v[i] * v[i];
+
+            return std::sqrt(sum);
         }
 
         // Not blas but efficient
