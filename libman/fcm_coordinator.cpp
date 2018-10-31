@@ -271,11 +271,12 @@ base::cluster_t fcm_coordinator::soft_run(double* allocd_data) {
 #endif
 
         auto diff = (*centers - *prev_centers);
+        auto frob_norm = diff->frobenius_norm();
 #ifndef BIND
-        std::cout << "Centers frob diff: " << diff->frobenius_norm() << "\n\n";
+        std::cout << "Centers frob diff: " << frob_norm << "\n\n";
 #endif
 
-        if (diff->frobenius_norm() < tolerance) {
+        if (frob_norm < tolerance) {
             converged = true;
             delete (diff);
             break;
