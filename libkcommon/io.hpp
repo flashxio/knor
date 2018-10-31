@@ -40,7 +40,7 @@ namespace knor { namespace base {
  * \param cols The number of cols in the mat
  */
 template <typename T>
-void print_mat(T* matrix, const unsigned rows, const unsigned cols) {
+void print_mat(const T* matrix, const unsigned rows, const unsigned cols) {
 #ifndef BIND
     for (unsigned row = 0; row < rows; row++) {
         std::cout << "[";
