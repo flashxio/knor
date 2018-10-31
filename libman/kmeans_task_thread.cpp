@@ -185,19 +185,14 @@ void kmeans_task_thread::start(const thread_state_t state=WAIT) {
 }
 
 void kmeans_task_thread::mb_finalize_centroids(const double* eta) {
-    std::cout << "mb_finalize_centroids, thd:" << thd_id << ", with eta:\n";
-    kbase::print_arr<double>(eta, ncol);
-    std::cout << ", and cluster_assignments:\n";
-    knor::base::print_arr<unsigned>(cluster_assignments, 50);
-    std::cout << "mb_selected has size: " << mb_selected.size() << "\n";
-    std::cout << "g_clusters is: ";  g_clusters->print_means();
-
+    // At least it is sequential access
     for (unsigned local_rid : mb_selected) {
         auto g_rid = start_rid + local_rid;
-        std::cout << "\t\t Processing lrid: " << local_rid << ", g_rid: " <<
-            g_rid << std::endl;
+
         auto cid = cluster_assignments[g_rid];
-        std::cout << "cid: " << cid << std::endl;
+        assert(cid < g_clusters->get_nclust());
+
+        // TODO: Use a reduction
         g_clusters->scale_centroid(eta[cid], cid, &(local_data[local_rid*ncol]));
     }
 
@@ -207,100 +202,25 @@ void kmeans_task_thread::mb_finalize_centroids(const double* eta) {
 
 void kmeans_task_thread::mb_EM_step() {
     for (unsigned row = 0; row < curr_task->get_nrow(); row++) {
-
         if (ur_distribution(generator) > mb_perctg)
             continue; // Sample rows
 
-        std::cout << "\t ==> Processing row: " <<
-            get_global_data_id(row) << "\n";
-
         unsigned true_row_id = get_global_data_id(row);
-        mb_selected.push_back(true_row_id - start_rid);
-        unsigned old_clust = cluster_assignments[true_row_id];
 
-#if 0
-        if (prune_init) {
-#endif
-            double dist = std::numeric_limits<double>::max();
+        mb_selected.push_back(true_row_id - start_rid); // Local rid
 
-            for (unsigned clust_idx = 0;
-                    clust_idx < g_clusters->get_nclust(); clust_idx++) {
-                dist = kbase::dist_comp_raw<double>(
-                        &curr_task->get_data_ptr()[row*ncol],
-                        &(g_clusters->get_means()[clust_idx*ncol]), ncol,
-                        dist_metric);
+        for (unsigned clust_idx = 0;
+                clust_idx < g_clusters->get_nclust(); clust_idx++) {
+            double dist = kbase::dist_comp_raw<double>(
+                    &curr_task->get_data_ptr()[row*ncol],
+                    &(g_clusters->get_means()[clust_idx*ncol]), ncol,
+                    dist_metric);
 
-                if (dist < dist_v[true_row_id]) {
-                    dist_v[true_row_id] = dist;
-                    cluster_assignments[true_row_id] = clust_idx;
-                }
-            }
-
-            if (old_clust != cluster_assignments[true_row_id])
-                meta.num_changed++;
-#if 0
-        } else {
-            recalculated_v->set(true_row_id, false);
-            dist_v[true_row_id] +=
-                g_clusters->get_prev_dist(cluster_assignments[true_row_id]);
-
-            if (dist_v[true_row_id] <=
-                    g_clusters->get_s_val(cluster_assignments[true_row_id])) {
-                // Skip all rows
-            } else {
-                for (unsigned clust_idx = 0;
-                        clust_idx < g_clusters->get_nclust(); clust_idx++) {
-
-                    if (dist_v[true_row_id] <= dm->get(cluster_assignments
-                                [true_row_id], clust_idx)) {
-                        // Skip this cluster
-                        continue;
-                    }
-
-                    if (!recalculated_v->get(true_row_id)) {
-                        dist_v[true_row_id] = kbase::dist_comp_raw<double>(
-                                &curr_task->get_data_ptr()[row*ncol],
-                                &(g_clusters->get_means()[cluster_assignments
-                                    [true_row_id]*ncol]), ncol,
-                                dist_metric);
-                        recalculated_v->set(true_row_id, true);
-                    }
-
-                    if (dist_v[true_row_id] <=
-                            dm->get(cluster_assignments[true_row_id], clust_idx)) {
-                        // Skip this cluster
-                        continue;
-                    }
-
-                    // Track 5
-                    double jdist = kbase::dist_comp_raw(
-                            &curr_task->get_data_ptr()[row*ncol],
-                            &(g_clusters->get_means()[clust_idx*ncol]), ncol,
-                            dist_metric);
-
-                    if (jdist < dist_v[true_row_id]) {
-                        dist_v[true_row_id] = jdist;
-                        cluster_assignments[true_row_id] = clust_idx;
-                    }
-                } // endfor
+            if (dist < dist_v[true_row_id]) {
+                dist_v[true_row_id] = dist;
+                cluster_assignments[true_row_id] = clust_idx;
             }
         }
-
-        assert(cluster_assignments[true_row_id] >= 0 &&
-                cluster_assignments[true_row_id] < g_clusters->get_nclust());
-
-        // FIXME: Some rows may have no cluster_assignments
-        //if (prune_init) {
-            //meta.num_changed++;
-            //local_clusters->add_member(&(curr_task->get_data_ptr()[row*ncol]),
-                    //cluster_assignments[true_row_id]);
-        //} else if (old_clust != cluster_assignments[true_row_id]) {
-            //meta.num_changed++;
-            //local_clusters->swap_membership(
-                    //&(curr_task->get_data_ptr()[row*ncol]),
-                    //old_clust, cluster_assignments[true_row_id]);
-        //}
-#endif
     }
 }
 

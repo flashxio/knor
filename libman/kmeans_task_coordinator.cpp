@@ -28,6 +28,7 @@
 #include "dist_matrix.hpp"
 #include "clusters.hpp"
 #include "thd_safe_bool_vector.hpp"
+#include "linalg.hpp"
 
 #include "task_queue.hpp"
 
@@ -135,31 +136,27 @@ const double* kmeans_task_coordinator::get_thd_data(const unsigned row_id) const
 
 void kmeans_task_coordinator::mb_iteration_end() {
     // Serial O(n)
-    std::vector<double>v; v.assign(k, 0);
+    // TODO: Use reduction
+    std::vector<double>v; v.assign(k, 0);// Use std::fill
     for (size_t rid = 0; rid < nrow; rid++) {
         auto cid = cluster_assignments[rid];
         if (cid != base::INVALID_CLUSTER_ID) // Skip those not sampled
             v[cid]++;
     }
 
+    // Serial O(k)
     for (size_t cid = 0; cid < k; cid++)
         v[cid] = 1.0/v[cid];
 
-    // Serial O(n*b)
+    // Serial O(t*b)
     // NOTE: This updates global clusters
     for (auto th : threads) {
         std::static_pointer_cast<kmeans_task_thread>(th)
             ->mb_finalize_centroids(&v[0]);
     }
 
-    for (unsigned clust_idx = 0; clust_idx < k; clust_idx++) {
-        cltrs->set_prev_dist(
-                kbase::eucl_dist(&(cltrs->get_means()[clust_idx*ncol]),
-                &(cltrs->get_prev_means()[clust_idx*ncol]), ncol), clust_idx);
-
-        printf("Dist to prev mean for c: %u is %.6f\n",
-                clust_idx, cltrs->get_prev_dist(clust_idx));
-    }
+    // Reset the distances
+    std::fill(&dist_v[0], &dist_v[nrow], std::numeric_limits<double>::max());
 }
 
 void kmeans_task_coordinator::update_clusters(const bool prune_init) {
@@ -191,7 +188,6 @@ void kmeans_task_coordinator::update_clusters(const bool prune_init) {
                 clust_idx, cltrs->get_prev_dist(clust_idx));
 #endif
 #endif
-
         cluster_assignment_counts[clust_idx] = cltrs->get_num_members(clust_idx);
         chk_nmemb += cluster_assignment_counts[clust_idx];
     }
@@ -240,7 +236,7 @@ void kmeans_task_coordinator::set_thread_data_ptr(double* allocd_data) {
 void kmeans_task_coordinator::kmeanspp_init() {
     struct timeval start, end;
     gettimeofday(&start , NULL);
-    set_thd_dist_v_ptr(&dist_v[0]);
+    //set_thd_dist_v_ptr(&dist_v[0]);
 
     // Choose c1 uniformly at random
     if (!inited)
@@ -328,18 +324,21 @@ void kmeans_task_coordinator::random_partition_init() {
 }
 
 void kmeans_task_coordinator::forgy_init() {
+#if 1
     std::default_random_engine generator;
     std::uniform_int_distribution<unsigned> distribution(0, nrow-1);
 
-#ifndef BIND
-    printf("Forgy init start\n");
-#endif
     for (unsigned clust_idx = 0; clust_idx < k; clust_idx++) { // 0...k
         unsigned rand_idx = distribution(generator);
         cltrs->set_mean(get_thd_data(rand_idx), clust_idx);
     }
-#ifndef BIND
-    printf("Forgy init end\n");
+#else
+    //[ 5, 37, 33])
+    // Testing for iris with k = 3
+    assert(k == 3);
+    cltrs->set_mean(get_thd_data(5),0);
+    cltrs->set_mean(get_thd_data(37),1);
+    cltrs->set_mean(get_thd_data(33),2);
 #endif
 }
 
@@ -432,64 +431,37 @@ kbase::cluster_t kmeans_task_coordinator::mb_run(double* allocd_data) {
     gettimeofday(&start , NULL);
     run_init(); // Initialize clusters
 
-#if 1
-    std::cout << "Global clusters:\n";
-    cltrs->print_means();
-    std::cout << "Assignment counts: \n";
-    kbase::print_vector(cluster_assignment_counts);
-    std::cout << "Assignments: \n";
-    kbase::print_vector<unsigned>(cluster_assignments);
-#endif
-
-    size_t iter = 0;
-    // NOTE We haven't done anything to the global clusters
-    num_changed = 0;
-
     bool converged = false;
-    while (iter <= max_iters && max_iters > 0) {
+    size_t iter = 0;
+
+    ////////////////////////////////////////////////////////////////////////////
+    for (; iter < max_iters; iter++) {
 #ifndef BIND
         printf("E-step Iteration: %lu\n", iter);
-#if KM_TEST
-        printf("Main: Computing cluster distance matrix ...\n");
 #endif
-#endif
-        dm->compute_dist(cltrs, ncol);
+        cltrs->set_prev_means();
+
         wake4run(MB_EM);
         wait4complete();
-
         mb_iteration_end();
 
-#if 1
-    std::cout << "Global clusters:\n";
-    cltrs->print_means();
-    std::cout << "Assignment counts: \n";
-    kbase::print_vector(cluster_assignment_counts);
-    std::cout << "Assignments: \n";
-    kbase::print_vector<unsigned>(cluster_assignments);
-    std::cout << "Num changed: " <<  num_changed << std::endl;
-#endif
+        std::vector<double> diff;
+        assert(k*ncol == cltrs->get_means().size());
 
-        if (num_changed == 0 ||
-                ((num_changed/(double)nrow)) <= tolerance) {
+        kbase::linalg::vdiff(&cltrs->get_means()[0],
+                &cltrs->get_prev_means()[0], cltrs->get_means().size(), diff);
+
+        double frob_norm = kbase::linalg::frobenius_norm<double>(
+                &diff[0], diff.size());
+
+        if (frob_norm < tolerance) {
             converged = true;
             break;
-        } else {
-            num_changed = 0;
         }
-        iter++;
     }
-
-    // TODO: Run an iteration to assign all other samples
 
 #ifdef PROFILER
     ProfilerStop();
-#endif
-    gettimeofday(&end, NULL);
-
-#ifndef BIND
-    printf("\n\nAlgorithmic time taken = %.6f sec\n",
-        kbase::time_diff(start, end));
-    printf("\n******************************************\n");
 #endif
 
     if (converged) {
@@ -503,14 +475,31 @@ kbase::cluster_t kmeans_task_coordinator::mb_run(double* allocd_data) {
 #endif
     }
 
-    // FIXME: Run regular EM step to assign all samples to a cluster
+    // Run regular EM step to assign all samples to a cluster
+    for (auto th : threads)
+        th->set_prune_init(true);
+    wake4run(EM);
+    wait4complete();
+
+    // Get cluster counts
+    cluster_assignment_counts.assign(k, 0);
+    for (auto cid : cluster_assignments)
+        cluster_assignment_counts[cid]++;
+
+    gettimeofday(&end, NULL);
+#ifndef BIND
+    printf("\n\nAlgorithmic time taken = %.6f sec\n",
+        kbase::time_diff(start, end));
+    printf("\n******************************************\n");
+#endif
 
 #ifndef BIND
     printf("Final cluster counts: \n");
     kbase::print_vector(cluster_assignment_counts);
+    printf("Final cluster assignments: \n");
+    kbase::print_vector(cluster_assignments);
     printf("\n******************************************\n");
 #endif
-
     return kbase::cluster_t(this->nrow, this->ncol, iter, this->k,
             &cluster_assignments[0], &cluster_assignment_counts[0],
             cltrs->get_means());
