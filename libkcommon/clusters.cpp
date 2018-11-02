@@ -178,9 +178,11 @@ const void clusters::print_membership_count() const {
 
 void clusters::scale_centroid(const double factor,
         const unsigned idx, const double* member) {
-    for (unsigned col = 0; col < ncol; col++)
-        means[ncol*idx+col] = (((1-factor)*means[(idx*ncol)+col])
-            + (factor*member[col]));
+    assert(idx < nclust);
+    for (unsigned col = 0; col < ncol; col++) {
+        means[(ncol*idx)+col] = ((1-factor)*means[(idx*ncol)+col])
+            + (factor*(member[col]));
+    }
 }
 
 // Pruning clusters //
