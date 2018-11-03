@@ -67,14 +67,6 @@ fcm::fcm(const int node_id, const unsigned thd_id,
             this->innerprod = base::dense_matrix<double>::create(nclust, ncol);
 
             set_data_size(sizeof(double)*nprocrows*ncol);
-#if VERBOSE
-#ifndef
-            printf("Initializing fcm. Metadata: thd_id: %u , "
-                    "start_rid: %u, node_id: %d, nprocrows: %u, ncol: %u\n",
-                    this->thd_id, this->start_rid, this->node_id,
-                    this->nprocrows, this->ncol);
-#endif
-#endif
     }
 
 void fcm::Estep() {
@@ -149,14 +141,6 @@ void fcm::start(const thread_state_t state=WAIT) {
     if (rc)
         throw kbase::thread_exception(
                 "Thread creation (pthread_create) failed!", rc);
-}
-
-const void fcm::print_local_data() {
-    kbase::print_mat(local_data, nprocrows, ncol);
-}
-
-const unsigned fcm::get_global_data_id(const unsigned row_id) const {
-    return start_rid+row_id;
 }
 
 fcm::~fcm() {

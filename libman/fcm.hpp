@@ -64,9 +64,7 @@ class fcm : public thread {
         void Estep();
         void Mstep();
 
-        const unsigned get_global_data_id(const unsigned row_id) const;
         virtual void run() override;
-        const void print_local_data() override;
         base::dense_matrix<double>* get_innerprod() {
             return innerprod;
         }

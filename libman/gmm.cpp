@@ -163,13 +163,4 @@ void gmm::start(const thread_state_t state=WAIT) {
         throw kbase::thread_exception(
                 "Thread creation (pthread_create) failed!", rc);
 }
-
-const void gmm::print_local_data() {
-    kbase::print_mat(local_data, nprocrows, ncol);
-}
-
-const unsigned gmm::
-get_global_data_id(const unsigned row_id) const {
-    return start_rid+row_id;
-}
 } // End namespace knor

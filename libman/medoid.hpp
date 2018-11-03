@@ -76,9 +76,7 @@ class medoid : public thread {
         // Allocate and move data using this thread
         void EM_step();
         void medoid_step();
-        const unsigned get_global_data_id(const unsigned row_id) const;
         void run() override;;
-        const void print_local_data() override;
 
         // Medoid specific
         std::vector<double>& get_local_medoid_energy() {

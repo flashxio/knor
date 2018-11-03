@@ -89,7 +89,6 @@ public:
     virtual void lock_sleep();
     virtual bool try_steal_task() = 0;
 
-    const void print_local_data() override;
     ~task_thread();
 
     void set_driver(void* driver) {

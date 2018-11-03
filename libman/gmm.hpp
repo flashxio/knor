@@ -71,9 +71,6 @@ class gmm : public thread {
         // Allocate and move data using this thread
         void Estep();
         void Mstep();
-        const void print_local_data() override;
-
-        const unsigned get_global_data_id(const unsigned row_id) const;
         virtual void run() override;
 };
 }

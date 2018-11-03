@@ -137,14 +137,8 @@ void task_thread::wait() {
     pthread_mutex_unlock(&mutex);
 }
 
-const unsigned task_thread::
-get_global_data_id(const unsigned row_id) const {
+const unsigned task_thread::get_global_data_id(const unsigned row_id) const {
     return row_id + curr_task->get_start_rid();
-}
-
-const void task_thread::print_local_data() {
-    kbase::print_mat(local_data,
-            (get_data_size()/(sizeof(double)*ncol)), ncol);
 }
 
 task_thread::~task_thread() {

@@ -68,14 +68,6 @@ kmeans_thread::kmeans_thread(const int node_id, const unsigned thd_id,
                 kbase::clusters::create(g_clusters->get_nclust(), ncol);
 
             set_data_size(sizeof(double)*nprocrows*ncol);
-#if VERBOSE
-#ifndef
-            std::cout << "Initializing thread. Metadata: thd_id: "
-                << this->thd_id << ", start_rid: " << this->start_rid <<
-                ", node_id: " << this->node_id << ", nprocrows: " <<
-                this->nprocrows << ", ncol: " << this->ncol << std::endl;
-#endif
-#endif
         }
 
 void kmeans_thread::run() {
@@ -107,11 +99,6 @@ void kmeans_thread::start(const thread_state_t state=WAIT) {
     if (rc)
         throw kbase::thread_exception(
                 "Thread creation (pthread_create) failed!", rc);
-}
-
-const unsigned kmeans_thread::get_global_data_id(
-        const unsigned row_id) const {
-    return start_rid+row_id;
 }
 
 void kmeans_thread::EM_step() {
@@ -166,7 +153,4 @@ void kmeans_thread::kmspp_dist() {
     }
 }
 
-const void kmeans_thread::print_local_data() {
-    kbase::print_mat(local_data, nprocrows, ncol);
-}
 } // End namespace knor

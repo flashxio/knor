@@ -74,14 +74,6 @@ medoid::medoid(const int node_id, const unsigned thd_id,
                 kbase::clusters::create(g_clusters->get_nclust(), ncol);
             set_data_size(sizeof(double)*nprocrows*ncol);
             local_medoid_energy.assign(g_clusters->get_nclust(),0);
-#if VERBOSE
-#ifndef
-            std::cout << "Initializing thread. Metadata: thd_id: "
-                << this->thd_id << ", start_rid: " << this->start_rid <<
-                ", node_id: " << this->node_id << ", nprocrows: " <<
-                this->nprocrows << ", ncol: " << this->ncol << std::endl;
-#endif
-#endif
         }
 
 void medoid::run() {
@@ -113,11 +105,6 @@ void medoid::start(const thread_state_t state=WAIT) {
     if (rc)
         throw kbase::thread_exception(
                 "Thread creation (pthread_create) failed!", rc);
-}
-
-const unsigned medoid::
-get_global_data_id(const unsigned row_id) const {
-    return start_rid+row_id;
 }
 
 void medoid::EM_step() {
@@ -195,9 +182,5 @@ void medoid::medoid_step() {
             candidate_medoids[cid] = true_rid;
         }
     }
-}
-
-const void medoid::print_local_data() {
-    kbase::print_mat(local_data, nprocrows, ncol);
 }
 } // End namespace knor

@@ -126,7 +126,7 @@ public:
 
     virtual void start(const knor::thread_state_t state) = 0;
     // Allocate and move data using this thread
-    virtual const unsigned get_global_data_id(const unsigned row_id) const = 0;
+    virtual const unsigned get_global_data_id(const unsigned row_id) const;
     virtual void run() = 0;
     virtual void sleep();
     virtual void wait();
@@ -147,7 +147,7 @@ public:
         throw kbase::abstract_exception();
     }
 
-    virtual const void print_local_data() = 0;
+    const void print_local_data();
 
     void test() {
     }

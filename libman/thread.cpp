@@ -158,4 +158,15 @@ void thread::bind2node_id() {
 #endif
     // No NUMA? Do nothing
 }
+
+const void thread::print_local_data() {
+    kbase::print_mat(local_data,
+            (get_data_size()/(sizeof(double)*ncol)), ncol);
+}
+
+const unsigned thread::get_global_data_id(
+        const unsigned row_id) const {
+    return start_rid+row_id;
+}
+
 } // End namespace knor
