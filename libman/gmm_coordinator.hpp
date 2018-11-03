@@ -96,11 +96,7 @@ class gmm_coordinator : public coordinator {
         void random_prob_fill(std::vector<double>& v,
                 const double min=0, const double max=1);
         void update_clusters();
-        void run_init() override;
-        void random_partition_init() override {
-            throw base::not_implemented_exception();
-        }
-        void random_init();
+        void random_partition_init() override;
         void forgy_init() override;
         void kmeanspp_init() override;
         virtual void preprocess_data() {

@@ -100,21 +100,6 @@ void fcm_coordinator::forgy_init() {
 #endif
 }
 
-void fcm_coordinator::run_init() {
-    switch(_init_t) {
-        case kbase::init_t::FORGY:
-            forgy_init();
-            break;
-        case kbase::init_t::PLUSPLUS:
-            kmeanspp_init();
-            break;
-        case kbase::init_t::NONE:
-            break;
-        default:
-            throw std::runtime_error("Unknown initialization type");
-    }
-}
-
 void fcm_coordinator::update_contribution_matrix() {
     std::vector<double> colsums;
     um->sum(0, colsums); // k x nrow

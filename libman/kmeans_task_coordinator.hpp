@@ -104,7 +104,6 @@ public:
 
     // Pass file handle to threads to read & numa alloc
     void update_clusters(const bool prune_init);
-    void run_init() override;
     void set_global_ptrs() override;
     void set_thread_data_ptr(double* allocd_data) override;
     virtual void kmeanspp_init() override;

@@ -290,24 +290,6 @@ void kmeans_task_coordinator::forgy_init() {
 #endif
 }
 
-void kmeans_task_coordinator::run_init() {
-    switch(_init_t) {
-        case kbase::init_t::RANDOM:
-            random_partition_init();
-            break;
-        case kbase::init_t::FORGY:
-            forgy_init();
-            break;
-        case kbase::init_t::PLUSPLUS:
-            kmeanspp_init();
-            break;
-        case kbase::init_t::NONE:
-            break;
-        default:
-            throw std::runtime_error("Unknown initialization type");
-    }
-}
-
 void kmeans_task_coordinator::set_task_data_ptrs() {
     thread_iter it = threads.begin();
     for (; it != threads.end(); ++it) {

@@ -74,7 +74,6 @@ class skmeans_coordinator : public coordinator {
                 const bool numa_opt) override;
         void update_clusters();
         void kmeanspp_init() override;
-        void run_init() override;
         void random_partition_init() override;
         void forgy_init() override;
         virtual void preprocess_data();

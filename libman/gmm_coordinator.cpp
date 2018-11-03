@@ -203,31 +203,13 @@ void gmm_coordinator::compute_cov_mat() {
     }
 }
 
-void gmm_coordinator::random_init() {
+void gmm_coordinator::random_partition_init() {
     forgy_init();
 
     random_prob_fill(Pk);
     random_prob_fill(P_nk);
     for(auto cov : sigma_k)
         random_prob_fill(cov);
-}
-
-void gmm_coordinator::run_init() {
-    switch(_init_t) {
-        case kbase::init_t::RANDOM:
-            random_init();
-            break;
-        case base::init_t::FORGY:
-            forgy_init();
-            break;
-        case base::init_t::PLUSPLUS:
-            kmeanspp_init();
-            break;
-        case base::init_t::NONE:
-            break;
-        default:
-            throw std::runtime_error("Unknown initialization type");
-    }
 }
 
 void gmm_coordinator::compute_shared_linalg() {
@@ -320,11 +302,11 @@ base::gmm_t gmm_coordinator::soft_run(double* allocd_data) {
 #endif
     if (converged) {
 #ifndef BIND
-        printf("K-means converged in %lu iterations\n", iter);
+        printf("GMM converged in %lu iterations\n", iter);
 #endif
     } else {
 #ifndef BIND
-        printf("[Warning]: K-means failed to converge in %lu"
+        printf("[Warning]: GMM failed to converge in %lu"
             " iterations\n", iter);
 #endif
     }

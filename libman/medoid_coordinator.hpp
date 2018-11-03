@@ -88,7 +88,7 @@ class medoid_coordinator : public coordinator {
         void update_clusters();
         void run_init() override;
         void random_partition_init() override {
-            throw base::not_implemented_exception();
+            throw base::parameter_exception("Unsupported initialization type");
         };
         void forgy_init() override;
         void build_thread_state() override;

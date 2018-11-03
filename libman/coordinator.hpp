@@ -75,18 +75,24 @@ public:
         <thread> >::iterator thread_iter;
 
     // pass file handle to threads to read & numa alloc
-    virtual void run_init() = 0;
-    virtual void random_partition_init() = 0;
+    virtual void random_partition_init() {
+        throw base::parameter_exception("Unsupported initialization type");
+    };
+    virtual void kmeanspp_init() {
+        throw base::parameter_exception("Unsupported initialization type");
+    };
+    virtual void forgy_init() {
+        throw base::parameter_exception("Unsupported initialization type");
+    };
+
     virtual base::cluster_t run(
             double* allocd_data=NULL, const bool numa_opt=false) = 0;
-
-    virtual void kmeanspp_init() { };
-    virtual void forgy_init() { };
 
     std::vector<std::shared_ptr<thread> >& get_threads() {
         return threads;
     }
 
+    virtual void run_init();
     void set_thd_dist_v_ptr(double* v);
     void wake4run(thread_state_t state);
     const double* get_thd_data(const unsigned row_id) const;
