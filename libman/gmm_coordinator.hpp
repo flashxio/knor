@@ -36,7 +36,6 @@ class gmm_coordinator : public coordinator {
     protected:
         // Metadata
         // max index stored within each threads partition
-        std::vector<unsigned> thd_max_row_idx;
 
         base::dense_matrix<double>* mu_k; // estimated guassians (k means)
         std::vector<base::dense_matrix<double>*> sigma_k; // k Covar matrices
@@ -83,7 +82,6 @@ class gmm_coordinator : public coordinator {
                     cov_regularizer));
         }
 
-        std::pair<unsigned, unsigned> get_rid_len_tup(const unsigned thd_id);
         // Pass file handle to threads to read & numa alloc
         virtual base::cluster_t run(double* allocd_data=NULL,
             const bool numa_opt=false) override {
@@ -98,11 +96,6 @@ class gmm_coordinator : public coordinator {
         void random_prob_fill(std::vector<double>& v,
                 const double min=0, const double max=1);
         void update_clusters();
-        void wake4run(knor::thread_state_t state) override;
-        void destroy_threads() override;
-        void set_thread_clust_idx(const unsigned clust_idx) override;
-        double reduction_on_cuml_sum() override;
-        void set_thd_dist_v_ptr(double* v) override;
         void run_init() override;
         void random_partition_init() override {
             throw base::not_implemented_exception();
@@ -110,16 +103,11 @@ class gmm_coordinator : public coordinator {
         void random_init();
         void forgy_init() override;
         void kmeanspp_init() override;
-        const double* get_thd_data(const unsigned row_id) const override;
         virtual void preprocess_data() {
             throw base::not_implemented_exception();
         }
-        ~gmm_coordinator();
-
-        // For testing
-        void const print_thread_data() override;
         virtual void build_thread_state() override;
-        void const print_thread_start_rids();
+        ~gmm_coordinator();
 };
 } // End namespace knor
 #endif

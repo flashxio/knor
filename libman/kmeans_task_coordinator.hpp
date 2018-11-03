@@ -38,7 +38,6 @@ class kmeans_task_coordinator : public knor::coordinator {
 protected: // So lazy ..
     // Metadata
     // max index stored within each threads partition
-    std::vector<unsigned> thd_max_row_idx;
     std::shared_ptr<base::prune_clusters> cltrs;
     std::shared_ptr<base::thd_safe_bool_vector> recalculated_v;
     std::vector<double> dist_v; // global
@@ -103,14 +102,8 @@ public:
     base::cluster_t dump_state();
     void tally_assignment_counts();
 
-    std::pair<size_t, size_t> get_rid_len_tup(const unsigned thd_id);
     // Pass file handle to threads to read & numa alloc
     void update_clusters(const bool prune_init);
-    void wake4run(knor::thread_state_t state) override;
-    void destroy_threads() override;
-    void set_thread_clust_idx(const unsigned clust_idx) override;
-    double reduction_on_cuml_sum() override;
-    void set_thd_dist_v_ptr(double* v) override;
     void run_init() override;
     void set_global_ptrs() override;
     void set_thread_data_ptr(double* allocd_data) override;
@@ -122,12 +115,10 @@ public:
 
     base::cluster_t mb_run(double* allocd_data=NULL);
 
-    const double* get_thd_data(const unsigned row_id) const override;
     void set_task_data_ptrs();
 
     ~kmeans_task_coordinator();
     void set_prune_init(const bool prune_init);
-    virtual const void print_thread_data() override;
     virtual void build_thread_state() override;
 };
 } } // End namespace knor, prune

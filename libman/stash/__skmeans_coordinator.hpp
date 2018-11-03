@@ -58,11 +58,6 @@ class skmeans_coordinator : public kmeans_coordinator {
             base::init_t _init_t = base::get_init_type(init);
             base::dist_t _dist_t = base::get_dist_type(dist_type);
 
-            printf("skmeans coordinator => NUMA nodes: %u, nthreads: %u, "
-                    "nrow: %lu, ncol: %lu, init: '%s', dist_t: '%s', fn: '%s'"
-                    "\n\n", nnodes, nthreads, nrow, ncol, init.c_str(),
-                    dist_type.c_str(), fn.c_str());
-
             return coordinator::ptr(
                     new skmeans_coordinator(fn, nrow, ncol, k, max_iters,
                     nnodes, nthreads, centers, _init_t, tolerance, _dist_t));

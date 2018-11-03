@@ -71,30 +71,6 @@ void medoid_coordinator::build_thread_state() {
     }
 }
 
-std::pair<unsigned, unsigned>
-medoid_coordinator::get_rid_len_tup(const unsigned thd_id) {
-    unsigned rows_per_thread = nrow / nthreads;
-    unsigned start_rid = (thd_id*rows_per_thread);
-
-    if (thd_id == nthreads - 1)
-        rows_per_thread += nrow % nthreads;
-    return std::pair<unsigned, unsigned>(start_rid, rows_per_thread);
-}
-
-void medoid_coordinator::destroy_threads() {
-    wake4run(EXIT);
-}
-
-// <Thread, within-thread-row-id>
-const double* medoid_coordinator::get_thd_data(const unsigned row_id) const {
-    unsigned parent_thd = std::upper_bound(thd_max_row_idx.begin(),
-            thd_max_row_idx.end(), row_id) - thd_max_row_idx.begin();
-    unsigned rows_per_thread = nrow/nthreads; // All but the last thread
-
-    return &((threads[parent_thd]->get_local_data())
-            [(row_id-(parent_thd*rows_per_thread))*ncol]);
-}
-
 void medoid_coordinator::sanity_check() {
     unsigned chk_nmemb = 0;
     for (unsigned clust_idx = 0; clust_idx < k; clust_idx++) {
@@ -163,24 +139,6 @@ void medoid_coordinator::compute_globals() {
     }
 
     assert(num_changed <= nrow);
-}
-
-double medoid_coordinator::reduction_on_cuml_sum() {
-    double tot = 0;
-    for (thread_iter it = threads.begin(); it != threads.end(); ++it)
-        tot += (*it)->get_cuml_dist();
-    return tot;
-}
-
-void medoid_coordinator::wake4run(const thread_state_t state) {
-    pending_threads = nthreads;
-    for (unsigned thd_id = 0; thd_id < threads.size(); thd_id++)
-        threads[thd_id]->wake(state);
-}
-
-void medoid_coordinator::set_thread_clust_idx(const unsigned clust_idx) {
-    for (thread_iter it = threads.begin(); it != threads.end(); ++it)
-        (*it)->set_clust_idx(clust_idx);
 }
 
 // Default
@@ -329,26 +287,5 @@ medoid_coordinator::~medoid_coordinator() {
     pthread_mutex_destroy(&mutex);
     pthread_mutexattr_destroy(&mutex_attr);
     destroy_threads();
-}
-
-void const medoid_coordinator::print_thread_data() {
-    thread_iter it = threads.begin();
-    for (; it != threads.end(); ++it) {
-#ifndef BIND
-        std::cout << "\nThd: " << (*it)->get_thd_id() << std::endl;
-#endif
-        (*it)->print_local_data();
-    }
-}
-
-// Testing
-void const medoid_coordinator::print_thread_start_rids() {
-    thread_iter it = threads.begin();
-    for (; it != threads.end(); ++it) {
-#ifndef BIND
-        printf("\nThd: %u, start_rid: %lu\n", (*it)->get_thd_id(),
-            (*it)->get_start_rid());
-#endif
-    }
 }
 }

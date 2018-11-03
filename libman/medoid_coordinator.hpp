@@ -41,7 +41,6 @@ class medoid_coordinator : public coordinator {
     protected:
         // Metadata
         // max index stored within each threads partition
-        std::vector<unsigned> thd_max_row_idx;
         std::shared_ptr<base::clusters> cltrs;
 
         // Pairwise distances for all samples
@@ -83,26 +82,17 @@ class medoid_coordinator : public coordinator {
             return cltrs;
         }
 
-        std::pair<unsigned, unsigned> get_rid_len_tup(const unsigned thd_id);
         // Pass file handle to threads to read & numa alloc
         virtual base::cluster_t run(double* allocd_data,
                 const bool numa_opt=false) override;
         void update_clusters();
-        void wake4run(knor::thread_state_t state) override;
-        void destroy_threads() override;
-        void set_thread_clust_idx(const unsigned clust_idx) override;
-        double reduction_on_cuml_sum() override;
         void run_init() override;
         void random_partition_init() override {
             throw base::not_implemented_exception();
         };
         void forgy_init() override;
-        const double* get_thd_data(const unsigned row_id) const override;
-        ~medoid_coordinator();
-        // For testing
-        void const print_thread_data() override;
         void build_thread_state() override;
-        void const print_thread_start_rids();
+        ~medoid_coordinator();
 
         // medoid specific
         void compute_globals();

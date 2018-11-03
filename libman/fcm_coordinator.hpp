@@ -32,7 +32,6 @@ class fcm_coordinator : public coordinator {
     protected:
         // Metadata
         // max index stored within each threads partition
-        std::vector<unsigned> thd_max_row_idx;
         base::dense_matrix<double>* centers; // k x ncol
         base::dense_matrix<double>* prev_centers; // k x ncol
         base::dense_matrix<double>* um; // nrow x k
@@ -56,21 +55,13 @@ class fcm_coordinator : public coordinator {
 
             base::init_t _init_t = base::get_init_type(init);
             base::dist_t _dist_t = base::get_dist_type(dist_type);
-#if KM_TEST
-#ifndef BIND
-            printf("fcm_coordinator => NUMA nodes: %u, nthreads: %u, "
-                    "nrow: %lu, ncol: %lu, init: '%s', dist_t: '%s', fn: '%s'"
-                    "\n\n", nnodes, nthreads, nrow, ncol, init.c_str(),
-                    dist_type.c_str(), fn.c_str());
-#endif
-#endif
+
             return coordinator::ptr(
                     new fcm_coordinator(fn, nrow, ncol, k, max_iters,
                     nnodes, nthreads, centers, _init_t,
                     tolerance, _dist_t, fuzzindex));
         }
 
-        std::pair<unsigned, unsigned> get_rid_len_tup(const unsigned thd_id);
         // Pass file handle to threads to read & numa alloc
         base::cluster_t run(double* allocd_data,
                 const bool numa_opt) override {
@@ -81,22 +72,13 @@ class fcm_coordinator : public coordinator {
         base::cluster_t soft_run(double* allocd_data=NULL);
         void update_contribution_matrix();
         void update_centers();
-        void wake4run(knor::thread_state_t state) override;
-        void destroy_threads() override;
-        void set_thread_clust_idx(const unsigned clust_idx) override;
-        double reduction_on_cuml_sum() override;
-        void set_thd_dist_v_ptr(double* v) override;
         void run_init() override;
         void random_partition_init() override {
             throw knor::base::abstract_exception(); };
         void forgy_init() override;
-        const double* get_thd_data(const unsigned row_id) const override;
         ~fcm_coordinator();
 
-        // For testing
-        void const print_thread_data() override;
         virtual void build_thread_state() override;
-        void const print_thread_start_rids();
 };
 }
 #endif

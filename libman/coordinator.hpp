@@ -41,19 +41,20 @@ class thread;
 
 class coordinator {
 protected:
-    unsigned nthreads, nnodes;
-    size_t nrow, ncol;
     std::string fn; // file on disk
-    std::vector<unsigned> cluster_assignments;
-    std::vector<size_t>cluster_assignment_counts;
-    unsigned k;
-    knor::base::init_t _init_t;
-    knor::base::dist_t _dist_t;
+    size_t nrow, ncol;
+    unsigned k, max_iters;
+    unsigned nnodes, nthreads;
+    base::init_t _init_t;
     double tolerance;
-    unsigned max_iters;
+    base::dist_t _dist_t;
     size_t num_changed; // total # samples changed in an iter
     // how many threads have not completed their task
     std::atomic<unsigned> pending_threads;
+
+    std::vector<unsigned> cluster_assignments;
+    std::vector<size_t>cluster_assignment_counts;
+    std::vector<unsigned> thd_max_row_idx;
 
     // threading
     pthread_mutex_t mutex;
@@ -64,8 +65,8 @@ protected:
     coordinator(const std::string fn, const size_t nrow,
             const size_t ncol, const unsigned k, const unsigned max_iters,
             const unsigned nnodes, const unsigned nthreads,
-            const double* centers, const knor::base::init_t it,
-            const double tolerance, const knor::base::dist_t dt);
+            const double* centers, const base::init_t it,
+            const double tolerance, const base::dist_t dt);
 
 public:
     const size_t get_num_changed() const { return num_changed; }
@@ -76,37 +77,37 @@ public:
     // pass file handle to threads to read & numa alloc
     virtual void run_init() = 0;
     virtual void random_partition_init() = 0;
+    virtual base::cluster_t run(
+            double* allocd_data=NULL, const bool numa_opt=false) = 0;
+
+    virtual void kmeanspp_init() { };
     virtual void forgy_init() { };
 
-    virtual knor::base::cluster_t run(
-            double* allocd_data=NULL, const bool numa_opt=false) = 0;
-    virtual void kmeanspp_init() { };
-    virtual void wake4run(knor::thread_state_t state) = 0;
-    virtual const double* get_thd_data(const unsigned row_id) const = 0;
-
-    virtual void set_thread_clust_idx(const unsigned clust_idx) = 0;
-    virtual double reduction_on_cuml_sum() = 0;
-    virtual void destroy_threads() = 0;
-    virtual void set_thd_dist_v_ptr(double* v) { }
-    void wait4complete();
     std::vector<std::shared_ptr<thread> >& get_threads() {
         return threads;
     }
 
+    void set_thd_dist_v_ptr(double* v);
+    void wake4run(thread_state_t state);
+    const double* get_thd_data(const unsigned row_id) const;
+    std::pair<unsigned, unsigned> get_rid_len_tup(const unsigned thd_id);
+    void set_thread_clust_idx(const unsigned clust_idx);
+    virtual const void print_thread_data();
+    virtual void destroy_threads();
     virtual void set_thread_data_ptr(double* allocd_data);
+    void const print_thread_start_rids();
+    double reduction_on_cuml_sum();
+    void wait4complete();
 
-    virtual void set_global_ptrs() { throw knor::base::abstract_exception(); };
-    virtual const void print_thread_data() {
-        throw knor::base::abstract_exception();
-    };
-    virtual void build_thread_state() { throw knor::base::abstract_exception(); };
+    virtual void set_global_ptrs() { throw base::abstract_exception(); };
+    virtual void build_thread_state() { throw base::abstract_exception(); };
     const unsigned* get_cluster_assignments() const {
         return &cluster_assignments[0];
     }
 
     void clear_cluster_assignments() {
         std::fill(&cluster_assignments[0],
-                &cluster_assignments[nrow], knor::base::INVALID_CLUSTER_ID);
+                &cluster_assignments[nrow], base::INVALID_CLUSTER_ID);
     }
     const size_t get_nrow() { return nrow; }
     const size_t get_ncol() { return ncol; }
