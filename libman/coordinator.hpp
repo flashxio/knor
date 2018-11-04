@@ -117,6 +117,7 @@ public:
     }
     const size_t get_nrow() { return nrow; }
     const size_t get_ncol() { return ncol; }
+    ~coordinator();
 };
 } // namespace knor
 #endif

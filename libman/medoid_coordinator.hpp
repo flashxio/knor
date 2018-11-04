@@ -87,12 +87,8 @@ class medoid_coordinator : public coordinator {
                 const bool numa_opt=false) override;
         void update_clusters();
         void run_init() override;
-        void random_partition_init() override {
-            throw base::parameter_exception("Unsupported initialization type");
-        };
         void forgy_init() override;
         void build_thread_state() override;
-        ~medoid_coordinator();
 
         // medoid specific
         void compute_globals();

@@ -277,15 +277,4 @@ kbase::cluster_t medoid_coordinator::run(
             &cluster_assignments[0], &cluster_assignment_counts[0],
             cltrs->get_means());
 }
-
-medoid_coordinator::~medoid_coordinator() {
-    thread_iter it = threads.begin();
-    for (; it != threads.end(); ++it)
-        (*it)->destroy_numa_mem();
-
-    pthread_cond_destroy(&cond);
-    pthread_mutex_destroy(&mutex);
-    pthread_mutexattr_destroy(&mutex_attr);
-    destroy_threads();
-}
 }

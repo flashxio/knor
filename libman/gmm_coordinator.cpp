@@ -323,15 +323,6 @@ base::gmm_t gmm_coordinator::soft_run(double* allocd_data) {
 }
 
 gmm_coordinator::~gmm_coordinator() {
-    thread_iter it = threads.begin();
-    for (; it != threads.end(); ++it)
-        (*it)->destroy_numa_mem();
-
-    pthread_cond_destroy(&cond);
-    pthread_mutex_destroy(&mutex);
-    pthread_mutexattr_destroy(&mutex_attr);
-    destroy_threads();
-
     // destroy metadata
     delete mu_k; // estimated guassians (k means)
     for (size_t i = 0; i < sigma_k.size(); i++) {

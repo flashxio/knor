@@ -41,9 +41,9 @@ coordinator::coordinator(const std::string fn,
 
     kbase::assert_msg(k >= 1, "[FATAL]: 'k' must be >= 1");
     cluster_assignments.resize(nrow);
-    cluster_assignment_counts.resize(k);
-
     clear_cluster_assignments();
+
+    cluster_assignment_counts.resize(k);
     std::fill(&cluster_assignment_counts[0],
             &cluster_assignment_counts[k], 0);
 
@@ -157,6 +157,17 @@ void coordinator::run_init() {
         default:
             throw std::runtime_error("Unknown initialization type");
     }
+}
+
+coordinator::~coordinator() {
+    thread_iter it = threads.begin();
+    for (; it != threads.end(); ++it)
+        (*it)->destroy_numa_mem();
+
+    pthread_cond_destroy(&cond);
+    pthread_mutex_destroy(&mutex);
+    pthread_mutexattr_destroy(&mutex_attr);
+    destroy_threads();
 }
 
 } // End namespace knor

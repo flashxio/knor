@@ -83,17 +83,6 @@ void kmeans_task_coordinator::build_thread_state() {
     }
 }
 
-kmeans_task_coordinator::~kmeans_task_coordinator() {
-    thread_iter it = threads.begin();
-    for (; it != threads.end(); ++it)
-        (*it)->destroy_numa_mem();
-
-    pthread_cond_destroy(&cond);
-    pthread_mutex_destroy(&mutex);
-    pthread_mutexattr_destroy(&mutex_attr);
-    destroy_threads();
-}
-
 void kmeans_task_coordinator::set_prune_init(const bool prune_init) {
     for (thread_iter it = threads.begin(); it != threads.end(); ++it)
         (*it)->set_prune_init(prune_init);

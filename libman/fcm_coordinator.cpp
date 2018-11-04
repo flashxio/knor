@@ -63,23 +63,9 @@ void fcm_coordinator::build_thread_state() {
 }
 
 fcm_coordinator::~fcm_coordinator() {
-    thread_iter it = threads.begin();
-    for (; it != threads.end(); ++it)
-        (*it)->destroy_numa_mem();
-
-    pthread_cond_destroy(&cond);
-    pthread_mutex_destroy(&mutex);
-    pthread_mutexattr_destroy(&mutex_attr);
-    destroy_threads();
-
-    // fcm specific
     delete (centers);
     delete (prev_centers);
     delete (um);
-}
-
-void fcm_coordinator::kmeanspp_init() {
-    throw base::not_implemented_exception();
 }
 
 void fcm_coordinator::forgy_init() {

@@ -116,7 +116,6 @@ public:
 
     void set_task_data_ptrs();
 
-    ~kmeans_task_coordinator();
     void set_prune_init(const bool prune_init);
     virtual void build_thread_state() override;
 };

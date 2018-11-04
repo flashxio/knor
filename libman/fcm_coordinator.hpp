@@ -68,12 +68,9 @@ class fcm_coordinator : public coordinator {
             throw base::not_implemented_exception();
         }
 
-        void kmeanspp_init();
         base::cluster_t soft_run(double* allocd_data=NULL);
         void update_contribution_matrix();
         void update_centers();
-        void random_partition_init() override {
-            throw knor::base::not_implemented_exception(); };
         void forgy_init() override;
         ~fcm_coordinator();
 

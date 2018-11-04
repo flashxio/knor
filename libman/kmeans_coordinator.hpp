@@ -82,7 +82,6 @@ class kmeans_coordinator : public coordinator {
             throw knor::base::abstract_exception();
         }
         virtual void build_thread_state() override;
-        ~kmeans_coordinator();
 };
 }
 #endif

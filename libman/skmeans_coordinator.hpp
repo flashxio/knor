@@ -78,7 +78,6 @@ class skmeans_coordinator : public coordinator {
         void forgy_init() override;
         virtual void preprocess_data();
         virtual void build_thread_state() override;
-        ~skmeans_coordinator();
 };
 }
 #endif
