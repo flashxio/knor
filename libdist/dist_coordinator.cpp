@@ -17,10 +17,6 @@
  * limitations under the License.
  */
 
-#ifdef PROFILER
-#include <gperftools/profiler.h>
-#endif
-
 #include "dist_coordinator.hpp"
 #include "kmeans_thread.hpp"
 #include "clusters.hpp"

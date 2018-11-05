@@ -22,10 +22,6 @@
 #include "kmeans_coordinator.hpp"
 #include "types.hpp"
 
-#ifdef PROFILER
-#include <gperftools/profiler.h>
-#endif
-
 namespace knor {
 
     namespace base {

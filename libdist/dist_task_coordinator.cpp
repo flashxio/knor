@@ -17,10 +17,6 @@
  * limitations under the License.
  */
 
-#if PROFILER
-#include <gperftools/profiler.h>
-#endif
-
 #include "dist_task_coordinator.hpp"
 #include "kmeans_task_thread.hpp"
 #include "clusters.hpp"

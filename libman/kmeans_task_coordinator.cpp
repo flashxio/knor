@@ -17,10 +17,6 @@
  * limitations under the License.
  */
 
-#ifdef PROFILER
-#include <gperftools/profiler.h>
-#endif
-
 #include <stdexcept>
 
 #include "kmeans_task_coordinator.hpp"

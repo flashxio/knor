@@ -201,7 +201,6 @@ kbase::cluster_t kmeans_coordinator::run(
 #endif
         kbase::print_vector(cluster_assignment_counts);
 #endif
-
         if (num_changed == 0 ||
                 ((num_changed/(double)nrow)) <= tolerance) {
             converged = true;

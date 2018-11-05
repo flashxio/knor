@@ -22,10 +22,6 @@
 #include "coordinator.hpp"
 #include "util.hpp"
 
-#ifdef PROFILER
-#include <gperftools/profiler.h>
-#endif
-
 namespace knor {
 
 class fcm_coordinator : public coordinator {

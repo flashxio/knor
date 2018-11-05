@@ -119,7 +119,7 @@ void fcm_coordinator::update_centers() {
  */
 base::cluster_t fcm_coordinator::soft_run(double* allocd_data) {
 #ifdef PROFILER
-    ProfilerStart("libman/fcm_coordinator.perf");
+    ProfilerStart("fcm_coordinator.perf");
 #endif
 
     if (!allocd_data) {
