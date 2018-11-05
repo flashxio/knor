@@ -25,7 +25,7 @@ namespace knor {
         TEST, /*just for testing*/
         ALLOC_DATA, /*moving data for reduces rma*/
         KMSPP_INIT,
-        EM, /*EM steps of kmeans*/
+        EM, /*EM step of expectation maximization*/
         E, /*E steps of an EM algo*/
         M, /*M steps of an EM algo*/
         MEDOID, /*Medoids step*/
@@ -33,7 +33,8 @@ namespace knor {
         NORMALIZE_DATA, /*Normalize the data*/
         MB_EM, /*Mini-batch EM step*/
         WAIT, /*When the thread is waiting for a new task*/
-        EXIT /* Say goodnight */
+        H_EM, /*Hierarchical EM step*/
+        EXIT /*Say goodnight*/
     };
 }
 

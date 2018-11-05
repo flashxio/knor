@@ -50,6 +50,8 @@ public:
     clusters(const unsigned nclust, const unsigned ncol);
     clusters(const unsigned nclust, const unsigned ncol,
             const kmsvector& means);
+    clusters(const unsigned nclust, const unsigned ncol,
+            const double* means);
 
     static ptr create(const unsigned nclust, const unsigned ncol) {
         return ptr(new clusters(nclust, ncol));
@@ -57,6 +59,11 @@ public:
 
     static ptr create(const unsigned nclust, const unsigned ncol,
             const kmsvector& means) {
+        return ptr(new clusters(nclust, ncol, means));
+    }
+
+    static ptr create(const unsigned nclust, const unsigned ncol,
+            const double* means) {
         return ptr(new clusters(nclust, ncol, means));
     }
 

@@ -156,13 +156,17 @@ clusters::clusters(const unsigned nclust, const unsigned ncol) {
 }
 
 clusters::clusters(const unsigned nclust, const unsigned ncol,
-        const kmsvector& means) {
+        const double* means) {
     this->nclust = nclust;
     this->ncol = ncol;
 
     set_mean(means);
     num_members_v.resize(nclust);
     complete_v.assign(nclust, true);
+}
+
+clusters::clusters(const unsigned nclust, const unsigned ncol,
+        const kmsvector& means) : clusters(nclust, ncol, &means[0]) {
 }
 
 const void clusters::print_membership_count() const {
