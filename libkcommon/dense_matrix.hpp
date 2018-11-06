@@ -25,6 +25,7 @@
 #include <cmath>
 #include <vector>
 #include <limits>
+#include <algorithm>
 
 #include "io.hpp"
 #include "exception.hpp"
@@ -150,7 +151,9 @@ public:
         double* rp = res->as_pointer();
 
         // lhs is this object and rhs is other
+#ifdef _OPENMP
 #pragma omp parallel for
+#endif
         for (size_t lrow = 0; lrow < this->nrow; lrow++) {
             for (size_t rrow = 0; rrow < other.get_nrow(); rrow++) {
                 for (size_t rcol = 0; rcol < other.get_ncol(); rcol++) {
@@ -210,18 +213,25 @@ public:
         std::fill(mat.begin(), mat.end(), 0);
     }
 
-    void sum(const unsigned axis, std::vector<T>& res) {
+    inline void sum(const unsigned axis, std::vector<T>& res) {
         // column wise
         if (axis == 0) {
-            res.assign(ncol, 0);
-            for (size_t row = 0; row < nrow; row++) {
+            // Copy the first row
+            res.resize(ncol);
+            std::copy(mat.begin(), mat.begin()+ncol, res.begin());
+
+            // TODO: Bottleneck
+            for (size_t row = 1; row < nrow; row++) {
+                size_t row_offset = row * ncol;
                 for (size_t col = 0; col < ncol; col++) {
-                    res[col] += mat[row*ncol+col];
+                    res[col] += mat[row_offset+col];
                 }
             }
         } else if (axis == 1) { /* row wise */
             res.assign(nrow, 0);
+#ifdef _OPENMP
 #pragma omp parallel for
+#endif
             for (size_t row = 0; row < nrow; row++) {
                 for (size_t col = 0; col < ncol; col++) {
                     res[row] += mat[row*ncol+col];
@@ -290,10 +300,15 @@ public:
             const unsigned exp) {
 
         if (axis == 0 && v.size() == ncol) {
+#ifdef _OPENMP
+#pragma omp parallel for schedule(static)
+#endif
             for (size_t row = 0; row < nrow; row++) {
+                //printf("Thread %d working\n", omp_get_thread_num());
+                size_t row_offset = row * ncol;
                 for (size_t col = 0; col < ncol; col++) {
-                    mat[row*ncol+col] =
-                        std::pow(mat[row*ncol+col] / v[col], exp);
+                    mat[row_offset+col] =
+                        std::pow(mat[row_offset+col] / v[col], exp);
                 }
             }
         } else if (axis == 1 && v.size() == nrow) {

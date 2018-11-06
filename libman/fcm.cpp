@@ -96,8 +96,8 @@ void fcm::Mstep() {
         unsigned rrid = lcid - start_rid;
         for (unsigned lrid = 0; lrid < nclust; lrid++) {
             for (unsigned rcid = 0; rcid < ncol; rcid++) {
-                auto prod = um->get(lrid, lcid) * local_data[rrid*ncol+rcid];
-                innerprod->peq(lrid, rcid, prod);
+                innerprod->peq(lrid, rcid,
+                        um->get(lrid, lcid) * local_data[rrid*ncol+rcid]);
             }
         }
     }

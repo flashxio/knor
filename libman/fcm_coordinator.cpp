@@ -25,6 +25,10 @@
 #include "io.hpp"
 #include "clusters.hpp"
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 namespace knor {
 fcm_coordinator::fcm_coordinator(const std::string fn, const size_t nrow,
         const size_t ncol, const unsigned k, const unsigned max_iters,
@@ -34,6 +38,10 @@ fcm_coordinator::fcm_coordinator(const std::string fn, const size_t nrow,
         const unsigned fuzzindex) :
     coordinator(fn, nrow, ncol, k, max_iters,
             nnodes, nthreads, centers, it, tolerance, dt) {
+
+#ifdef _OPENMP
+        omp_set_num_threads(nthreads);
+#endif
 
         this->fuzzindex = fuzzindex;
         this->centers = base::dense_matrix<double>::create(k, ncol);
