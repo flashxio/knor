@@ -54,7 +54,8 @@ protected:
 
     std::vector<unsigned> cluster_assignments;
     std::vector<size_t>cluster_assignment_counts;
-    std::vector<unsigned> thd_max_row_idx;
+    double nrow_inv;
+    unsigned rows_per_thread; // All but the last thread
 
     // threading
     pthread_mutex_t mutex;

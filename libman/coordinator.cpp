@@ -12,7 +12,7 @@
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY CURRENT_KIND, either express or implied.
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY CURRENT_KIND, either express or implied
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
@@ -47,6 +47,9 @@ coordinator::coordinator(const std::string fn,
     std::fill(&cluster_assignment_counts[0],
             &cluster_assignment_counts[k], 0);
 
+    nrow_inv = 1/(double)nrow;
+    rows_per_thread = nrow/nthreads; // note integer div
+
     // Threading
     pthread_mutexattr_init(&mutex_attr);
     pthread_mutexattr_settype(&mutex_attr, PTHREAD_MUTEX_ERRORCHECK);
@@ -70,14 +73,14 @@ void coordinator::set_thread_data_ptr(double* allocd_data) {
 
 std::pair<unsigned, unsigned>
 coordinator::get_rid_len_tup(const unsigned thd_id) {
-    unsigned rows_per_thread = nrow / nthreads;
     unsigned start_rid = (thd_id*rows_per_thread);
 
     if (thd_id == nthreads - 1)
-        rows_per_thread += nrow % nthreads;
-    return std::pair<unsigned, unsigned>(start_rid, rows_per_thread);
+        return std::pair<unsigned, unsigned>(start_rid, (rows_per_thread +
+                (nrow % nthreads)));
+    else
+        return std::pair<unsigned, unsigned>(start_rid, rows_per_thread);
 }
-
 
 void coordinator::wake4run(const thread_state_t state) {
     pending_threads = nthreads;
@@ -91,11 +94,8 @@ void coordinator::destroy_threads() {
 
 // <Thread, within-thread-row-id>
 const double* coordinator::get_thd_data(const unsigned row_id) const {
-    // TODO: Cheapen
-    unsigned parent_thd = std::upper_bound(thd_max_row_idx.begin(),
-            thd_max_row_idx.end(), row_id) - thd_max_row_idx.begin();
-    unsigned rows_per_thread = nrow/nthreads; // All but the last thread
-
+    // Cheaper + less memory
+    unsigned parent_thd = (unsigned)(row_id * nthreads * nrow_inv);
     return &((threads[parent_thd]->get_local_data())
             [(row_id-(parent_thd*rows_per_thread))*ncol]);
 }
