@@ -213,9 +213,7 @@ base::cluster_t fcm_coordinator::soft_run(double* allocd_data) {
 #endif
     }
 
-    std::vector<unsigned> cluster_assignments;
     um->argmax(1, cluster_assignments);
-    std::vector<size_t> cluster_assignment_counts;
     cluster_assignment_counts.assign(k, 0);
     for (auto i : cluster_assignments)
         cluster_assignment_counts[i]++;
