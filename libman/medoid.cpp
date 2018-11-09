@@ -25,7 +25,7 @@
 #include "util.hpp"
 #include "io.hpp"
 #include "clusters.hpp"
-#include "dist_matrix.hpp"
+#include "medoid_coordinator.hpp"
 
 namespace {
 void* callback(void* arg) {
@@ -61,19 +61,22 @@ medoid::medoid(const int node_id, const unsigned thd_id,
         const unsigned start_rid,
         const unsigned nprocrows, const unsigned ncol,
         kbase::clusters::ptr g_clusters, unsigned* cluster_assignments,
-        const std::string fn, std::shared_ptr<kprune::dist_matrix> pw_dm,
-        double* global_medoid_energy):
+        const std::string fn,
+        double* global_medoid_energy, const double sample_rate):
             thread(node_id, thd_id, ncol, cluster_assignments, start_rid, fn) {
 
+            this->sample_rate = sample_rate;
             this->nprocrows = nprocrows;
             this->g_clusters = g_clusters;
-            this->pw_dm = pw_dm;
             this->global_medoid_energy = global_medoid_energy;
 
             local_clusters =
                 kbase::clusters::create(g_clusters->get_nclust(), ncol);
             set_data_size(sizeof(double)*nprocrows*ncol);
             local_medoid_energy.assign(g_clusters->get_nclust(),0);
+
+            // For sampling
+            ur_distribution = std::uniform_real_distribution<double>(0.0, 1.0);
         }
 
 void medoid::run() {
@@ -111,11 +114,6 @@ void medoid::EM_step() {
     meta.num_changed = 0; // Always reset at the beginning of an EM-step
     local_clusters->clear();
     local_medoid_energy.assign(g_clusters->get_nclust(), 0);
-    std::vector<double> medoid_ids;
-
-    // NOTE: This has been bastardized
-    for (auto id : g_clusters->get_num_members_v())
-        medoid_ids.push_back(id);
 
     for (unsigned row = 0; row < nprocrows; row++) {
         // Choose row as new cluster center
@@ -127,7 +125,9 @@ void medoid::EM_step() {
         for (unsigned clust_idx = 0;
                 clust_idx < g_clusters->get_nclust(); clust_idx++) {
 
-            dist = pw_dm->pw_get(true_rid, medoid_ids[clust_idx]);
+            dist = kbase::dist_comp_raw<double>(&local_data[row*ncol],
+                    &(g_clusters->get_means()[clust_idx*ncol]), ncol,
+                    dist_metric);
 
             if (dist < best) {
                 best = dist;
@@ -144,6 +144,7 @@ void medoid::EM_step() {
         local_medoid_energy[asgnd_clust] += best;
 
         cluster_assignments[true_rid] = asgnd_clust;
+
         // We only need the cluster membership count
         // We don't update the global cltrs with these numbers
         local_clusters->num_members_peq(1, asgnd_clust);
@@ -156,23 +157,23 @@ void medoid::medoid_step() {
     candidate_medoid_energy.assign(g_clusters->get_nclust(),
             std::numeric_limits<double>::max());
 
-    // NOTE: This has been bastardized
-    std::vector<double> medoid_ids;
-    for (auto id : g_clusters->get_num_members_v())
-        medoid_ids.push_back(id);
-
+    // TODO: Choose them then batch them by cid
     for (unsigned row = 0; row < nprocrows; row++) {
+        // Sample a few cluster members
+        if (ur_distribution(generator) > sample_rate)
+            continue;
+
         unsigned true_rid = get_global_data_id(row);
         // What cluster the row is in
         unsigned cid = cluster_assignments[true_rid];
-        unsigned medoid_id = medoid_ids[cid];
         double cluster_energy = global_medoid_energy[cid]; // Current energy
         double energy = 0;
 
-        for (size_t sid = 0; sid < pw_dm->get_num_rows()+1; sid++) {
-            if (cluster_assignments[sid] == cid && sid != true_rid) {
-                // Check if it would reduce energy -- expensive
-                energy += pw_dm->pw_get(true_rid, sid);
+        // member_id is a global identifier
+        for (auto member_id : coord->get_membership()[cid]) {
+            if (member_id != true_rid) {
+                energy += kbase::dist_comp_raw<double>(&local_data[row*ncol],
+                    coord->get_thd_data(member_id), ncol, dist_metric);
             }
         }
 
@@ -183,4 +184,5 @@ void medoid::medoid_step() {
         }
     }
 }
+
 } // End namespace knor

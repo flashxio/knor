@@ -22,19 +22,16 @@
 
 #include <vector>
 #include "thread.hpp"
+#include <random>
 
-namespace knor { namespace base {
-    class clusters;
-} }
-
-namespace kbase = knor::base;
 namespace kprune = knor::prune;
 
 namespace knor {
-    namespace prune {
-        class dist_matrix;
-    }
+namespace base {
+    class clusters;
+}
 
+class medoid_coordinator;
 class medoid : public thread {
     private:
          // Pointer to global cluster data
@@ -42,11 +39,15 @@ class medoid : public thread {
         unsigned nprocrows; // How many rows to process
 
         // Medoid specific
-        std::shared_ptr<kprune::dist_matrix> pw_dm;
         std::vector<double> local_medoid_energy;
         double* global_medoid_energy;
         std::vector<unsigned> candidate_medoids;
         std::vector<double> candidate_medoid_energy;
+        double sample_rate;
+        std::default_random_engine generator;
+        std::uniform_real_distribution<double> ur_distribution;
+        medoid_coordinator* coord;
+
         // End Medoid specific
 
         medoid(const int node_id, const unsigned thd_id,
@@ -55,8 +56,7 @@ class medoid : public thread {
                 std::shared_ptr<kbase::clusters> g_clusters,
                 unsigned* cluster_assignments,
                 const std::string fn,
-                std::shared_ptr<kprune::dist_matrix> pw_dm,
-                double* global_medoid_energy);
+                double* global_medoid_energy, const double sample_rate);
     public:
         static thread::ptr create(
                 const int node_id, const unsigned thd_id,
@@ -64,12 +64,12 @@ class medoid : public thread {
                 const unsigned ncol,
                 std::shared_ptr<kbase::clusters> g_clusters,
                 unsigned* cluster_assignments, const std::string fn,
-                std::shared_ptr<kprune::dist_matrix> pw_dm,
-                double* global_medoid_energy) {
+                double* global_medoid_energy, const double sample_rate) {
             return thread::ptr(
                     new medoid(node_id, thd_id, start_rid,
                         nprocrows, ncol, g_clusters,
-                        cluster_assignments, fn, pw_dm, global_medoid_energy));
+                        cluster_assignments, fn,
+                        global_medoid_energy, sample_rate));
         }
 
         void start(const thread_state_t state);
@@ -77,6 +77,9 @@ class medoid : public thread {
         void EM_step();
         void medoid_step();
         void run() override;;
+        void set_coordinator(medoid_coordinator* coord) {
+            this->coord = coord;
+        }
 
         // Medoid specific
         std::vector<double>& get_local_medoid_energy() {

@@ -27,9 +27,6 @@ namespace knor {
 namespace base {
     class clusters;
 }
-namespace prune {
-    class dist_matrix;
-}
 
 class thread;
 
@@ -38,18 +35,20 @@ class medoid_coordinator : public coordinator {
         // Metadata
         // max index stored within each threads partition
         std::shared_ptr<base::clusters> cltrs;
-
-        // Pairwise distances for all samples
-        std::shared_ptr<prune::dist_matrix> pw_dm;
         // Cumulative distance of all members from the mediod
         std::vector<double> medoid_energy;
         bool medoids_changed;
+        double sample_rate;
+
+        // Need for medoid step. Contains the rid of members of each cluster
+        std::vector<std::vector<unsigned> > membership;
 
         medoid_coordinator(const std::string fn, const size_t nrow,
                 const size_t ncol, const unsigned k, const unsigned max_iters,
                 const unsigned nnodes, const unsigned nthreads,
                 const double* centers, const base::init_t it,
-                const double tolerance, const base::dist_t dt);
+                const double tolerance, const base::dist_t dt,
+                const double sample_rate);
 
     public:
         static coordinator::ptr create(const std::string fn,
@@ -57,7 +56,8 @@ class medoid_coordinator : public coordinator {
                 const size_t ncol, const unsigned k, const unsigned max_iters,
                 const unsigned nnodes, const unsigned nthreads,
                 const double* centers=NULL, const std::string init="random",
-                const double tolerance=-1, const std::string dist_type="taxi") {
+                const double tolerance=-1, const std::string dist_type="taxi",
+                const double sample_rate=.2) {
 
             base::init_t _init_t = base::get_init_type(init);
             base::dist_t _dist_t = base::get_dist_type(dist_type);
@@ -71,11 +71,21 @@ class medoid_coordinator : public coordinator {
 #endif
             return coordinator::ptr(
                     new medoid_coordinator(fn, nrow, ncol, k, max_iters,
-                    nnodes, nthreads, centers, _init_t, tolerance, _dist_t));
+                    nnodes, nthreads, centers, _init_t, tolerance, _dist_t,
+                    sample_rate));
         }
 
         std::shared_ptr<base::clusters> get_gcltrs() {
             return cltrs;
+        }
+
+        void clear_membership() {
+            for (auto v : membership)
+                v.clear();
+        }
+
+        std::vector<std::vector<unsigned> >& get_membership() {
+            return membership;
         }
 
         // Pass file handle to threads to read & numa alloc
@@ -87,6 +97,7 @@ class medoid_coordinator : public coordinator {
         void build_thread_state() override;
 
         // medoid specific
+        void populate_membership();
         void compute_globals();
         void sanity_check(); // Always call compute_globals before this
         void choose_global_medoids(double* gdata);

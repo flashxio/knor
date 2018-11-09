@@ -44,6 +44,7 @@ int main(int argc, char* argv[]) {
     unsigned max_iters=std::numeric_limits<unsigned>::max();
     std::string init = "forgy";
     double tolerance = -1;
+    double sample_rate = .2;
 
     bool no_prune = false;
     bool omp = false;
@@ -79,6 +80,8 @@ int main(int argc, char* argv[]) {
             cxxopts::value<std::string>(dist_type))
       ("l,tol", "tolerance for convergence (1E-6)",
             cxxopts::value<std::string>())
+      ("s,srate", "Sample rate for the medoid step (.2)",
+            cxxopts::value<std::string>())
       ("o,outdir", "Write output to an output directory of this name",
             cxxopts::value<std::string>(outdir))
       ("h,help", "Print help")
@@ -101,6 +104,8 @@ int main(int argc, char* argv[]) {
     size_t ncol = atol(options["dim"].as<std::string>().c_str());
     if (options.count("tol"))
         tolerance = std::stod(options["tol"].as<std::string>());
+    if (options.count("srate"))
+        sample_rate = std::stod(options["srate"].as<std::string>());
     if (options.count("centersfn")) {
         kbase::assert_msg(kbase::is_file_exist(centersfn.c_str()),
                 "Centers file name doesn't exit!");
@@ -123,7 +128,7 @@ int main(int argc, char* argv[]) {
     knor::medoid_coordinator::ptr kc =
         knor::medoid_coordinator::create("",
                 nrow, ncol, k, max_iters, nnodes, nthread, p_centers,
-                init, tolerance, dist_type);
+                init, tolerance, dist_type, sample_rate);
 
     std::vector<double> data(nrow*ncol);
     kbase::bin_io<double> br(datafn, nrow, ncol);

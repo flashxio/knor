@@ -24,7 +24,6 @@
 #include "medoid.hpp"
 #include "io.hpp"
 #include "clusters.hpp"
-#include "dist_matrix.hpp"
 #include "exception.hpp"
 
 namespace knor {
@@ -32,7 +31,8 @@ medoid_coordinator::medoid_coordinator(const std::string fn, const size_t nrow,
         const size_t ncol, const unsigned k, const unsigned max_iters,
         const unsigned nnodes, const unsigned nthreads,
         const double* centers, const kbase::init_t it,
-        const double tolerance, const kbase::dist_t dt) :
+        const double tolerance, const kbase::dist_t dt,
+        const double sample_rate) :
     coordinator(fn, nrow, ncol, k, max_iters,
             nnodes, nthreads, centers, it, tolerance, dt) {
 
@@ -49,25 +49,40 @@ medoid_coordinator::medoid_coordinator(const std::string fn, const size_t nrow,
         }
 
         // Create the pairwise distance matrix
-        pw_dm = prune::dist_matrix::create(nrow);
+        membership.resize(k);
         medoid_energy.assign(k, 0);
         medoids_changed = true; // Run at least 1 iter
+
+        // At least 1 element should be processed by each threads!
+        this->sample_rate = std::max(.2, sample_rate);
         build_thread_state();
     }
+
+void medoid_coordinator::populate_membership() {
+#ifdef _OPENMP
+#pragma omp parallel for schedule(static)
+#endif
+    for (unsigned cid = 0; cid < k; cid++) {
+        for (size_t rid = 0; rid < nrow; rid++) {
+            if (cluster_assignments[rid] == cid)
+                membership[cid].push_back(rid);
+        }
+    }
+}
 
 void medoid_coordinator::build_thread_state() {
     // NUMA node affinity binding policy is round-robin
     unsigned thds_row = nrow / nthreads;
     for (unsigned thd_id = 0; thd_id < nthreads; thd_id++) {
         std::pair<unsigned, unsigned> tup = get_rid_len_tup(thd_id);
-        thd_max_row_idx.push_back((thd_id*thds_row) + tup.second);
         threads.push_back(medoid::create((thd_id % nnodes),
                     thd_id, tup.first, tup.second,
                     ncol, cltrs, &cluster_assignments[0],
-                    fn, pw_dm, &medoid_energy[0]));
+                    fn, &medoid_energy[0], sample_rate));
         threads[thd_id]->set_parent_cond(&cond);
         threads[thd_id]->set_parent_pending_threads(&pending_threads);
         threads[thd_id]->start(WAIT); // Thread puts itself to sleep
+        std::static_pointer_cast<medoid>(threads[thd_id])->set_coordinator(this);
     }
 }
 
@@ -79,6 +94,7 @@ void medoid_coordinator::sanity_check() {
     assert(chk_nmemb == nrow);
 }
 
+// TODO: Maybe use an omp-style vector reduction
 void medoid_coordinator::choose_global_medoids(double* gdata) {
     // Do reduction on these
     std::vector<unsigned> agg_candidate_medoids;
@@ -117,6 +133,8 @@ void medoid_coordinator::choose_global_medoids(double* gdata) {
 }
 
 void medoid_coordinator::compute_globals() {
+    // Compute the membership assignments
+    populate_membership();
     // Always reset here since there's no pruning
     num_changed = 0;
     std::fill(cluster_assignment_counts.begin(),
@@ -180,23 +198,10 @@ kbase::cluster_t medoid_coordinator::run(
         throw knor::base::not_implemented_exception();
 
     set_thread_data_ptr(allocd_data); // Offset taken for each thread
-    pw_dm->compute_pairwise_dist(allocd_data, ncol, _dist_t);
 
     struct timeval start, end;
     gettimeofday(&start , NULL);
     run_init(); // Initialize clusters
-
-#ifndef BIND
-    std::cout << "AFTER INIT\n";
-    std::cout << "Means are: \n";
-    cltrs->print_means();
-    std::cout << "Cluster counts:\n";
-    kbase::print_vector(cluster_assignment_counts);
-    std::cout << "Medoid Energy:\n";
-    kbase::print_vector(medoid_energy);
-    sanity_check();
-    std::cout << "END INIT\n\n";
-#endif
 
     // Run kmeans loop
     bool converged = false;
@@ -206,28 +211,31 @@ kbase::cluster_t medoid_coordinator::run(
         iter++;
 
     while (iter <= max_iters && max_iters > 0) {
+#ifndef BIND
+        printf("Medoid step ...\n");
+#endif
         wake4run(MEDOID);
         wait4complete();
         // (Possibly) Sets: 1. new medoids, new energy
+#ifndef BIND
+        printf("Choosing global medoids ...\n");
+#endif
         choose_global_medoids(allocd_data);
 
 #ifndef BIND
-        std::cout << "Medoid Energy:\n";
+        printf("Medoid Energy:\n");
         kbase::print_vector(medoid_energy);
-        std::cout << "Medoids are: \n";
-        cltrs->print_means();
 #endif
 
         if (medoids_changed) {
             // Run kmeans step
+#ifndef BIND
+            printf("EM step ...\n");
+#endif
+            clear_membership();
             wake4run(EM);
             wait4complete();
             compute_globals();
-#ifndef BIND
-            sanity_check();
-#endif
-
-            medoids_changed = false; // Reset
 
 #ifndef BIND
             printf("Cluster assignment counts: \n");
