@@ -46,7 +46,7 @@ int main(int argc, char* argv[]) {
     std::string outdir = "";
 
     cxxopts::Options options(argv[0],
-            "knori data-file nsamples dim k [alg-options]\n");
+            "fcm data-file nsamples dim k [alg-options]\n");
     options.positional_help("[optional args]");
 
     options.add_options()
