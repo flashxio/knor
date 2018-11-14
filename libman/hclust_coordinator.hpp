@@ -29,6 +29,7 @@ namespace knor {
 
 namespace base {
     class clusters;
+    class thd_safe_bool_vector;
 }
 
 class id_generator;
@@ -64,7 +65,13 @@ class id_generator {
 
 class hclust_coordinator : public coordinator {
     protected:
-        std::unordered_map<unsigned, std::shared_ptr<base::clusters>>* hcltrs;
+        std::unordered_map<unsigned, std::shared_ptr<base::clusters>> hcltrs;
+        std::unordered_map<unsigned, unsigned> nchanged;
+        // Whether a particular cluster is cluster is still actively splitting
+        std::vector<bool>* cltr_active_vec;
+        std::default_random_engine ui_generator;
+        std::uniform_int_distribution<unsigned> ui_distribution;
+        std::mutex _mutex;
 
         hclust_coordinator(const std::string fn, const size_t nrow,
                 const size_t ncol, const unsigned k, const unsigned max_iters,
@@ -94,6 +101,10 @@ class hclust_coordinator : public coordinator {
                     new hclust_coordinator(fn, nrow, ncol, k, max_iters,
                     nnodes, nthreads, centers, _init_t, tolerance, _dist_t));
         }
+
+        void run_hinit();
+        unsigned forgy_select(const unsigned cid);
+        void print_active_clusters();
 
         // Pass file handle to threads to read & numa alloc
         virtual base::cluster_t run(double* allocd_data=NULL,

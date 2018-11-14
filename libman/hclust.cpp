@@ -26,7 +26,6 @@
 #include "io.hpp"
 #include "clusters.hpp"
 
-
 namespace {
 void* callback(void* arg) {
     knor::hclust* t = static_cast<knor::hclust*>(arg);
@@ -58,17 +57,18 @@ hclust::hclust(const int node_id, const unsigned thd_id,
         const unsigned start_rid,
         const unsigned nprocrows, const unsigned ncol,
         hclust_map* g_hcltrs, unsigned* cluster_assignments,
-        const std::string fn, kbase::dist_t dist_metric) :
+        const std::string fn, base::dist_t dist_metric) :
             thread(node_id, thd_id, ncol,
             cluster_assignments, start_rid, fn, dist_metric) {
 
-            this->nprocrows = nprocrows;
-            this->g_hcltrs = g_hcltrs;
             local_clusters = nullptr; // Not used here
+            this->nprocrows = nprocrows;
+            this->g_hcltrs = g_hcltrs; // Global clusters
+            this->k = g_hcltrs->at(0)->get_nclust();
 
-            // TODO
-            //local_clusters =
-                //kbase::clusters::create(g_hcltrs->get_nclust(), ncol);
+            // We're guaranteed these will exist
+            local_hcltrs[0] = base::clusters::create(k, ncol);
+            nchanged[0] = 0;
 
             set_data_size(sizeof(double)*nprocrows*ncol);
         }
@@ -88,10 +88,10 @@ void hclust::run() {
             H_EM_step();
             break;
         case EXIT:
-            throw kbase::thread_exception(
+            throw base::thread_exception(
                     "Thread state is EXIT but running!\n");
         default:
-            throw kbase::thread_exception("Unknown thread state\n");
+            throw base::thread_exception("Unknown thread state\n");
     }
     sleep();
 }
@@ -100,24 +100,31 @@ void hclust::start(const thread_state_t state=WAIT) {
     this->state = state;
     int rc = pthread_create(&hw_thd, NULL, callback, this);
     if (rc)
-        throw kbase::thread_exception(
+        throw base::thread_exception(
                 "Thread creation (pthread_create) failed!", rc);
 }
 
 void hclust::H_EM_step() {
-#if 0
-    meta.num_changed = 0; // Always reset at the beginning of an EM-step
-    // TODO
-    //local_clusters->clear();
+    base::reset(nchanged);
+    for (auto kv : (*g_hcltrs))
+        g_hcltrs->at(kv.first)->clear();
 
     for (unsigned row = 0; row < nprocrows; row++) {
-        unsigned asgnd_clust = kbase::INVALID_CLUSTER_ID;
+
+        // What cluster is this row in?
+        unsigned true_row_id = get_global_data_id(row);
+        auto curr_clust = cluster_assignments[true_row_id];
+        if (!((*cltr_active_vec)[curr_clust]))
+            continue; // Skip it
+
+#if 0
+        unsigned asgnd_clust = base::INVALID_CLUSTER_ID;
         double best, dist;
         dist = best = std::numeric_limits<double>::max();
 
         for (unsigned clust_idx = 0;
                 clust_idx < g_hcltrs->get_nclust(); clust_idx++) {
-            dist = kbase::dist_comp_raw<double>(&local_data[row*ncol],
+            dist = base::dist_comp_raw<double>(&local_data[row*ncol],
                     &(g_hcltrs->get_means()[clust_idx*ncol]), ncol,
                     dist_metric);
 
@@ -127,8 +134,7 @@ void hclust::H_EM_step() {
             }
         }
 
-        assert(asgnd_clust != kbase::INVALID_CLUSTER_ID);
-        unsigned true_row_id = get_global_data_id(row);
+        assert(asgnd_clust != base::INVALID_CLUSTER_ID);
 
         if (asgnd_clust != cluster_assignments[true_row_id])
             meta.num_changed++;
@@ -136,8 +142,8 @@ void hclust::H_EM_step() {
         cluster_assignments[true_row_id] = asgnd_clust;
         // TODO
         //local_clusters->add_member(&local_data[row*ncol], asgnd_clust);
-    }
 #endif
+    }
 }
 
 /** Method for a distance computation vs a single cluster.
@@ -149,7 +155,7 @@ void hclust::kmspp_dist() {
     for (unsigned row = 0; row < nprocrows; row++) {
         unsigned true_row_id = get_global_data_id(row);
 
-        double dist = kbase::dist_comp_raw<double>(&local_data[row*ncol],
+        double dist = base::dist_comp_raw<double>(&local_data[row*ncol],
                 &((g_hcltrs->get_means())[clust_idx*ncol]), ncol,
                 dist_metric);
 

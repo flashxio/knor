@@ -34,16 +34,21 @@ hclust_coordinator::hclust_coordinator(const std::string fn, const size_t nrow,
     coordinator(fn, nrow, ncol, k, max_iters,
             nnodes, nthreads, centers, it, tolerance, dt) {
 
-        hcltrs = new std::unordered_map<
-            unsigned, std::shared_ptr<base::clusters>>();
+        cltr_active_vec = new std::vector<bool>(1);
+        (*cltr_active_vec)[0] = true;
+        ui_distribution = std::uniform_int_distribution<unsigned>(0, nrow-1);
 
         if (centers) {
             // There must be at least one
-            hcltrs->insert({0, base::clusters::create(k, ncol, centers)});
+            hcltrs[0] = base::clusters::create(2, ncol, centers);
         } else {
-            hcltrs->insert({0, base::clusters::create(k, ncol)});
+            hcltrs[0] = base::clusters::create(2, ncol);
         }
 
+        // Init for 1st clusters
+        nchanged[0] = 0;
+
+        std::fill(cluster_assignments.begin(), cluster_assignments.end(), 0);
         build_thread_state();
     }
 
@@ -52,14 +57,14 @@ void hclust_coordinator::build_thread_state() {
     unsigned thds_row = nrow / nthreads;
     for (unsigned thd_id = 0; thd_id < nthreads; thd_id++) {
         std::pair<unsigned, unsigned> tup = get_rid_len_tup(thd_id);
-        thd_max_row_idx.push_back((thd_id*thds_row) + tup.second);
-        // TODO
-        //threads.push_back(kmeans_thread::create((thd_id % nnodes),
-                    //thd_id, tup.first, tup.second,
-                    //ncol, hcltrs, &cluster_assignments[0], fn, _dist_t));
+        threads.push_back(hclust::create((thd_id % nnodes),
+                    thd_id, tup.first, tup.second,
+                    ncol, &hcltrs, &cluster_assignments[0], fn, _dist_t));
         threads[thd_id]->set_parent_cond(&cond);
         threads[thd_id]->set_parent_pending_threads(&pending_threads);
         threads[thd_id]->start(WAIT); // Thread puts itself to sleep
+        std::static_pointer_cast<hclust>(threads[thd_id])
+                    ->set_cltr_active_vec(cltr_active_vec);
     }
 }
 
@@ -90,7 +95,9 @@ void hclust_coordinator::kmeanspp_init() {
         set_thread_clust_idx(clust_idx); // Set the current cluster index
         wake4run(KMSPP_INIT); // Run || distance comp to clust_idx
         wait4complete();
-        double cuml_dist = reduction_on_cuml_sum(); // Sum the per thread cumulative dists
+
+        // Sum the per thread cumulative dists
+        double cuml_dist = reduction_on_cuml_sum();
 
         cuml_dist = (cuml_dist * ur_distribution(generator)) / (RAND_MAX - 1.0);
         if (++clust_idx >= k)  // No more centers needed
@@ -128,16 +135,76 @@ void hclust_coordinator::random_partition_init() {
 #endif
 }
 
-void hclust_coordinator::forgy_init() {
-#if 0
-    std::default_random_engine generator;
-    std::uniform_int_distribution<unsigned> distribution(0, nrow-1);
+/**
+  * Require a method by which to pick centroids when samples in a cluster are
+  *     not contiguously numbered
+  */
+unsigned hclust_coordinator::forgy_select(const unsigned cid) {
+    _mutex.lock(); // We need these ordered for a determinant result
+    unsigned rand_idx = ui_distribution(ui_generator);
+    _mutex.unlock();
+    const long max_rid = nrow - 1;
 
-    for (unsigned clust_idx = 0; clust_idx < k; clust_idx++) { // 0...k
-        unsigned rand_idx = distribution(generator);
-        hcltrs->set_mean(get_thd_data(rand_idx), clust_idx);
+    // The random item we picked is indeed in the cluster we're evaluating
+    if (cluster_assignments[rand_idx] == cid)
+        return rand_idx;
+
+    // Else walk the cluster assignments until you find and row that is
+    long cnt = static_cast<long>(rand_idx);
+    // Go forward first
+    while (++cnt < max_rid)
+        if (cluster_assignments[cnt] == cid)
+            return cnt;
+
+    cnt = static_cast<long>(rand_idx);
+    // Go backward
+    while (--cnt < max_rid)
+        if (cluster_assignments[cnt] == cid)
+            return cnt;
+
+    throw std::runtime_error((std::string("No samples in cluster ")
+                + std::to_string(cid)).c_str());
+}
+
+void hclust_coordinator::forgy_init() {
+    // TODO: ||ize
+    //#ifdef _OPENMP
+    //#pragma omp parallel for schedule(dynamic)
+    //#endif
+    for (size_t i = 0; i < cltr_active_vec->size(); i++) {
+        if ((*cltr_active_vec)[i]) {
+            auto cluster_ptr = hcltrs[i];
+            for (unsigned clust_idx = 0; clust_idx < 2; clust_idx++) {
+                unsigned rand_idx = forgy_select(i);
+                printf("Cluster %lu selected rid: %u for c:%u\n",
+                        i, rand_idx, clust_idx);
+                base::print_arr<double>(get_thd_data(rand_idx), ncol);
+                printf("\n");
+
+                cluster_ptr->set_mean(get_thd_data(rand_idx), clust_idx);
+                cluster_ptr->print_means();
+            }
+        }
     }
-#endif
+}
+
+void hclust_coordinator::run_hinit() {
+    switch(_init_t) {
+        case kbase::init_t::FORGY:
+            forgy_init();
+            break;
+        case kbase::init_t::NONE:
+            break;
+        default:
+            throw std::runtime_error("Unknown initialization type");
+    }
+}
+
+void hclust_coordinator::print_active_clusters() {
+    for (auto kv : hcltrs) {
+        printf("CID: %u\n", kv.first);
+        kv.second->print_means();
+    }
 }
 
 /**
@@ -158,34 +225,32 @@ base::cluster_t hclust_coordinator::run(
 
     struct timeval start, end;
     gettimeofday(&start , NULL);
-    run_init(); // Initialize clusters
+
+    run_hinit(); // Initialize clusters
+    if (_init_t == kbase::init_t::NONE)
+        _init_t = kbase::init_t::FORGY;
+
+    printf("After initial init: \n");
+    hcltrs[0]->print_means();
 
     // Run loop
     bool converged = false;
     size_t iter = 0;
 
     for (iter = 0; iter < max_iters; iter++) {
-        //if (iter == 1)
-            //clear_cluster_assignments();
-
-        wake4run(EM);
-        //wake4run(H_EM);
+        wake4run(H_EM);
         wait4complete();
-
         //update_clusters();
 
-#if VERBOSE
-#ifndef BIND
-        printf("Cluster assignment counts: \n");
-#endif
-        base::print_vector(cluster_assignment_counts);
-#endif
+        printf("Cluster states: \n");
+        print_active_clusters();
 
-        if (num_changed == 0 ||
-                ((num_changed/(double)nrow)) <= tolerance) {
-            converged = true;
-            break;
-        }
+        // TODO: Per cluster tolerance early termination
+        //if (num_changed == 0 ||
+                //((num_changed/(double)nrow)) <= tolerance) {
+            //converged = true;
+            //break;
+        //}
         iter++;
     }
 #ifdef PROFILER
@@ -225,6 +290,6 @@ base::cluster_t hclust_coordinator::run(
 }
 
 hclust_coordinator::~hclust_coordinator() {
-    delete hcltrs;
+    delete (cltr_active_vec);
 }
 }

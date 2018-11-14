@@ -23,22 +23,25 @@
 #include <unordered_map>
 #include "thread.hpp"
 
-namespace knor { namespace base {
-    class clusters;
-} }
-
-namespace kbase = knor::base;
-
-
 namespace knor {
+namespace base {
+    class clusters;
+}
+
+typedef std::unordered_map<unsigned, std::shared_ptr<base::clusters>>
+    hclust_map;
+typedef std::unordered_map<unsigned, unsigned> change_map;
+
 class hclust : public thread {
     protected:
          // Pointer to global cluster data
-        typedef std::unordered_map<unsigned, std::shared_ptr<base::clusters>>
-            hclust_map;
-
         hclust_map* g_hcltrs;
+        hclust_map local_hcltrs;
+        change_map nchanged;
 
+        std::vector<bool>* cltr_active_vec; // Which clusters are still active
+
+        unsigned k;
         unsigned nprocrows; // The number of rows in this threads partition
 
         hclust(const int node_id, const unsigned thd_id,
@@ -46,7 +49,7 @@ class hclust : public thread {
                 const unsigned ncol,
                 hclust_map* g_hcltrs,
                 unsigned* cluster_assignments,
-                const std::string fn, kbase::dist_t dist_metric);
+                const std::string fn, base::dist_t dist_metric);
     public:
         static thread::ptr create(
                 const int node_id, const unsigned thd_id,
@@ -54,11 +57,15 @@ class hclust : public thread {
                 const unsigned ncol,
                 hclust_map* g_hcltrs,
                 unsigned* cluster_assignments, const std::string fn,
-                kbase::dist_t dist_metric) {
+                base::dist_t dist_metric) {
             return thread::ptr(
                         new hclust(node_id, thd_id, start_rid,
                         nprocrows, ncol, g_hcltrs,
                         cluster_assignments, fn, dist_metric));
+        }
+
+        void set_cltr_active_vec(std::vector<bool>* av) {
+            cltr_active_vec = av;
         }
 
         void start(const thread_state_t state) override;
