@@ -217,6 +217,13 @@ public:
     }
 };
 
+template <typename K>
+void reset(std::unordered_map<K, unsigned> map) {
+    for (auto kv : map) {
+        map[kv.first] = 0;
+    }
+}
+
 float time_diff(struct timeval time1, struct timeval time2);
 int get_num_omp_threads();
 unsigned get_num_nodes();

@@ -29,6 +29,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <unordered_map>
 
 namespace knor { namespace base {
 
@@ -60,6 +61,16 @@ void print_arr(const T* arr, const unsigned len) {
         std::cout << arr[i] << " ";
     }
     printf("]\n");
+#endif
+}
+
+template <typename K, typename V>
+void print(const std::unordered_map<K,V> map) {
+#ifndef BIND
+    for (auto kv : map) {
+        std::cout << "k: " << kv.first << ", v: " << kv.second << std::endl;
+    }
+    std::cout << "\n";
 #endif
 }
 
