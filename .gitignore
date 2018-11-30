@@ -9,11 +9,12 @@ libkcommon/unit-test/test_thd_safe_bool_vector
 libkcommon/unit-test/test_reader
 libkcommon/unit-test/test_dist_matrix
 libkcommon/unit-test/test_linalg
+libkcommon/unit-test/test_dense_matrix
+libkcommon/unit-test/testeigen
 libman/unit-test/test_kmeans_thread
 libman/unit-test/test_task_queue
 libman/unit-test/test_kmeans_task_thread
-libkcommon/unit-test/test_dense_matrix
-libkcommon/unit-test/testeigen
+libman/unit-test/test_id_generator
 utils/
 utils/test/read_rrow_data
 exec/knord
