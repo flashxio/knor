@@ -24,6 +24,7 @@
 #include <vector>
 #include <memory>
 #include <algorithm>
+#include "exception.hpp"
 
 namespace knor { namespace base {
 
@@ -44,6 +45,7 @@ private:
     double& operator[](const unsigned index) {
         return means[index];
     }
+
 public:
     typedef typename std::shared_ptr<clusters> ptr;
 
@@ -211,6 +213,20 @@ public:
     // Used for mini-batch
     void scale_centroid(const double factor,
             const unsigned idx, const double* member);
+
+    virtual void set_zeroid(const unsigned zeroid) {
+    }
+
+    virtual void set_oneid(const unsigned oneid) {
+    }
+
+    virtual const unsigned get_zeroid() {
+        throw abstract_exception();
+    }
+
+    virtual const unsigned get_oneid() {
+        throw abstract_exception();
+    }
 };
 
 class prune_clusters : public clusters {
@@ -272,5 +288,43 @@ public:
     const void print_prev_means_v() const;
     void reset_s_val_v();
 };
+
+class h_clusters : public clusters {
+private:
+    unsigned zeroid, oneid;
+public:
+
+    using clusters::clusters;
+
+    static ptr create(const unsigned nclust, const unsigned ncol) {
+        return ptr(new h_clusters(nclust, ncol));
+    }
+
+    static ptr create(const unsigned nclust, const unsigned ncol,
+            const double* centers) {
+        return ptr(new h_clusters(nclust, ncol, centers));
+    }
+
+    static std::shared_ptr<h_clusters> cast2(ptr obj) {
+        return std::static_pointer_cast<h_clusters>(obj);
+    }
+
+    void set_zeroid(const unsigned zeroid) override  {
+        this->zeroid = zeroid;
+    }
+
+    void set_oneid(const unsigned oneid) override {
+        this->oneid = oneid;
+    }
+
+    const unsigned get_zeroid() override {
+        return zeroid;
+    }
+
+    const unsigned get_oneid() override {
+        return oneid;
+    }
+};
+
 } } // End namespace knor, base
 #endif

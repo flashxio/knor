@@ -149,9 +149,25 @@ void test_prune_clusters() {
     printf("Success ...\n");
 }
 
+void test_hclusters() {
+    printf("Testing hcluster ...\n");
+    auto hclust0 = kbase::h_clusters::create(2, NCOL);
+    hclust0->set_mean(zero, 0);
+    hclust0->set_mean(one, 1);
+    hclust0->print_means();
+
+    kbase::h_clusters::cast2(hclust0)->set_zeroid(0);
+    kbase::h_clusters::cast2(hclust0)->set_oneid(1);
+
+    auto hclust1 = kbase::h_clusters::create(2, NCOL, arr);
+    hclust1->print_means();
+    printf("Success ...\n");
+}
+
 int main() {
     test_clusters();
     test_prune_clusters();
     test_scaling();
+    test_hclusters();
     return EXIT_SUCCESS;
 }
