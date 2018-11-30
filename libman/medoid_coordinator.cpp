@@ -38,7 +38,7 @@ medoid_coordinator::medoid_coordinator(const std::string fn, const size_t nrow,
 
         cltrs = kbase::clusters::create(k, ncol);
         if (centers) {
-            if (kbase::init_t::NONE)
+            if (it == kbase::init_t::NONE)
                 cltrs->set_mean(centers);
             else {
 #ifndef BIND

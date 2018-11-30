@@ -44,7 +44,7 @@ kmeans_task_coordinator::kmeans_task_coordinator(const std::string fn,
 
         inited = false;
         if (centers) {
-            if (kbase::init_t::NONE) {
+            if (it == kbase::init_t::NONE) {
                 cltrs->set_mean(centers);
             } else {
 #ifndef BIND
