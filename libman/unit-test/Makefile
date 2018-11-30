@@ -20,7 +20,8 @@ include ../../Makefile.common
 LDFLAGS := -L.. -lman -L../../libkcommon -lkcommon $(LDFLAGS)
 CXXFLAGS := -I.. -I../../libkcommon $(CXXFLAGS)
 
-TESTFILES := test_kmeans_thread test_task_queue test_kmeans_task_thread
+TESTFILES := test_kmeans_thread test_task_queue\
+	test_kmeans_task_thread test_id_generator
 
 all: $(TESTFILES)
 
@@ -28,6 +29,7 @@ test: all
 	./test_kmeans_task_thread 2
 	./test_kmeans_thread 2
 	./test_task_queue 2
+	./test_id_generator
 
 test_kmeans_task_thread: test_kmeans_task_thread.o
 	$(CXX) -o test_kmeans_task_thread test_kmeans_task_thread.o $(LDFLAGS)
@@ -37,6 +39,9 @@ test_kmeans_thread: test_kmeans_thread.o
 
 test_task_queue: test_task_queue.o
 	$(CXX) -o test_task_queue test_task_queue.o $(LDFLAGS)
+
+test_id_generator: test_id_generator.o
+	$(CXX) -o test_id_generator test_id_generator.o $(LDFLAGS)
 
 clean:
 	rm -f *.d
