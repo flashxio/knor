@@ -25,6 +25,7 @@
 #include "util.hpp"
 #include "io.hpp"
 #include "clusters.hpp"
+#include "hclust_id_generator.hpp"
 
 namespace {
 void* callback(void* arg) {
@@ -67,7 +68,8 @@ hclust::hclust(const int node_id, const unsigned thd_id,
             this->k = g_hcltrs->at(0)->get_nclust();
 
             // We're guaranteed these will exist
-            local_hcltrs[0] = base::clusters::create(k, ncol);
+            local_hcltrs[0] = base::h_clusters::create(k, ncol);
+
             nchanged[0] = 0;
 
             set_data_size(sizeof(double)*nprocrows*ncol);
@@ -87,6 +89,9 @@ void hclust::run() {
         case H_EM:
             H_EM_step();
             break;
+        case H_SPLIT:
+            H_split_step();
+            break;
         case EXIT:
             throw base::thread_exception(
                     "Thread state is EXIT but running!\n");
@@ -104,6 +109,37 @@ void hclust::start(const thread_state_t state=WAIT) {
                 "Thread creation (pthread_create) failed!", rc);
 }
 
+void hclust::H_split_step() {
+    for (unsigned row = 0; row < nprocrows; row++) {
+        // What cluster is this row in?
+        unsigned true_row_id = get_global_data_id(row);
+        auto curr_clust = cluster_assignments[true_row_id];
+
+        // Skip inactive clusters
+        if (!((*cltr_active_vec)[curr_clust])) // TODO: Deal with deactivation
+            continue;
+
+        // TODO: Create a local cache for ID -> (id1, id2)
+        auto split_id_options = ider->get_split_ids(curr_clust);
+
+        // Choose one of the two cluster options other than your assigned one
+        unsigned asgnd_clust;
+        double best;
+
+        double first = base::dist_comp_raw<double>(&local_data[row*ncol],
+                    &(g_hcltrs->at(curr_clust)->get_means()[0]), ncol,
+                    dist_metric);
+        double second = base::dist_comp_raw<double>(&local_data[row*ncol],
+                    &(g_hcltrs->at(curr_clust)->get_means()[ncol]), ncol,
+                    dist_metric);
+        if (first < second) {
+            cluster_assignments[true_row_id] = split_id_options.first;
+        } else {
+            cluster_assignments[true_row_id] = split_id_options.second;
+        }
+    }
+}
+
 void hclust::H_EM_step() {
     base::reset(nchanged);
     for (auto kv : (*g_hcltrs))
@@ -114,35 +150,39 @@ void hclust::H_EM_step() {
         // What cluster is this row in?
         unsigned true_row_id = get_global_data_id(row);
         auto curr_clust = cluster_assignments[true_row_id];
+        // Not active
         if (!((*cltr_active_vec)[curr_clust]))
             continue; // Skip it
 
-#if 0
         unsigned asgnd_clust = base::INVALID_CLUSTER_ID;
         double best, dist;
         dist = best = std::numeric_limits<double>::max();
 
-        for (unsigned clust_idx = 0;
-                clust_idx < g_hcltrs->get_nclust(); clust_idx++) {
+        for (unsigned clust_idx = 0; clust_idx < 2; clust_idx++) {
             dist = base::dist_comp_raw<double>(&local_data[row*ncol],
-                    &(g_hcltrs->get_means()[clust_idx*ncol]), ncol,
-                    dist_metric);
+                    &(g_hcltrs->at(part_id[true_row_id])->
+                        get_means()[clust_idx*ncol]), ncol, dist_metric);
 
             if (dist < best) {
                 best = dist;
-                asgnd_clust = clust_idx;
+                if (clust_idx == 0) {
+                    asgnd_clust = g_hcltrs->at(
+                            part_id[true_row_id])->get_zeroid();
+                } else {
+                    asgnd_clust = g_hcltrs->at(
+                            part_id[true_row_id])->get_oneid();
+                }
             }
         }
 
         assert(asgnd_clust != base::INVALID_CLUSTER_ID);
 
         if (asgnd_clust != cluster_assignments[true_row_id])
-            meta.num_changed++;
+            ; // TODO: meta.num_changed++;
 
         cluster_assignments[true_row_id] = asgnd_clust;
         // TODO
         //local_clusters->add_member(&local_data[row*ncol], asgnd_clust);
-#endif
     }
 }
 

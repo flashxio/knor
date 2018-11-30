@@ -29,39 +29,12 @@ namespace knor {
 
 namespace base {
     class clusters;
+    class h_clusters;
     class thd_safe_bool_vector;
 }
 
-class id_generator;
-static std::shared_ptr<id_generator> ider = nullptr;
-
-// Singleton class
-class id_generator {
-    private:
-        unsigned current_id;
-        std::mutex _mutex;
-
-        id_generator() {
-            current_id = 0;
-        };
-
-
-    public:
-        typedef std::shared_ptr<id_generator> ptr;
-
-        static ptr get_generator() {
-            if (nullptr == ider)
-                ider = ptr(new id_generator());
-            return ider;
-        };
-
-        unsigned next() {
-            _mutex.lock();
-            unsigned ret = current_id++;
-            _mutex.unlock();
-            return ret;
-        }
-};
+class hclust_id_generator;
+static std::shared_ptr<hclust_id_generator> ider = nullptr;
 
 class hclust_coordinator : public coordinator {
     protected:
@@ -72,6 +45,8 @@ class hclust_coordinator : public coordinator {
         std::default_random_engine ui_generator;
         std::uniform_int_distribution<unsigned> ui_distribution;
         std::mutex _mutex;
+        // Keep track of the parent cluster id (partition id)
+        std::vector<unsigned> part_id;
 
         hclust_coordinator(const std::string fn, const size_t nrow,
                 const size_t ncol, const unsigned k, const unsigned max_iters,
@@ -116,7 +91,9 @@ class hclust_coordinator : public coordinator {
         virtual void preprocess_data() {
             throw knor::base::abstract_exception();
         }
+        std::shared_ptr<hclust_id_generator> get_ider();
         virtual void build_thread_state() override;
+        virtual void init_splits();
         ~hclust_coordinator();
 };
 }

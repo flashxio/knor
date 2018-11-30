@@ -34,6 +34,7 @@ namespace knor {
         MB_EM, /*Mini-batch EM step*/
         WAIT, /*When the thread is waiting for a new task*/
         H_EM, /*Hierarchical EM step*/
+        H_SPLIT, /*Hierarchical "recursive" split step*/
         EXIT /*Say goodnight*/
     };
 }

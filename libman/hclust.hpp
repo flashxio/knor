@@ -26,11 +26,13 @@
 namespace knor {
 namespace base {
     class clusters;
+    class h_clusters;
 }
 
 typedef std::unordered_map<unsigned, std::shared_ptr<base::clusters>>
     hclust_map;
 typedef std::unordered_map<unsigned, unsigned> change_map;
+class hclust_id_generator;
 
 class hclust : public thread {
     protected:
@@ -38,11 +40,12 @@ class hclust : public thread {
         hclust_map* g_hcltrs;
         hclust_map local_hcltrs;
         change_map nchanged;
-
         std::vector<bool>* cltr_active_vec; // Which clusters are still active
+        std::shared_ptr<hclust_id_generator> ider; // ID provider
 
         unsigned k;
         unsigned nprocrows; // The number of rows in this threads partition
+        unsigned* part_id;
 
         hclust(const int node_id, const unsigned thd_id,
                 const unsigned start_rid, const unsigned nprocrows,
@@ -68,9 +71,14 @@ class hclust : public thread {
             cltr_active_vec = av;
         }
 
+        void set_ider(std::shared_ptr<hclust_id_generator> ider) {
+            this->ider = ider;
+        }
+
         void start(const thread_state_t state) override;
-        // Allocate and move data using this thread
-        void H_EM_step();
+        // Given the current ID split it into two (or not)
+        virtual void H_split_step();
+        void H_EM_step(); // Similar to EM step
         void kmspp_dist();
         virtual void run() override;
 };
