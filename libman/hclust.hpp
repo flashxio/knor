@@ -75,10 +75,14 @@ class hclust : public thread {
             this->ider = ider;
         }
 
-        void start(const thread_state_t state) override;
+        virtual void set_part_id(unsigned* part_id) {
+            this->part_id = part_id;
+        }
+
+        virtual void start(const thread_state_t state) override;
         // Given the current ID split it into two (or not)
         virtual void H_split_step();
-        void H_EM_step(); // Similar to EM step
+        virtual void H_EM_step(); // Similar to EM step
         void kmspp_dist();
         virtual void run() override;
 };

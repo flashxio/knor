@@ -109,34 +109,11 @@ void hclust::start(const thread_state_t state=WAIT) {
                 "Thread creation (pthread_create) failed!", rc);
 }
 
+// Simply pick a new partition
 void hclust::H_split_step() {
     for (unsigned row = 0; row < nprocrows; row++) {
-        // What cluster is this row in?
         unsigned true_row_id = get_global_data_id(row);
-        auto curr_clust = cluster_assignments[true_row_id];
-
-        // Skip inactive clusters
-        if (!((*cltr_active_vec)[curr_clust])) // TODO: Deal with deactivation
-            continue;
-
-        // TODO: Create a local cache for ID -> (id1, id2)
-        auto split_id_options = ider->get_split_ids(curr_clust);
-
-        // Choose one of the two cluster options other than your assigned one
-        unsigned asgnd_clust;
-        double best;
-
-        double first = base::dist_comp_raw<double>(&local_data[row*ncol],
-                    &(g_hcltrs->at(curr_clust)->get_means()[0]), ncol,
-                    dist_metric);
-        double second = base::dist_comp_raw<double>(&local_data[row*ncol],
-                    &(g_hcltrs->at(curr_clust)->get_means()[ncol]), ncol,
-                    dist_metric);
-        if (first < second) {
-            cluster_assignments[true_row_id] = split_id_options.first;
-        } else {
-            cluster_assignments[true_row_id] = split_id_options.second;
-        }
+        part_id[true_row_id] = cluster_assignments[true_row_id];
     }
 }
 
@@ -150,32 +127,49 @@ void hclust::H_EM_step() {
         // What cluster is this row in?
         unsigned true_row_id = get_global_data_id(row);
         auto curr_clust = cluster_assignments[true_row_id];
+
         // Not active
+        // TODO: Deal with deactivating clusters ...
         if (!((*cltr_active_vec)[curr_clust]))
             continue; // Skip it
 
+        auto rpart_id = part_id[true_row_id];
         unsigned asgnd_clust = base::INVALID_CLUSTER_ID;
         double best, dist;
         dist = best = std::numeric_limits<double>::max();
 
+        printf("\n\ng_hcltrs[%u]:\n", rpart_id);
+        g_hcltrs->at(rpart_id)->print_means();
+        printf("\n\n");
+        exit(911);
+
         for (unsigned clust_idx = 0; clust_idx < 2; clust_idx++) {
             dist = base::dist_comp_raw<double>(&local_data[row*ncol],
-                    &(g_hcltrs->at(part_id[true_row_id])->
+                    &(g_hcltrs->at(rpart_id)->
                         get_means()[clust_idx*ncol]), ncol, dist_metric);
+
+            std::cout << "Diff btwn data: \n";
+            base::print_arr<double>(&local_data[row*ncol], ncol);
+            std::cout << "Centers: \n";
+            base::print_arr<double>(
+                    &(g_hcltrs->at(rpart_id)->get_means()[clust_idx*ncol]), ncol);
+
+            std::cout << "rid: " << true_row_id << ", dist: " << dist <<
+                ", to cid: " << clust_idx << std::endl;
 
             if (dist < best) {
                 best = dist;
                 if (clust_idx == 0) {
-                    asgnd_clust = g_hcltrs->at(
-                            part_id[true_row_id])->get_zeroid();
+                    asgnd_clust = g_hcltrs->at(rpart_id)->get_zeroid();
                 } else {
-                    asgnd_clust = g_hcltrs->at(
-                            part_id[true_row_id])->get_oneid();
+                    asgnd_clust = g_hcltrs->at(rpart_id)->get_oneid();
                 }
             }
         }
 
         assert(asgnd_clust != base::INVALID_CLUSTER_ID);
+        std::cout << "ROW: " << true_row_id << ", assigned to: " << asgnd_clust
+            << "\n";
 
         if (asgnd_clust != cluster_assignments[true_row_id])
             ; // TODO: meta.num_changed++;

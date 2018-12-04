@@ -47,6 +47,10 @@ class hclust_coordinator : public coordinator {
         std::mutex _mutex;
         // Keep track of the parent cluster id (partition id)
         std::vector<unsigned> part_id;
+        unsigned curr_nclust;
+
+        // Override the vector in coordinator.hpp
+        std::unordered_map<unsigned, size_t> cluster_assignment_counts;
 
         hclust_coordinator(const std::string fn, const size_t nrow,
                 const size_t ncol, const unsigned k, const unsigned max_iters,
@@ -94,6 +98,7 @@ class hclust_coordinator : public coordinator {
         std::shared_ptr<hclust_id_generator> get_ider();
         virtual void build_thread_state() override;
         virtual void init_splits();
+        void accumulate_cluster_counts();
         ~hclust_coordinator();
 };
 }
