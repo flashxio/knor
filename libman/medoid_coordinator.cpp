@@ -75,6 +75,7 @@ void medoid_coordinator::build_thread_state() {
     unsigned thds_row = nrow / nthreads;
     for (unsigned thd_id = 0; thd_id < nthreads; thd_id++) {
         std::pair<unsigned, unsigned> tup = get_rid_len_tup(thd_id);
+        thd_max_row_idx.push_back((thd_id*thds_row) + tup.second);
         threads.push_back(medoid::create((thd_id % nnodes),
                     thd_id, tup.first, tup.second,
                     ncol, cltrs, &cluster_assignments[0],

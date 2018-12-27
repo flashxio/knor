@@ -67,6 +67,7 @@ void gmm_coordinator::build_thread_state() {
     unsigned thds_row = nrow / nthreads;
     for (unsigned thd_id = 0; thd_id < nthreads; thd_id++) {
         std::pair<unsigned, unsigned> tup = get_rid_len_tup(thd_id);
+        thd_max_row_idx.push_back((thd_id*thds_row) + tup.second);
         threads.push_back(gmm::create((thd_id % nnodes),
                     thd_id, tup.first, tup.second, ncol, fn, _dist_t));
         threads[thd_id]->set_parent_cond(&cond);
