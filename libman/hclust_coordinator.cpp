@@ -187,11 +187,10 @@ void hclust_coordinator::forgy_init() {
 
             for (unsigned clust_idx = 0; clust_idx < 2; clust_idx++) {
                 unsigned rand_idx = forgy_select(i);
+#if 1
                 printf("Cluster %lu selected rid: %u for c:%u\n",
                         i, rand_idx, clust_idx);
-                base::print_arr<double>(get_thd_data(rand_idx), ncol);
-                printf("\n");
-
+#endif
                 auto splits = ider->get_split_ids(i);
 
                 cluster_ptr->set_mean(get_thd_data(rand_idx), clust_idx);
@@ -346,7 +345,6 @@ base::cluster_t hclust_coordinator::run(
 
     printf("After initial init: \n");
     hcltrs[0]->print_means();
-    //hcltrs->at(0)->print_means();
 
     // Run loop
     bool converged = false;

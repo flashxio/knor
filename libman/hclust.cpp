@@ -67,9 +67,6 @@ hclust::hclust(const int node_id, const unsigned thd_id,
             this->g_hcltrs = g_hcltrs; // Global clusters
             this->k = g_hcltrs->at(0)->get_nclust();
 
-            // We're guaranteed these will exist
-            local_hcltrs[0] = base::h_clusters::create(k, ncol);
-
             nchanged[0] = 0;
 
             set_data_size(sizeof(double)*nprocrows*ncol);
@@ -118,12 +115,14 @@ void hclust::H_split_step() {
 }
 
 void hclust::H_EM_step() {
+
     base::reset(nchanged);
+
+    local_hcltrs.clear();
     for (auto kv : (*g_hcltrs))
-        g_hcltrs->at(kv.first)->clear();
+        local_hcltrs[kv.first] = base::h_clusters::create(2, ncol);
 
     for (unsigned row = 0; row < nprocrows; row++) {
-
         // What cluster is this row in?
         unsigned true_row_id = get_global_data_id(row);
         auto curr_clust = cluster_assignments[true_row_id];
@@ -137,11 +136,6 @@ void hclust::H_EM_step() {
         unsigned asgnd_clust = base::INVALID_CLUSTER_ID;
         double best, dist;
         dist = best = std::numeric_limits<double>::max();
-
-        printf("\n\ng_hcltrs[%u]:\n", rpart_id);
-        g_hcltrs->at(rpart_id)->print_means();
-        printf("\n\n");
-        exit(911);
 
         for (unsigned clust_idx = 0; clust_idx < 2; clust_idx++) {
             dist = base::dist_comp_raw<double>(&local_data[row*ncol],
@@ -175,8 +169,7 @@ void hclust::H_EM_step() {
             ; // TODO: meta.num_changed++;
 
         cluster_assignments[true_row_id] = asgnd_clust;
-        // TODO
-        //local_clusters->add_member(&local_data[row*ncol], asgnd_clust);
+        local_hcltrs[rpart_id]->add_member(&local_data[row*ncol], asgnd_clust);
     }
 }
 
