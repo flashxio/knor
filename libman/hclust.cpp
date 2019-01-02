@@ -67,8 +67,6 @@ hclust::hclust(const int node_id, const unsigned thd_id,
             this->g_hcltrs = g_hcltrs; // Global clusters
             this->k = g_hcltrs->at(0)->get_nclust();
 
-            nchanged[0] = 0;
-
             set_data_size(sizeof(double)*nprocrows*ncol);
         }
 
@@ -116,24 +114,32 @@ void hclust::H_split_step() {
 
 void hclust::H_EM_step() {
 
-    base::reset(nchanged);
-
     local_hcltrs.clear();
-    for (auto kv : (*g_hcltrs))
+    nchanged.clear(); // base::reset(nchanged);
+
+    for (auto kv : (*g_hcltrs)) {
         local_hcltrs[kv.first] = base::h_clusters::create(2, ncol);
+        local_hcltrs[kv.first]->clear(); // TODO: Combine into ctor
+
+        nchanged[kv.second->get_zeroid()] = 0;
+        nchanged[kv.second->get_oneid()] = 0;
+    }
 
     for (unsigned row = 0; row < nprocrows; row++) {
+
         // What cluster is this row in?
         unsigned true_row_id = get_global_data_id(row);
-        auto curr_clust = cluster_assignments[true_row_id];
+        auto rpart_id = part_id[true_row_id];
 
         // Not active
         // TODO: Deal with deactivating clusters ...
-        if (!((*cltr_active_vec)[curr_clust]))
+        if (!((*cltr_active_vec)[rpart_id])) {
+            printf("Skip row: %u, CID: %u inactive!\n", true_row_id, rpart_id);
             continue; // Skip it
+        }
 
-        auto rpart_id = part_id[true_row_id];
         unsigned asgnd_clust = base::INVALID_CLUSTER_ID;
+        bool flag = 0; // Is the best the zeroid or oneid
         double best, dist;
         dist = best = std::numeric_limits<double>::max();
 
@@ -141,15 +147,9 @@ void hclust::H_EM_step() {
             dist = base::dist_comp_raw<double>(&local_data[row*ncol],
                     &(g_hcltrs->at(rpart_id)->
                         get_means()[clust_idx*ncol]), ncol, dist_metric);
-
-            std::cout << "Diff btwn data: \n";
-            base::print_arr<double>(&local_data[row*ncol], ncol);
-            std::cout << "Centers: \n";
-            base::print_arr<double>(
-                    &(g_hcltrs->at(rpart_id)->get_means()[clust_idx*ncol]), ncol);
-
-            std::cout << "rid: " << true_row_id << ", dist: " << dist <<
-                ", to cid: " << clust_idx << std::endl;
+#if 0
+            std::cout << "Diff btwn data and centers: " << dist << "\n";
+#endif
 
             if (dist < best) {
                 best = dist;
@@ -157,19 +157,26 @@ void hclust::H_EM_step() {
                     asgnd_clust = g_hcltrs->at(rpart_id)->get_zeroid();
                 } else {
                     asgnd_clust = g_hcltrs->at(rpart_id)->get_oneid();
+                    flag = 1;
                 }
             }
         }
 
         assert(asgnd_clust != base::INVALID_CLUSTER_ID);
+#if 0
         std::cout << "ROW: " << true_row_id << ", assigned to: " << asgnd_clust
             << "\n";
+#endif
 
         if (asgnd_clust != cluster_assignments[true_row_id])
-            ; // TODO: meta.num_changed++;
+            nchanged[asgnd_clust]++; // TODO: Could be expensive
 
         cluster_assignments[true_row_id] = asgnd_clust;
-        local_hcltrs[rpart_id]->add_member(&local_data[row*ncol], asgnd_clust);
+#if 1
+        assert (local_hcltrs.find(rpart_id) != local_hcltrs.end());
+#endif
+
+        local_hcltrs[rpart_id]->add_member(&local_data[row*ncol], flag);
     }
 }
 

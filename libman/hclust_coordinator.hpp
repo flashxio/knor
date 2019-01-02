@@ -88,7 +88,7 @@ class hclust_coordinator : public coordinator {
         // Pass file handle to threads to read & numa alloc
         virtual base::cluster_t run(double* allocd_data=NULL,
             const bool numa_opt=false) override;
-        //void update_clusters();
+        void update_clusters();
         void kmeanspp_init() override;
         void random_partition_init() override;
         void forgy_init() override;

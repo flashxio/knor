@@ -48,9 +48,6 @@ hclust_coordinator::hclust_coordinator(const std::string fn, const size_t nrow,
             //hcltrs->insert({0, base::h_clusters::create(2, ncol)});
         }
 
-        // Init for 1st clusters
-        nchanged[0] = 0;
-
         std::fill(cluster_assignments.begin(), cluster_assignments.end(), 0);
         part_id.assign(nrow, 0);
         build_thread_state();
@@ -196,7 +193,6 @@ void hclust_coordinator::forgy_init() {
                 cluster_ptr->set_mean(get_thd_data(rand_idx), clust_idx);
                 cluster_ptr->set_zeroid(splits.first);
                 cluster_ptr->set_oneid(splits.second);
-                cluster_ptr->print_means();
             }
         }
     }
@@ -271,7 +267,6 @@ void hclust_coordinator::init_splits() {
 
         // Add parent with two children
         // TODO: memoize these
-#if 1
         hcltrs[zeroid] = base::h_clusters::create(2, ncol);
         hcltrs[zeroid]->set_mean(get_thd_data(l0), 0);
         hcltrs[zeroid]->set_mean(get_thd_data(l1), 1);
@@ -283,29 +278,14 @@ void hclust_coordinator::init_splits() {
         hcltrs[oneid]->set_mean(get_thd_data(r1), 1);
         hcltrs[oneid]->set_zeroid(one_child_ids.first);
         hcltrs[oneid]->set_oneid(one_child_ids.second);
-#else
-        hcltrs->insert({zeroid, base::h_clusters::create(2, ncol)});
-        hcltrs->at(zeroid)->set_mean(get_thd_data(l0), 0);
-        hcltrs->at(zeroid)->set_mean(get_thd_data(l1), 1);
-        hcltrs->at(zeroid)->set_zeroid(zero_child_ids.first);
-        hcltrs->at(zeroid)->set_oneid(zero_child_ids.second);
-
-        hcltrs->insert({oneid, base::h_clusters::create(2, ncol)});
-        hcltrs->at(oneid)->set_mean(get_thd_data(r0), 0);
-        hcltrs->at(oneid)->set_mean(get_thd_data(r1), 1);
-        hcltrs->at(oneid)->set_zeroid(one_child_ids.first);
-        hcltrs->at(oneid)->set_oneid(one_child_ids.second);
-#endif
     }
 
     // Now update with new clusters added and delete parent
     for (auto id : remove_cache) {
         hcltrs.erase(id); // Delete
-        //hcltrs->erase(id); // Delete
     }
 
     curr_nclust = hcltrs.size();
-    //curr_nclust = hcltrs->size();
 }
 
 void hclust_coordinator::accumulate_cluster_counts() {
@@ -319,6 +299,66 @@ void hclust_coordinator::accumulate_cluster_counts() {
         }
     }
 }
+
+void hclust_coordinator::update_clusters() {
+    // clear nchanged & means
+    for (auto kv : hcltrs) {
+        nchanged[kv.second->get_zeroid()] = 0;
+        nchanged[kv.second->get_oneid()] = 0;
+        kv.second->clear(); // clear means
+    }
+
+    // Serial aggregate of nthread vectors
+    for (auto thd : threads) {
+        // Update the changed cluster count
+        for (kv : (std::static_pointer_cast<hclust>(thd))->get_nchanged())
+            nchanged[kv.first] += kv.second;
+
+        // Update the global hcltrs with local ones
+        for (kv : (std::static_pointer_cast<hclust>(thd))->get_local_hcltrs())
+            hcltrs[kv.first]->peq(kv.second);
+    }
+
+    cluster_assignment_counts.clear(); // Empty the map
+
+    size_t chk_nmemb = 0; // Global
+    for (auto kv : hcltrs) {
+        // There are only ever 2 of these for hclust
+        kv.second->finalize(0);
+
+        cluster_assignment_counts[kv.second->get_zeroid()] =
+            kv.second->get_num_members(0);
+
+        kv.second->finalize(1);
+        cluster_assignment_counts[kv.second->get_oneid()] =
+            kv.second->get_num_members(1);
+
+#if 1
+        printf("CID: %u, with mean: ", kv.first);
+        kv.second->print_means();
+        printf("With num_members[0]: %lu\n", kv.second->get_num_members(0));
+        printf("With num_members[1]: %lu\n", kv.second->get_num_members(1));
+#endif
+
+#if 1
+        chk_nmemb += cluster_assignment_counts[kv.second->get_zeroid()];
+        chk_nmemb += cluster_assignment_counts[kv.second->get_oneid()];
+#endif
+    }
+
+    printf("chk_nmemb: %lu\n", chk_nmemb);
+    assert(chk_nmemb == nrow);
+
+#if 1 // Testing
+    size_t total_changed = 0;
+    for (auto kv : nchanged)
+        total_changed += kv.second;
+
+    printf("Total nchanged: %lu\n", total_changed);
+    assert(total_changed <= nrow);
+#endif
+}
+
 
 /**
  * Main driver
@@ -351,40 +391,40 @@ base::cluster_t hclust_coordinator::run(
     size_t iter = 0;
     curr_nclust = 1;
 
-    while (curr_nclust < k) { /*TODO: Or all clusters are inactive*/
-        if (curr_nclust > 1)
-            init_splits(); // Initialize possible splits
+    while (curr_nclust <= k) { /*TODO: Or all clusters are inactive*/
 
         for (iter = 0; iter < max_iters; iter++) {
-            //wake4run(H_SPLIT);
-            //wait4complete();
-
+            printf("\n\nNCLUST: %u, Iteration: %lu\n", curr_nclust, iter);
             // Now pick between the cluster splits
             wake4run(H_EM);
             wait4complete();
-
 #if 1
-            // TODO: RM -- Testing only
             // Accumulate the counts
-            printf("Cluster states: \n");
+            printf("After H_EM step Global hcltrs: \n");
             print_active_clusters();
-
-            printf("Printing cluster assignment after split:\n");
-            base::print_vector(cluster_assignments, nrow);
-            accumulate_cluster_counts();
-            printf("Printing cluster assignment counts after split:\n");
-            base::print(cluster_assignment_counts);
-            exit(911);
 #endif
 
+            update_clusters();
+#if 1
+            printf("\nAfter update_clusters ... Global hcltrs:\n");
+            print_active_clusters();
+            printf("Global cluster assignment counts:\n");
+            base::print(cluster_assignment_counts);
+#endif
             // TODO: Per cluster tolerance early termination
             //if (num_changed == 0 ||
             //((num_changed/(double)nrow)) <= tolerance) {
             //converged = true;
             //break;
             //}
-            iter++;
+            printf("\n*****************************************************\n");
         }
+
+        if (curr_nclust == k)
+            break;
+
+        // Update global state for curr_nclust
+        init_splits(); // Initialize possible splits
     }
 #ifdef PROFILER
     ProfilerStop();

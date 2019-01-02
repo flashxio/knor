@@ -79,6 +79,14 @@ class hclust : public thread {
             this->part_id = part_id;
         }
 
+        const change_map& get_nchanged() const {
+            return this->nchanged;
+        }
+
+        const hclust_map& get_local_hcltrs() const {
+            return this->local_hcltrs;
+        }
+
         virtual void start(const thread_state_t state) override;
         // Given the current ID split it into two (or not)
         virtual void H_split_step();
