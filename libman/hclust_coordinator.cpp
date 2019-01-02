@@ -35,8 +35,10 @@ hclust_coordinator::hclust_coordinator(const std::string fn, const size_t nrow,
     coordinator(fn, nrow, ncol, k, max_iters,
             nnodes, nthreads, centers, it, tolerance, dt) {
 
-        cltr_active_vec = new std::vector<bool>(1);
+        cltr_active_vec = new std::vector<bool>(); // We know the max size!
+        cltr_active_vec->assign(k, false);
         (*cltr_active_vec)[0] = true;
+
         ui_distribution = std::uniform_int_distribution<unsigned>(0, nrow-1);
 
         if (centers) {
@@ -219,6 +221,12 @@ void hclust_coordinator::print_active_clusters() {
 
 void hclust_coordinator::init_splits() {
     // TODO: ||ize
+#if 1
+    printf("Cluster assignments!\n");
+    base::print_vector(cluster_assignments, nrow);
+    printf("\n\n");
+#endif
+
     std::vector<unsigned> remove_cache;
 
     for (auto kv : hcltrs) {
@@ -232,34 +240,46 @@ void hclust_coordinator::init_splits() {
         unsigned l0, l1, r0, r1;
         l0 = l1 = r0 = r1 = std::numeric_limits<unsigned>::max();
 
-        for (auto vid : cluster_assignments) {
+        for (unsigned vid = 0; vid < nrow; vid++) {
             if (l0_complete && l1_complete && r0_complete && r1_complete)
                 break; // Out of inner loop
 
-            if (vid == zeroid) {
+            if (cluster_assignments[vid] == zeroid) {
                 if (!l0_complete) {
                     l0 = vid;
+#if 1
+                    printf("L0: set to rid: %u\n", vid);
+#endif
                     l0_complete = true;
                 } else if (!r0_complete) {
                     r0 = vid;
+#if 1
+                    printf("R0: set to rid: %u\n", vid);
+#endif
                     r0_complete = true;
                 }
-            } else if (vid == oneid) {
+            } else if (cluster_assignments[vid] == oneid) {
                 if (!l1_complete) {
                     l1 = vid;
+#if 1
+                    printf("L1: set to rid: %u\n", vid);
+#endif
                     l1_complete = true;
                 } else if (!r1_complete) {
                     r1 = vid;
+#if 1
+                    printf("R1: set to rid: %u\n", vid);
+#endif
                     r1_complete = true;
                 }
             }
         }
 
         // TODO: RM
-        assert(l0 == std::numeric_limits<unsigned>::max() ||
-                l1 == std::numeric_limits<unsigned>::max() ||
-                r0 == std::numeric_limits<unsigned>::max() ||
-                r1 == std::numeric_limits<unsigned>::max());
+        assert(l0 != std::numeric_limits<unsigned>::max() ||
+                l1 != std::numeric_limits<unsigned>::max() ||
+                r0 != std::numeric_limits<unsigned>::max() ||
+                r1 != std::numeric_limits<unsigned>::max());
         // TODO: End RM
 
         auto zero_child_ids = ider->get_split_ids(zeroid);
@@ -272,20 +292,29 @@ void hclust_coordinator::init_splits() {
         hcltrs[zeroid]->set_mean(get_thd_data(l1), 1);
         hcltrs[zeroid]->set_zeroid(zero_child_ids.first);
         hcltrs[zeroid]->set_oneid(zero_child_ids.second);
+        (*cltr_active_vec)[zeroid] = true;
 
         hcltrs[oneid] = base::h_clusters::create(2, ncol);
         hcltrs[oneid]->set_mean(get_thd_data(r0), 0);
         hcltrs[oneid]->set_mean(get_thd_data(r1), 1);
         hcltrs[oneid]->set_zeroid(one_child_ids.first);
         hcltrs[oneid]->set_oneid(one_child_ids.second);
+        (*cltr_active_vec)[oneid] = true;
     }
 
     // Now update with new clusters added and delete parent
-    for (auto id : remove_cache) {
+    for (unsigned id : remove_cache) {
         hcltrs.erase(id); // Delete
+        (*cltr_active_vec)[id] = false; // Deactivate removed cluster
     }
 
     curr_nclust = hcltrs.size();
+
+    printf("hcltrs after init_splits:\n");
+    print_active_clusters();
+
+    // Update partition ID
+    part_id = cluster_assignments;
 }
 
 void hclust_coordinator::accumulate_cluster_counts() {
