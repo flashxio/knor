@@ -36,6 +36,30 @@ namespace base {
 class hclust_id_generator;
 static std::shared_ptr<hclust_id_generator> ider = nullptr;
 
+struct c_part {
+    unsigned l0;
+    unsigned l1;
+    unsigned r0;
+    unsigned r1;
+
+    c_part() {
+        l0 = l1 = r0 = r1 = std::numeric_limits<unsigned>::max();
+    }
+
+    bool l_splittable() const {
+        return (l0 != std::numeric_limits<unsigned>::max() &&
+                l1 != std::numeric_limits<unsigned>::max());
+    }
+
+    bool r_splittable() const {
+        return (r0 != std::numeric_limits<unsigned>::max() &&
+                r1 != std::numeric_limits<unsigned>::max());
+    }
+
+    bool splittable() const { return l_splittable() && r_splittable(); }
+    void check() const { assert(splittable()); }
+};
+
 class hclust_coordinator : public coordinator {
     protected:
         std::unordered_map<unsigned, std::shared_ptr<base::clusters>> hcltrs;
@@ -48,6 +72,7 @@ class hclust_coordinator : public coordinator {
         // Keep track of the parent cluster id (partition id)
         std::vector<unsigned> part_id;
         unsigned curr_nclust;
+        // TODO: vector with skip computation flag
 
         // Override the vector in coordinator.hpp
         std::unordered_map<unsigned, size_t> cluster_assignment_counts;
@@ -98,6 +123,13 @@ class hclust_coordinator : public coordinator {
         std::shared_ptr<hclust_id_generator> get_ider();
         virtual void build_thread_state() override;
         virtual void init_splits();
+        virtual void inner_init(std::vector<unsigned>& remove_cache);
+        virtual void spawn(const unsigned& zeroid,
+                const unsigned& oneid, const c_part& cp);
+        virtual void deactivate(const unsigned id);
+        virtual void activate(const unsigned id);
+        virtual bool is_active(const unsigned i);
+
         void accumulate_cluster_counts();
         ~hclust_coordinator();
 };
