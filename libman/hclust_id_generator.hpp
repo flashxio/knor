@@ -53,18 +53,10 @@ private:
 #endif
 
     hclust_id_generator() {
-#if 0
         _mutex.lock();
-#else
-        _mutex.lock();
-#endif
         max_id = 2;
         id_split_map[0] = split_id(1, 2);
-#if 0
         _mutex.unlock();
-#else
-        _mutex.unlock();
-#endif
     }
 
     // Method is only called with exclusive lock taken
@@ -115,27 +107,15 @@ public:
 
         // else
         // Acquire an exclusive lock for writing
-#if 0
         _mutex.lock();
-#else
-        _mutex.lock();
-#endif
         // Check no one else has updated the map between your check
         entry = id_split_map.find(id);
         if (entry != id_split_map.end()) {
-#if 0
             _mutex.unlock();
-#else
-            _mutex.unlock();
-#endif
             return entry->second; // i.e. the split_id struct
         } else {
             generate_next(id);
-#if 0
             _mutex.unlock();
-#else
-            _mutex.unlock();
-#endif
             return id_split_map[id]; // i.e. the split_id struct
         }
 

@@ -32,7 +32,7 @@ build_libs: build_common
 	$(MAKE) -C libman # pthreads
 	$(MAKE) -C binding
 	$(MAKE) -C libdist # MPI
-	#$(MAKE) -C libsem # FG
+	$(MAKE) -C libsem # FG
 endif
 
 exec: build_libs
