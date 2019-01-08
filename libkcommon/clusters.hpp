@@ -194,7 +194,7 @@ public:
     clusters& operator=(clusters& other);
     bool operator==(clusters& other);
     void peq(ptr rhs);
-    const void print_means() const;
+    virtual const void print_means() const;
     void clear();
     /** \param idx the cluster index.
       */
@@ -214,10 +214,12 @@ public:
     void scale_centroid(const double factor,
             const unsigned idx, const double* member);
 
-    virtual void set_zeroid(const unsigned zeroid) {
-    }
+    virtual void set_zeroid(const unsigned zeroid) { }
+    virtual void set_oneid(const unsigned oneid) { }
+    virtual void set_id(const unsigned id) { }
 
-    virtual void set_oneid(const unsigned oneid) {
+    virtual const unsigned get_id() {
+        throw abstract_exception();
     }
 
     virtual const unsigned get_zeroid() {
@@ -291,13 +293,22 @@ public:
 
 class h_clusters : public clusters {
 private:
-    unsigned zeroid, oneid;
+    // This cluster's ID and that of 0 and 1
+    unsigned id, zeroid, oneid;
 public:
-
     using clusters::clusters;
 
     static ptr create(const unsigned nclust, const unsigned ncol) {
         return ptr(new h_clusters(nclust, ncol));
+    }
+
+    static ptr create(const unsigned nclust, const unsigned ncol,
+            const unsigned id, const unsigned zeroid, const unsigned oneid) {
+        auto ret = ptr(new h_clusters(nclust, ncol));
+        ret->set_id(id);
+        ret->set_zeroid(zeroid);
+        ret->set_oneid(oneid);
+        return ret;
     }
 
     static ptr create(const unsigned nclust, const unsigned ncol,
@@ -324,6 +335,16 @@ public:
     const unsigned get_oneid() override {
         return oneid;
     }
+
+    void set_id(const unsigned id) override {
+        this->id = id;
+    }
+
+    const unsigned get_id() override {
+        return id;
+    }
+
+    const void print_means() const override;
 };
 
 } } // End namespace knor, base
