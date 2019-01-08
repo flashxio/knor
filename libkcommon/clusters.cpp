@@ -141,8 +141,13 @@ const void clusters::print_means() const {
 #endif
         print_arr<double>(&(means[cl_idx*ncol]), ncol);
     }
+}
+
+const void h_clusters::print_means() const {
+    clusters::print_means();
 #ifndef BIND
-    std::cout << "\n";
+    printf("Mean 0 ID: %u\n", zeroid);
+    printf("Mean 1 ID: %u\n", oneid);
 #endif
 }
 
