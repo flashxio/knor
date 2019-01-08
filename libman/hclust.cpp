@@ -113,16 +113,15 @@ void hclust::H_split_step() {
 }
 
 void hclust::H_EM_step() {
-
     local_hcltrs.clear();
     nchanged.clear(); // base::reset(nchanged);
 
     for (auto kv : (*g_hcltrs)) {
+        // No need to set id, zeroid, oneid because global hcltrs knows them
         local_hcltrs[kv.first] = base::h_clusters::create(2, ncol);
-        local_hcltrs[kv.first]->clear(); // TODO: Combine into ctor
+        local_hcltrs[kv.first]->clear(); // NOTE: Could be combined into ctor
 
-        nchanged[kv.second->get_zeroid()] = 0;
-        nchanged[kv.second->get_oneid()] = 0;
+        nchanged[kv.second->get_id()] = 0; // Per partition
     }
 
     for (unsigned row = 0; row < nprocrows; row++) {
@@ -133,8 +132,9 @@ void hclust::H_EM_step() {
 
         // Not active
         // TODO: Deal with deactivating clusters ...
-        if (!((*cltr_active_vec)[rpart_id])) {
-            printf("Skip row: %u, CID: %u inactive!\n", true_row_id, rpart_id);
+        if (!(*cltr_active_vec)[cluster_assignments[true_row_id]]) {
+            printf("Skip row: %u, CID: %u inactive!\n", true_row_id,
+                    cluster_assignments[true_row_id]);
             continue; // Skip it
         }
 
@@ -148,9 +148,11 @@ void hclust::H_EM_step() {
                     &(g_hcltrs->at(rpart_id)->
                         get_means()[clust_idx*ncol]), ncol, dist_metric);
 #if 0
-            std::cout << "Diff btwn data and centers: " << dist << "\n";
+            std::cout << "Data: "; base::print_arr(&local_data[row*ncol], ncol);
+            std::cout << "Cent: "; base::print_arr(&(g_hcltrs->at(rpart_id)->
+                        get_means()[clust_idx*ncol]), ncol);
+            std::cout << "Diff btwn data and centers: " << dist << "\n\n";
 #endif
-
             if (dist < best) {
                 best = dist;
                 if (clust_idx == 0) {
@@ -165,17 +167,17 @@ void hclust::H_EM_step() {
         assert(asgnd_clust != base::INVALID_CLUSTER_ID);
 #if 0
         std::cout << "ROW: " << true_row_id << ", assigned to: " << asgnd_clust
-            << "\n";
+            << "\n\n";
 #endif
 
-        if (asgnd_clust != cluster_assignments[true_row_id])
-            nchanged[asgnd_clust]++; // TODO: Could be expensive
+        if (asgnd_clust != cluster_assignments[true_row_id]) {
+            nchanged[rpart_id]++; // TODO: Could be expensive
+        }
 
         cluster_assignments[true_row_id] = asgnd_clust;
 #if 1
         assert (local_hcltrs.find(rpart_id) != local_hcltrs.end());
 #endif
-
         local_hcltrs[rpart_id]->add_member(&local_data[row*ncol], flag);
     }
 }

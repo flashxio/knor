@@ -39,7 +39,7 @@ class hclust : public thread {
          // Pointer to global cluster data
         hclust_map* g_hcltrs;
         hclust_map local_hcltrs;
-        change_map nchanged;
+        change_map nchanged; // How many change in each partition
         std::vector<bool>* cltr_active_vec; // Which clusters are still active
         std::shared_ptr<hclust_id_generator> ider; // ID provider
 
