@@ -56,6 +56,7 @@ struct c_part {
                 r1 != std::numeric_limits<unsigned>::max());
     }
 
+    void print() const { printf("l0: %u, l1: %u, r0: %u, r1: %u\n", l0, l1, r0, r1); }
     bool splittable() const { return l_splittable() && r_splittable(); }
     void check() const { assert(splittable()); }
 };
@@ -71,8 +72,6 @@ class hclust_coordinator : public coordinator {
         std::mutex _mutex;
         // Keep track of the parent cluster id (partition id)
         std::vector<unsigned> part_id;
-        unsigned curr_nclust;
-        // TODO: vector with skip computation flag
 
         // Override the vector in coordinator.hpp
         std::unordered_map<unsigned, size_t> cluster_assignment_counts;
