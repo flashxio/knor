@@ -383,11 +383,12 @@ void hclust_coordinator::update_clusters() {
     // Serial aggregate of nthread vectors
     for (auto thd : threads) {
         // Update the changed cluster count
-        for (kv : (std::static_pointer_cast<hclust>(thd))->get_nchanged())
+        for (auto kv : (std::static_pointer_cast<hclust>(thd))->get_nchanged())
             nchanged[kv.first] += kv.second;
 
         // Update the global hcltrs with local ones
-        for (kv : (std::static_pointer_cast<hclust>(thd))->get_local_hcltrs())
+        for (auto kv : (std::static_pointer_cast<hclust>(
+                        thd))->get_local_hcltrs())
             hcltrs[kv.first]->peq(kv.second);
     }
 
