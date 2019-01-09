@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "Testing medoids"
+echo "Testing medoids" && \
 ../exec/medoids -f ../test-data/iris.bin -n 150 -m 4 -k 3 -T 32 -i 10 && \
 echo "Testing skmeans" && \
 ../exec/skmeans -f ../test-data/iris.bin -n 150 -m 4 -k 3 -T 32 -i 10 && \
