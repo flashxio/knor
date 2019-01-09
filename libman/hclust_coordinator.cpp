@@ -218,7 +218,6 @@ void hclust_coordinator::print_active_clusters() {
 // How to initialize when splitting
 void hclust_coordinator::inner_init(std::vector<unsigned>& remove_cache) {
     // TODO: ||ize
-
     // First check for empty clusters
     for (size_t i = 0; i < cluster_assignment_counts.size(); i++) {
         if (cluster_assignment_counts[i] < MIN_CLUST_SIZE)
@@ -343,6 +342,8 @@ void hclust_coordinator::init_splits() {
 // Helper
 void hclust_coordinator::accumulate_cluster_counts() {
     // We need cluster_assignment_counts to be a map
+    cluster_assignment_counts.clear(); // Should be empty when we do this!
+
     for (auto cid : cluster_assignments) {
         if (cluster_assignment_counts.find(cid)
                 != cluster_assignment_counts.end()) {
@@ -372,12 +373,14 @@ bool hclust_coordinator::is_active(const unsigned id) {
 }
 
 void hclust_coordinator::update_clusters() {
-
     // clear nchanged & means
     nchanged.clear();
     for (auto kv : hcltrs) {
         nchanged[kv.first] = 0;
-        kv.second->clear(); // clear means
+
+        // No need to update the state of this partition because it's converged
+        if (!kv.second->has_converged())
+            kv.second->clear(); // clear means if it's changed
     }
 
     // Serial aggregate of nthread vectors
@@ -396,20 +399,26 @@ void hclust_coordinator::update_clusters() {
 
     for (auto kv : hcltrs) {
         // There are only ever 2 of these for hclust
-        kv.second->finalize(0);
+        auto pid = kv.first; // partition ID
+        auto c = kv.second;
+        auto part_nmembers = c->get_num_members(0) + c->get_num_members(1);
+        cluster_assignment_counts[c->get_zeroid()] = c->get_num_members(0);
+        cluster_assignment_counts[c->get_oneid()] = c->get_num_members(1);
 
-        cluster_assignment_counts[kv.second->get_zeroid()] =
-            kv.second->get_num_members(0);
+        if (c->has_converged()) // No need to do anything now
+            continue;
 
-        kv.second->finalize(1);
-        cluster_assignment_counts[kv.second->get_oneid()] =
-            kv.second->get_num_members(1);
+        c->finalize(0);
+        c->finalize(1);
 
+        // Premature End of computation
+        if (nchanged[pid] == 0 ||
+                (nchanged[pid]/(double)part_nmembers) <= tolerance) {
+            printf("\n\tPID: %u converged!\n", pid);
+            c->set_converged();
+        }
 #if 1
-        printf("CID: %u, with mean: ", kv.first);
-        kv.second->print_means();
-        printf("With num_members[0]: %lu\n", kv.second->get_num_members(0));
-        printf("With num_members[1]: %lu\n", kv.second->get_num_members(1));
+        printf("PID: %u, with mean: ", pid); c->print_means();
 #endif
     }
 
@@ -454,7 +463,6 @@ base::cluster_t hclust_coordinator::run(
     hcltrs[0]->print_means();
 
     // Run loop
-    bool converged = false;
     size_t iter = 0;
 
     /*TODO: Or all clusters are inactive*/
@@ -482,12 +490,6 @@ base::cluster_t hclust_coordinator::run(
             printf("Global cluster assignment counts:\n");
             base::print(cluster_assignment_counts);
 #endif
-            // TODO: Per cluster tolerance early termination
-            //if (num_changed == 0 ||
-            //((num_changed/(double)nrow)) <= tolerance) {
-            //converged = true;
-            //break;
-            //}
             printf("\n*****************************************************\n");
         }
 
@@ -508,16 +510,6 @@ base::cluster_t hclust_coordinator::run(
         base::time_diff(start, end));
     printf("\n******************************************\n");
 #endif
-    if (converged) {
-#ifndef BIND
-        printf("HClust converged in %lu iterations\n", iter);
-#endif
-    } else {
-#ifndef BIND
-        printf("[Warning]: HClust failed to converge in %lu"
-            " iterations\n", iter);
-#endif
-    }
 
 #ifndef BIND
     printf("Final cluster counts: \n");
@@ -531,7 +523,7 @@ base::cluster_t hclust_coordinator::run(
             &cluster_assignments[0], &cluster_assignment_counts[0],
             hcltrs->get_means());
 #else
-    return base::cluster_t();
+    return base::cluster_t(); // TODO
 #endif
 }
 
