@@ -117,6 +117,11 @@ void hclust::H_EM_step() {
     nchanged.clear(); // base::reset(nchanged);
 
     for (auto kv : (*g_hcltrs)) {
+        if (kv.second->has_converged()) {
+            printf("Partition: %u has converged!\n", kv.second->get_id());
+            continue;
+        }
+
         // No need to set id, zeroid, oneid because global hcltrs knows them
         local_hcltrs[kv.first] = base::h_clusters::create(2, ncol);
         local_hcltrs[kv.first]->clear(); // NOTE: Could be combined into ctor
@@ -131,9 +136,15 @@ void hclust::H_EM_step() {
         auto rpart_id = part_id[true_row_id];
 
         // Not active
-        // TODO: Deal with deactivating clusters ...
         if (!(*cltr_active_vec)[cluster_assignments[true_row_id]]) {
             printf("Skip row: %u, CID: %u inactive!\n", true_row_id,
+                    cluster_assignments[true_row_id]);
+            continue; // Skip it
+        }
+
+        // TODO: combine above into one check
+        if (g_hcltrs->at(rpart_id)->has_converged()) {
+            printf("Skip row: %u, CID: %u converged!\n", true_row_id,
                     cluster_assignments[true_row_id]);
             continue; // Skip it
         }
@@ -165,10 +176,6 @@ void hclust::H_EM_step() {
         }
 
         assert(asgnd_clust != base::INVALID_CLUSTER_ID);
-#if 0
-        std::cout << "ROW: " << true_row_id << ", assigned to: " << asgnd_clust
-            << "\n\n";
-#endif
 
         if (asgnd_clust != cluster_assignments[true_row_id]) {
             nchanged[rpart_id]++; // TODO: Could be expensive
