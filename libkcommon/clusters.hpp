@@ -229,6 +229,14 @@ public:
     virtual const unsigned get_oneid() {
         throw abstract_exception();
     }
+
+    virtual void set_converged(const bool status=true) {
+        throw abstract_exception();
+    }
+
+    virtual const bool has_converged() const {
+        throw abstract_exception();
+    }
 };
 
 class prune_clusters : public clusters {
@@ -295,16 +303,20 @@ class h_clusters : public clusters {
 private:
     // This cluster's ID and that of 0 and 1
     unsigned id, zeroid, oneid;
+    bool converged;
 public:
     using clusters::clusters;
 
     static ptr create(const unsigned nclust, const unsigned ncol) {
-        return ptr(new h_clusters(nclust, ncol));
+        auto ret = ptr(new h_clusters(nclust, ncol));
+        ret->set_converged(false);
+        return ret;
     }
 
     static ptr create(const unsigned nclust, const unsigned ncol,
             const unsigned id, const unsigned zeroid, const unsigned oneid) {
         auto ret = ptr(new h_clusters(nclust, ncol));
+        ret->set_converged(false);
         ret->set_id(id);
         ret->set_zeroid(zeroid);
         ret->set_oneid(oneid);
@@ -313,7 +325,9 @@ public:
 
     static ptr create(const unsigned nclust, const unsigned ncol,
             const double* centers) {
-        return ptr(new h_clusters(nclust, ncol, centers));
+        auto ret = ptr(new h_clusters(nclust, ncol, centers));
+        ret->set_converged(false);
+        return ret;
     }
 
     static std::shared_ptr<h_clusters> cast2(ptr obj) {
@@ -342,6 +356,14 @@ public:
 
     const unsigned get_id() override {
         return id;
+    }
+
+    void set_converged(const bool status) override {
+        converged = status;
+    }
+
+    const bool has_converged() const override {
+        return this->converged;
     }
 
     const void print_means() const override;
