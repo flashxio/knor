@@ -40,8 +40,6 @@ else
 test: all
 	./test_auto
 	./test_man
-	./test_nor.sh
-	#./test_dist.sh
 	#./test_sem.sh
 endif
 
