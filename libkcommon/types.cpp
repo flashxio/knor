@@ -65,7 +65,7 @@ const void cluster_t::write(const std::string dirname) const {
 
     std::string fn = "cluster_t.yml";
     int ret =
-        std::system((std::string("python exec/python/util.py ")
+        std::system((std::string("python python/util.py ")
                     + dirname).c_str());
     if (ret) {
 #ifndef BIND
