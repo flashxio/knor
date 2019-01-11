@@ -11,10 +11,10 @@ compiler:
 - mpicc.mpich2
 script:
 - make clean; make
-#- cd libkcommon/unit-test && make test ; cd -
-#- cd libman/unit-test && make test ; cd -
-#- cd binding/unit-test && make test ; cd -
-#- cd libsem/FlashX/flash-graph/utils/test/ && make test ; cd -
-- cd exec && make test ; cd -
-- cd release-test && make test ; cd -
+- cd libkcommon/unit-test && make test && cd -
+- cd libman/unit-test && make test && cd -
+- cd binding/unit-test && make test && cd -
+- cd libsem/FlashX/flash-graph/utils/test/ && make test ; cd -
+- cd exec && make test && cd -
+- cd release-test && make test && cd -
 group: edge
