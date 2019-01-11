@@ -61,7 +61,7 @@ test-nor:
 	#@echo "Testing mb_knori"
 	#./mb_knori -f ../test-data/iris.bin -n 150 -m 4 -k 3 -T 2 -i 10 -M 30
 
-test:
+test: all
 	$(MAKE) test-nor
 	$(MAKE) test-dist
 

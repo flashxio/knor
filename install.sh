@@ -44,3 +44,10 @@ apt-get install -y libgoogle-perftools-dev
 
 # Source control
 apt-get install -y git
+
+# Upgrade GCC to 5
+add-apt-repository -y ppa:ubuntu-toolchain-r/test
+apt-get -y update
+apt-get -y install gcc-5 g++-5
+update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-5 60 \
+    --slave /usr/bin/g++ g++ /usr/bin/g++-5
