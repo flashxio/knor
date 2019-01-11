@@ -10,7 +10,7 @@ install: sudo ./install.sh
 compiler:
 - mpicc.mpich2
 script:
-- make clean; make
+- make clean; make -j2
 - cd libkcommon/unit-test && make test && cd -
 - cd libman/unit-test && make test && cd -
 - cd binding/unit-test && make test && cd -

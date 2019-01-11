@@ -84,8 +84,7 @@ int main(int argc, char* argv[]) {
             cxxopts::value<std::string>())
       ("o,outdir", "Write output to an output directory of this name",
             cxxopts::value<std::string>(outdir))
-      ("h,help", "Print help")
-    ;
+      ("h,help", "Print help");
 
     options.parse_positional({"datafn", "nsamples", "dim", "nclust"});
     int nargs = argc;
@@ -95,8 +94,6 @@ int main(int argc, char* argv[]) {
         std::cout << options.help() << std::endl;
         exit(EXIT_SUCCESS);
     }
-
-    cxxopts::check_required(options, {"datafn", "nsamples", "dim", "nclust"});
 
     kbase::assert_msg(kbase::is_file_exist(datafn.c_str()),
             "Data file name doesn't exit!");
