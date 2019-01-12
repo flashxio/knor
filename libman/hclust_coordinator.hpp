@@ -64,7 +64,7 @@ struct c_part {
 class hclust_coordinator : public coordinator {
     protected:
         std::unordered_map<unsigned, std::shared_ptr<base::clusters>> hcltrs;
-        std::unordered_map<unsigned, unsigned> nchanged;
+        std::vector<unsigned> nchanged;
         // Whether a particular cluster is cluster is still actively splitting
         std::vector<bool>* cltr_active_vec;
         std::default_random_engine ui_generator;

@@ -53,6 +53,8 @@ hclust_coordinator::hclust_coordinator(const std::string fn, const size_t nrow,
         std::fill(cluster_assignments.begin(), cluster_assignments.end(), 0);
         part_id.assign(nrow, 0);
         build_thread_state();
+
+        nchanged.assign(k, 0);
     }
 
 void hclust_coordinator::build_thread_state() {
@@ -374,9 +376,8 @@ bool hclust_coordinator::is_active(const unsigned id) {
 
 void hclust_coordinator::update_clusters() {
     // clear nchanged & means
-    nchanged.clear();
+    nchanged.assign(k, 0);
     for (auto kv : hcltrs) {
-        nchanged[kv.first] = 0;
 
         // No need to update the state of this partition because it's converged
         if (!kv.second->has_converged())
@@ -428,8 +429,8 @@ void hclust_coordinator::update_clusters() {
 
 #if 1 // Testing
     size_t total_changed = 0;
-    for (auto kv : nchanged)
-        total_changed += kv.second;
+    for (auto val : nchanged)
+        total_changed += val;
 
     printf("Total nchanged: %lu\n", total_changed);
     assert(total_changed <= nrow);
