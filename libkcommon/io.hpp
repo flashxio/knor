@@ -30,6 +30,7 @@
 #include <fstream>
 #include <sstream>
 #include <unordered_map>
+#include <map>
 
 namespace knor { namespace base {
 
@@ -64,6 +65,7 @@ void print_arr(const T* arr, const unsigned len) {
 #endif
 }
 
+// Unordered Map
 template <typename K, typename V>
 void print(const std::unordered_map<K,V> map) {
 #ifndef BIND
@@ -74,10 +76,80 @@ void print(const std::unordered_map<K,V> map) {
 #endif
 }
 
-template <typename T>
-void print_vector(typename std::vector<T> v, unsigned max_print=100) {
+// Map
+template <typename K, typename V>
+void print(const std::map<K,V> map) {
 #ifndef BIND
-    unsigned print_len = v.size() > max_print ? max_print : v.size();
+    for (auto kv : map) {
+        std::cout << "k: " << kv.first << ", v: " << kv.second << std::endl;
+    }
+    std::cout << "\n";
+#endif
+}
+
+// Vector
+template <typename T>
+void print(typename std::vector<T> v, size_t max_print=100) {
+#ifndef BIND
+    auto print_len = v.size() > max_print ? max_print : v.size();
+    std::cout << "[";
+    for (auto val : v)
+        std::cout << " "<< val;
+
+    if (v.size() > print_len) std::cout << " ...";
+    std::cout <<  " ]\n";
+#endif
+}
+
+// Array
+template <typename T>
+void print(const T* arr, const unsigned len) {
+#ifndef BIND
+    printf("[ ");
+    for (unsigned i = 0; i < len; i++) {
+        std::cout << arr[i] << " ";
+    }
+    printf("]\n");
+#endif
+}
+
+// Matrix
+template <typename T>
+void print(const T* matrix, const unsigned rows, const unsigned cols) {
+#ifndef BIND
+    for (unsigned row = 0; row < rows; row++) {
+        std::cout << "[";
+        for (unsigned col = 0; col < cols; col++) {
+            std::cout << " " << matrix[row*cols + col];
+        }
+        std::cout <<  " ]\n";
+    }
+#endif
+}
+
+// Array
+template <typename T>
+void sparse_print(const T* arr, const unsigned len) {
+#ifndef BIND
+    for (unsigned i = 0; i < len; i++) {
+        if (arr[i])
+            std::cout << "k: " << i << ", v: " << arr[i] << "\n";
+    }
+#endif
+}
+
+// Vector
+template <typename T>
+void sparse_print(typename std::vector<T> v, size_t max_print=100) {
+    sparse_print<T>(&v[0], std::min(v.size(), max_print));
+    if (max_print < v.size())
+        std::cout << (v.size()-max_print) << " results ommitted ....\n";
+}
+
+template <typename T>
+void print_vector(typename std::vector<T> v, size_t max_print=100) {
+#ifndef BIND
+    auto print_len = v.size() > max_print ? max_print : v.size();
     std::cout << "[";
     typename std::vector<T>::iterator itr = v.begin();
     for (; itr != v.begin()+print_len; itr++) {
