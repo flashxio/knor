@@ -38,6 +38,14 @@ double get_bic(const std::vector<double>& dist_v, const size_t nrow,
 void spherical_projection(double* data, const size_t nrow,
         const size_t ncol);
 
+// Hierarchical ceiling of the number of clusters you can get given some non
+//  power of two
+unsigned get_hclust_ceil(const unsigned k);
+
+// Hierarchical floor of the number of clusters you can get given some non
+//  power of two
+unsigned get_hclust_floor(const unsigned k);
+
 // Vector equal function
 template <typename T>
 bool v_eq(const T& lhs, const T& rhs) {

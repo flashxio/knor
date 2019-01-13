@@ -32,6 +32,7 @@
 
 #include "util.hpp"
 #include "exception.hpp"
+#include <cmath>
 
 namespace knor { namespace base {
 double get_bic(const std::vector<double>& dist_v, const size_t nrow,
@@ -63,6 +64,14 @@ void spherical_projection(double* data, const size_t nrow,
         for (unsigned col = 0; col < ncol; col++)
             data[col] = data[col]/std::sqrt(norm2);
     }
+}
+
+unsigned get_hclust_ceil(const unsigned k) {
+    return std::pow(2, static_cast<unsigned>(std::ceil(std::log2(k))));
+}
+
+unsigned get_hclust_floor(const unsigned k) {
+    return std::pow(2, static_cast<unsigned>(std::log2(k)));
 }
 
 // Verbatim from FlashX
