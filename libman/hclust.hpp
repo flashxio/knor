@@ -31,7 +31,6 @@ namespace base {
 
 typedef std::unordered_map<unsigned, std::shared_ptr<base::clusters>>
     hclust_map;
-typedef std::unordered_map<unsigned, unsigned> change_map;
 class hclust_id_generator;
 
 class hclust : public thread {
@@ -39,7 +38,7 @@ class hclust : public thread {
          // Pointer to global cluster data
         hclust_map* g_hcltrs;
         hclust_map local_hcltrs;
-        change_map nchanged; // How many change in each partition
+        std::vector<unsigned> nchanged; // How many change in each partition
         std::vector<bool>* cltr_active_vec; // Which clusters are still active
         std::shared_ptr<hclust_id_generator> ider; // ID provider
 
@@ -49,7 +48,7 @@ class hclust : public thread {
 
         hclust(const int node_id, const unsigned thd_id,
                 const unsigned start_rid, const unsigned nprocrows,
-                const unsigned ncol,
+                const unsigned ncol, unsigned k,
                 hclust_map* g_hcltrs,
                 unsigned* cluster_assignments,
                 const std::string fn, base::dist_t dist_metric);
@@ -57,13 +56,13 @@ class hclust : public thread {
         static thread::ptr create(
                 const int node_id, const unsigned thd_id,
                 const unsigned start_rid, const unsigned nprocrows,
-                const unsigned ncol,
+                const unsigned ncol, unsigned k,
                 hclust_map* g_hcltrs,
                 unsigned* cluster_assignments, const std::string fn,
                 base::dist_t dist_metric) {
             return thread::ptr(
                         new hclust(node_id, thd_id, start_rid,
-                        nprocrows, ncol, g_hcltrs,
+                        nprocrows, ncol, k, g_hcltrs,
                         cluster_assignments, fn, dist_metric));
         }
 
@@ -79,7 +78,7 @@ class hclust : public thread {
             this->part_id = part_id;
         }
 
-        const change_map& get_nchanged() const {
+        const std::vector<unsigned>& get_nchanged() const {
             return this->nchanged;
         }
 

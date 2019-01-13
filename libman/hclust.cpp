@@ -56,7 +56,7 @@ void* callback(void* arg) {
 namespace knor {
 hclust::hclust(const int node_id, const unsigned thd_id,
         const unsigned start_rid,
-        const unsigned nprocrows, const unsigned ncol,
+        const unsigned nprocrows, const unsigned ncol, unsigned k,
         hclust_map* g_hcltrs, unsigned* cluster_assignments,
         const std::string fn, base::dist_t dist_metric) :
             thread(node_id, thd_id, ncol,
@@ -65,7 +65,7 @@ hclust::hclust(const int node_id, const unsigned thd_id,
             local_clusters = nullptr; // Not used here
             this->nprocrows = nprocrows;
             this->g_hcltrs = g_hcltrs; // Global clusters
-            this->k = g_hcltrs->at(0)->get_nclust();
+            this->k = k;
 
             set_data_size(sizeof(double)*nprocrows*ncol);
         }
@@ -114,7 +114,7 @@ void hclust::H_split_step() {
 
 void hclust::H_EM_step() {
     local_hcltrs.clear();
-    nchanged.clear(); // base::reset(nchanged);
+    nchanged.assign(base::get_max_hnodes(k*2), 0);
 
     for (auto kv : (*g_hcltrs)) {
         if (kv.second->has_converged()) {
@@ -125,8 +125,6 @@ void hclust::H_EM_step() {
         // No need to set id, zeroid, oneid because global hcltrs knows them
         local_hcltrs[kv.first] = base::h_clusters::create(2, ncol);
         local_hcltrs[kv.first]->clear(); // NOTE: Could be combined into ctor
-
-        nchanged[kv.second->get_id()] = 0; // Per partition
     }
 
     for (unsigned row = 0; row < nprocrows; row++) {
@@ -178,7 +176,7 @@ void hclust::H_EM_step() {
         assert(asgnd_clust != base::INVALID_CLUSTER_ID);
 
         if (asgnd_clust != cluster_assignments[true_row_id]) {
-            nchanged[rpart_id]++; // TODO: Could be expensive
+            nchanged[rpart_id]++;
         }
 
         cluster_assignments[true_row_id] = asgnd_clust;

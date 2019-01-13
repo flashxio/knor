@@ -126,7 +126,6 @@ class hclust_coordinator : public coordinator {
         virtual void deactivate(const unsigned id);
         virtual void activate(const unsigned id);
         virtual bool is_active(const unsigned i);
-        size_t get_max_nodes();
 
         void accumulate_cluster_counts();
         ~hclust_coordinator();

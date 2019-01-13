@@ -55,7 +55,7 @@ hclust_coordinator::hclust_coordinator(const std::string fn, const size_t nrow,
         build_thread_state();
 
         nchanged.assign(k, 0);
-        cluster_assignment_counts.assign(get_max_nodes(), 0);
+        cluster_assignment_counts.assign(base::get_max_hnodes(k*2), 0);
     }
 
 void hclust_coordinator::build_thread_state() {
@@ -66,7 +66,7 @@ void hclust_coordinator::build_thread_state() {
         thd_max_row_idx.push_back((thd_id*thds_row) + tup.second);
         threads.push_back(hclust::create((thd_id % nnodes),
                     thd_id, tup.first, tup.second,
-                    ncol, &hcltrs, &cluster_assignments[0], fn, _dist_t));
+                    ncol, k, &hcltrs, &cluster_assignments[0], fn, _dist_t));
         threads[thd_id]->set_parent_cond(&cond);
         threads[thd_id]->set_parent_pending_threads(&pending_threads);
         threads[thd_id]->start(WAIT); // Thread puts itself to sleep
@@ -338,7 +338,7 @@ void hclust_coordinator::init_splits() {
 
 // Helper
 void hclust_coordinator::accumulate_cluster_counts() {
-    cluster_assignment_counts.assign(get_max_nodes(), 0);
+    cluster_assignment_counts.assign(base::get_max_hnodes(k*2), 0);
 
     for (auto cid : cluster_assignments) {
             cluster_assignment_counts[cid]++;
@@ -376,8 +376,10 @@ void hclust_coordinator::update_clusters() {
     // Serial aggregate of nthread vectors
     for (auto thd : threads) {
         // Update the changed cluster count
-        for (auto kv : (std::static_pointer_cast<hclust>(thd))->get_nchanged())
-            nchanged[kv.first] += kv.second;
+        auto thd_nchanged =
+            (std::static_pointer_cast<hclust>(thd))->get_nchanged();
+        for (size_t i = 0; i < thd_nchanged.size(); i++)
+            nchanged[i] += thd_nchanged[i];
 
         // Update the global hcltrs with local ones
         for (auto kv : (std::static_pointer_cast<hclust>(
@@ -385,7 +387,7 @@ void hclust_coordinator::update_clusters() {
             hcltrs[kv.first]->peq(kv.second);
     }
 
-    cluster_assignment_counts.assign(get_max_nodes(), 0);
+    cluster_assignment_counts.assign(base::get_max_hnodes(k*2), 0);
 
     for (auto kv : hcltrs) {
         // There are only ever 2 of these for hclust
@@ -521,14 +523,6 @@ std::shared_ptr<hclust_id_generator> hclust_coordinator::get_ider() {
     if (nullptr == ider)
         ider = hclust_id_generator::create();
     return ider;
-}
-
-size_t hclust_coordinator::get_max_nodes() {
-    size_t nodes = 0;
-    for (size_t i = 1; i <= k*2; i*=2) {
-        nodes += i;
-    }
-    return nodes;
 }
 
 hclust_coordinator::~hclust_coordinator() {

@@ -46,6 +46,15 @@ unsigned get_hclust_ceil(const unsigned k);
 //  power of two
 unsigned get_hclust_floor(const unsigned k);
 
+template <typename T>
+T get_max_hnodes(const T v) {
+    T nodes = 0;
+
+    for (T i = 1; i <= v; i*=2)
+        nodes += i;
+    return nodes;
+}
+
 // Vector equal function
 template <typename T>
 bool v_eq(const T& lhs, const T& rhs) {
