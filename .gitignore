@@ -15,6 +15,7 @@ libman/unit-test/test_kmeans_thread
 libman/unit-test/test_task_queue
 libman/unit-test/test_kmeans_task_thread
 libman/unit-test/test_id_generator
+libkcommon/unit-test/test_util
 utils/
 utils/test/read_rrow_data
 exec/knord
