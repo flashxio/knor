@@ -41,6 +41,7 @@ class hclust : public thread {
         std::vector<unsigned> nchanged; // How many change in each partition
         std::vector<bool>* cltr_active_vec; // Which clusters are still active
         std::shared_ptr<hclust_id_generator> ider; // ID provider
+        bool inited;
 
         unsigned k;
         unsigned nprocrows; // The number of rows in this threads partition
@@ -84,6 +85,10 @@ class hclust : public thread {
 
         const hclust_map& get_local_hcltrs() const {
             return this->local_hcltrs;
+        }
+
+        void reset_inited() {
+            this->inited = false;
         }
 
         virtual void start(const thread_state_t state) override;

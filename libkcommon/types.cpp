@@ -27,7 +27,7 @@ namespace knor { namespace base {
 
 cluster_t::cluster_t(const size_t nrow, const size_t ncol, const size_t iters,
          const size_t k, const unsigned* assignments_buf,
-         const size_t* assignment_count_buf,
+         const llong_t* assignment_count_buf,
          const std::vector<double>& centroids) {
 
     set_params(nrow, ncol, iters, k);
@@ -35,7 +35,7 @@ cluster_t::cluster_t(const size_t nrow, const size_t ncol, const size_t iters,
 }
 
 void cluster_t::set_computed(const unsigned* assignments_buf,
-        const size_t* assignment_count_buf,
+        const llong_t* assignment_count_buf,
         const std::vector<double> centroids) {
 
     assert(this->k);

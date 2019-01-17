@@ -292,7 +292,7 @@ void dist_coordinator::run(kbase::cluster_t& ret,
         cltrs_ptr->set_mean(clstr_buff);
 
         if (_init_t == kbase::init_t::RANDOM) {
-            kmpi::mpi::reduce_size_t(&(cltrs_ptr->get_num_members_v()[0]),
+            kmpi::mpi::reduce_llong_t(&(cltrs_ptr->get_num_members_v()[0]),
                     nmemb_buff, cltrs_ptr->get_num_members_v().size());
             cltrs_ptr->set_num_members_v(nmemb_buff); // Set new counts
             cltrs_ptr->finalize_all();
@@ -334,13 +334,13 @@ void dist_coordinator::run(kbase::cluster_t& ret,
                 clstr_buff, cltrs_ptr->size());
 
         // nmemb_buff has agg of all procs diff on membership count
-        kmpi::mpi::reduce_size_t(&(cltrs_ptr->get_num_members_v()[0]),
+        kmpi::mpi::reduce_llong_t(&(cltrs_ptr->get_num_members_v()[0]),
                 nmemb_buff, cltrs_ptr->get_num_members_v().size());
         cltrs_ptr->set_mean(clstr_buff);
         cltrs_ptr->set_num_members_v(nmemb_buff);
 
         // NOTE: Now finalized
-        size_t pp_num_changed = get_num_changed();
+        auto pp_num_changed = get_num_changed();
         kmpi::mpi::reduce_size_t(&pp_num_changed, &nchanged);
 
         if (mpi_rank == root) {

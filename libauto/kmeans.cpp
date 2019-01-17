@@ -194,7 +194,7 @@ static void kmeanspp_init(const double* matrix, kbase::clusters::ptr clusters,
  *	\param cluster_assignments Which cluster each sample falls into.
  */
 static void EM_step(const double* matrix, kbase::clusters::ptr cls,
-        unsigned* cluster_assignments, size_t* cluster_assignment_counts) {
+        unsigned* cluster_assignments, knor::llong_t* cluster_assignment_counts) {
 
     std::vector<kbase::clusters::ptr> pt_cl(OMP_MAX_THREADS);
     // Per thread changed cluster count. OMP_MAX_THREADS
@@ -278,7 +278,7 @@ static void EM_step(const double* matrix, kbase::clusters::ptr cls,
 namespace knor { namespace omp {
 
 kbase::cluster_t compute_kmeans(const double* matrix, double* clusters_ptr,
-        unsigned* cluster_assignments, size_t* cluster_assignment_counts,
+        unsigned* cluster_assignments, llong_t* cluster_assignment_counts,
         const size_t num_rows, const size_t num_cols, const unsigned k,
         const size_t MAX_ITERS, int max_threads, const std::string init,
         const double tolerance, const std::string dist_type) {

@@ -53,7 +53,7 @@ protected:
     std::atomic<unsigned> pending_threads;
 
     std::vector<unsigned> cluster_assignments;
-    std::vector<size_t>cluster_assignment_counts;
+    std::vector<llong_t>cluster_assignment_counts;
     std::vector<unsigned> thd_max_row_idx;
 
     // threading

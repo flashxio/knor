@@ -151,7 +151,7 @@ int main(int argc, char* argv[])
         printf("Read data!\n");
 
         unsigned* p_clust_asgns = new unsigned [nrow];
-        size_t* p_clust_asgn_cnt = new size_t [k];
+        knor::llong_t* p_clust_asgn_cnt = new knor::llong_t [k];
 
         if (NULL == p_centers)  // We have no preallocated centers
             p_centers = new double [k*ncol];

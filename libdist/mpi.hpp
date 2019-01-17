@@ -56,6 +56,15 @@ public:
                     , ret);
     }
 
+    static void reduce_llong_t(const llong_t* send_buff, size_t* rev_buff,
+            const size_t numel=1) {
+        int ret = MPI_Allreduce(send_buff, rev_buff, numel,
+                MPI::LONG_LONG, MPI_SUM, MPI_COMM_WORLD);
+        if (ret)
+            throw kbase::mpi_exception("All reduce failure in reduce_llong_t"
+                    , ret);
+    }
+
     static void allgather_double(const double* send_buff,
             double* recv_buff, const size_t numel) {
         int ret = MPI_Allgather(

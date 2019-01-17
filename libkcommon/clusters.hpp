@@ -23,8 +23,10 @@
 #include <limits>
 #include <vector>
 #include <memory>
+#include <cassert>
 #include <algorithm>
 #include "exception.hpp"
+#include "types.hpp"
 
 namespace knor { namespace base {
 
@@ -37,7 +39,7 @@ private:
     // Together are nXd matrix
     unsigned ncol;
     unsigned nclust;
-    std::vector<size_t> num_members_v; // Cluster assignment counts
+    std::vector<llong_t> num_members_v; // Cluster assignment counts
     std::vector<bool> complete_v; // Have we already divided by num_members
 
     kmsvector means; // Cluster means
@@ -73,11 +75,11 @@ public:
         return means;
     }
 
-    const size_t get_num_members(const unsigned idx) const {
+    const llong_t get_num_members(const llong_t idx) const {
         return num_members_v[idx];
     }
 
-    std::vector<size_t>& get_num_members_v() {
+    std::vector<llong_t>& get_num_members_v() {
         return num_members_v;
     }
 
@@ -99,7 +101,7 @@ public:
         return means.size();
     }
 
-    void num_members_peq(const size_t val, const unsigned idx) {
+    void num_members_peq(const llong_t val, const unsigned idx) {
         num_members_v[idx] += val;
     }
 

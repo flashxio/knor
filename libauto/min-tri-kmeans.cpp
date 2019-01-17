@@ -213,7 +213,7 @@ static void kmeanspp_init(const double* matrix,
  *	\param cluster_assignments Which cluster each sample falls into.
  */
 static void EM_step(const double* matrix, kbase::prune_clusters::ptr cls,
-        unsigned* cluster_assignments, size_t* cluster_assignment_counts,
+        unsigned* cluster_assignments, knor::llong_t* cluster_assignment_counts,
         kbase::thd_safe_bool_vector::ptr recalculated_v,
         std::vector<double>& dist_v,
         kprune::dist_matrix::ptr dm, const bool prune_init=false) {
@@ -335,7 +335,7 @@ static void EM_step(const double* matrix, kbase::prune_clusters::ptr cls,
         cls->peq(pt_cl[thd]);
     }
 
-    size_t chk_nmemb = 0;
+    auto chk_nmemb = 0;
     for (unsigned clust_idx = 0; clust_idx < K; clust_idx++) {
         cls->finalize(clust_idx);
         cls->set_prev_dist(kbase::eucl_dist(
@@ -352,7 +352,7 @@ static void EM_step(const double* matrix, kbase::prune_clusters::ptr cls,
         cluster_assignment_counts[clust_idx] = cls->get_num_members(clust_idx);
         chk_nmemb += cluster_assignment_counts[clust_idx];
     }
-    assert(chk_nmemb == NUM_ROWS);
+    assert(static_cast<size_t>(chk_nmemb) == NUM_ROWS);
 
 #if KM_TEST
 #ifndef BIND
@@ -364,7 +364,7 @@ static void EM_step(const double* matrix, kbase::prune_clusters::ptr cls,
 #if KM_TEST
 void get_sampling(std::vector<std::vector<double>>& samples,
         const unsigned* cluster_assignments,
-         const double* data, const size_t* cluster_assignment_counts) {
+         const double* data, const knor::llong_t* cluster_assignment_counts) {
     constexpr unsigned MAX_PLOT_POINTS = 1000;
     const size_t samples_per_cluster =
         NUM_ROWS > MAX_PLOT_POINTS ? MAX_PLOT_POINTS : NUM_ROWS/K;
@@ -383,7 +383,7 @@ void get_sampling(std::vector<std::vector<double>>& samples,
 namespace knor { namespace omp {
 
 kbase::cluster_t compute_min_kmeans(const double* matrix, double* clusters_ptr,
-        unsigned* cluster_assignments, size_t* cluster_assignment_counts,
+        unsigned* cluster_assignments, knor::llong_t* cluster_assignment_counts,
         const size_t num_rows, const size_t num_cols, const unsigned k,
         const size_t MAX_ITERS, int max_threads, const std::string init,
         const double tolerance, const std::string dist_type) {

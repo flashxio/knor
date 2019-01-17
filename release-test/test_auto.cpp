@@ -20,12 +20,13 @@
 #include "kmeans.hpp"
 #include "test_shared.hpp"
 #include "util.hpp"
+#include "types.hpp"
 
 namespace ktest = knor::test;
 
 namespace knor { namespace test {
 kbase::cluster_t run_test(double* p_centers, double* p_data,
-        size_t* p_clust_asgn_cnt, unsigned* p_clust_asgns, const bool prune,
+        llong_t* p_clust_asgn_cnt, unsigned* p_clust_asgns, const bool prune,
         const std::string init, const unsigned max_iter) {
     constexpr unsigned NTHREADS = 2;
 
@@ -59,7 +60,7 @@ kbase::cluster_t run_test(double* p_centers, double* p_data,
 int main(int argc, char* argv[]) {
     std::vector<double> p_centers(ktest::TEST_K*ktest::TEST_NCOL);
     std::vector<double> p_data(ktest::TEST_NROW*ktest::TEST_NCOL);
-    std::vector<size_t> p_clust_asgn_cnt(ktest::TEST_K);
+    std::vector<knor::llong_t> p_clust_asgn_cnt(ktest::TEST_K);
     std::vector<unsigned> p_clust_asgns(ktest::TEST_NROW);
 
     {

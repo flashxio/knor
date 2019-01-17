@@ -66,6 +66,7 @@ hclust::hclust(const int node_id, const unsigned thd_id,
             this->nprocrows = nprocrows;
             this->g_hcltrs = g_hcltrs; // Global clusters
             this->k = k;
+            this->inited = false;
 
             set_data_size(sizeof(double)*nprocrows*ncol);
         }
@@ -113,7 +114,13 @@ void hclust::H_split_step() {
 }
 
 void hclust::H_EM_step() {
+#if 00
+    if (!inited)
+        local_hcltrs.clear();
+#else
     local_hcltrs.clear();
+#endif
+
     nchanged.assign(base::get_max_hnodes(k*2), 0);
 
     for (auto kv : (*g_hcltrs)) {
@@ -122,30 +129,26 @@ void hclust::H_EM_step() {
             continue;
         }
 
-        // No need to set id, zeroid, oneid because global hcltrs knows them
-        local_hcltrs[kv.first] = base::h_clusters::create(2, ncol);
-        local_hcltrs[kv.first]->clear(); // NOTE: Could be combined into ctor
+#if 00
+        if (local_hcltrs.find(kv.first) == local_hcltrs.end()) {
+#endif
+            // No need to set id, zeroid, oneid because global hcltrs knows them
+            local_hcltrs[kv.first] = base::h_clusters::create(2, ncol);
+            local_hcltrs[kv.first]->clear(); // NOTE: Could be combined into ctor
+#if 00
+        }
+#endif
     }
 
     for (unsigned row = 0; row < nprocrows; row++) {
-
         // What cluster is this row in?
         unsigned true_row_id = get_global_data_id(row);
         auto rpart_id = part_id[true_row_id];
 
         // Not active
-        if (!(*cltr_active_vec)[cluster_assignments[true_row_id]]) {
-            printf("Skip row: %u, CID: %u inactive!\n", true_row_id,
-                    cluster_assignments[true_row_id]);
+        if (!(*cltr_active_vec)[cluster_assignments[true_row_id]] ||
+                g_hcltrs->at(rpart_id)->has_converged())
             continue; // Skip it
-        }
-
-        // TODO: combine above into one check
-        if (g_hcltrs->at(rpart_id)->has_converged()) {
-            printf("Skip row: %u, CID: %u converged!\n", true_row_id,
-                    cluster_assignments[true_row_id]);
-            continue; // Skip it
-        }
 
         unsigned asgnd_clust = base::INVALID_CLUSTER_ID;
         bool flag = 0; // Is the best the zeroid or oneid
@@ -156,12 +159,6 @@ void hclust::H_EM_step() {
             dist = base::dist_comp_raw<double>(&local_data[row*ncol],
                     &(g_hcltrs->at(rpart_id)->
                         get_means()[clust_idx*ncol]), ncol, dist_metric);
-#if 0
-            std::cout << "Data: "; base::print_arr(&local_data[row*ncol], ncol);
-            std::cout << "Cent: "; base::print_arr(&(g_hcltrs->at(rpart_id)->
-                        get_means()[clust_idx*ncol]), ncol);
-            std::cout << "Diff btwn data and centers: " << dist << "\n\n";
-#endif
             if (dist < best) {
                 best = dist;
                 if (clust_idx == 0) {
@@ -175,16 +172,31 @@ void hclust::H_EM_step() {
 
         assert(asgnd_clust != base::INVALID_CLUSTER_ID);
 
-        if (asgnd_clust != cluster_assignments[true_row_id]) {
-            nchanged[rpart_id]++;
-        }
+#if 00
+        if (inited) {
+            if (asgnd_clust != cluster_assignments[true_row_id])
+                nchanged[rpart_id]++;
 
-        cluster_assignments[true_row_id] = asgnd_clust;
-#if 1
-        assert (local_hcltrs.find(rpart_id) != local_hcltrs.end());
-#endif
+            local_hcltrs[rpart_id]->swap_membership(&local_data[row*ncol],
+                    !flag, flag);
+        } else {
+            if (asgnd_clust != cluster_assignments[true_row_id]) {
+                nchanged[rpart_id]++;
+            }
+            local_hcltrs[rpart_id]->add_member(&local_data[row*ncol], flag);
+        }
+#else
+        if (asgnd_clust != cluster_assignments[true_row_id])
+            nchanged[rpart_id]++;
         local_hcltrs[rpart_id]->add_member(&local_data[row*ncol], flag);
+#endif
+        cluster_assignments[true_row_id] = asgnd_clust;
     }
+
+#if 00
+    if (!inited)
+        inited = true;
+#endif
 }
 
 /** Method for a distance computation vs a single cluster.

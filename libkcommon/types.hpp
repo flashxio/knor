@@ -26,7 +26,10 @@
 #include <string>
 #include "dense_matrix.hpp"
 
-namespace knor { namespace base {
+namespace knor {
+
+    typedef long long int llong_t;
+    namespace base {
 
 static const unsigned INVALID_CLUSTER_ID = std::numeric_limits<unsigned>::max();
 enum stage_t { INIT, ESTEP }; // What phase of the algo we're in
@@ -43,7 +46,7 @@ public:
     cluster_t(){ }
     cluster_t(const size_t nrow, const size_t ncol, const size_t iters,
              const size_t k, const unsigned* assignments_buf,
-             const size_t* assignment_count_buf,
+             const llong_t* assignment_count_buf,
              const std::vector<double>& centroids);
     const void print() const;
     const void write(const std::string dirname) const;
@@ -58,7 +61,7 @@ public:
     };
 
     void set_computed(const unsigned* assignments_buf,
-             const size_t* assignment_count_buf,
+             const llong_t* assignment_count_buf,
              const std::vector<double> centroids);
 
     ~cluster_t() { }

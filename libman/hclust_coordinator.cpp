@@ -54,7 +54,7 @@ hclust_coordinator::hclust_coordinator(const std::string fn, const size_t nrow,
         part_id.assign(nrow, 0);
         build_thread_state();
 
-        nchanged.assign(k, 0);
+        nchanged.assign(base::get_max_hnodes(k*2), 0);
         cluster_assignment_counts.assign(base::get_max_hnodes(k*2), 0);
     }
 
@@ -221,20 +221,20 @@ void hclust_coordinator::print_active_clusters() {
 // How to initialize when splitting
 void hclust_coordinator::inner_init(std::vector<unsigned>& remove_cache) {
     // TODO: ||ize
-
     for (auto kv : hcltrs) {
         if (cluster_assignment_counts[kv.first] < MIN_CLUST_SIZE);
             deactivate(kv.first);
     }
 
-    // TODO: Improve
     std::vector<unsigned> ids;
     for (auto kv : hcltrs) {
         ids.push_back(kv.first);
     }
 
     for (auto id : ids) {
+#if 0
         printf("Processing parent: %u\n", id);
+#endif
         auto zeroid = hcltrs[id]->get_zeroid();
         auto oneid = hcltrs[id]->get_oneid();
 
@@ -280,8 +280,10 @@ void hclust_coordinator::inner_init(std::vector<unsigned>& remove_cache) {
 void hclust_coordinator::spawn(const unsigned& zeroid,
         const unsigned& oneid, const c_part& cp) {
 
+#if 0
     printf("In spawn\n");
     printf("zeroid: %u, oneid: %u\n", zeroid, oneid);
+#endif
     cp.print();
     auto zero_child_ids = ider->get_split_ids(zeroid);
     auto one_child_ids = ider->get_split_ids(oneid);
@@ -292,7 +294,9 @@ void hclust_coordinator::spawn(const unsigned& zeroid,
                 zero_child_ids.first, zero_child_ids.second);
         hcltrs[zeroid]->set_mean(get_thd_data(cp.l0), 0);
         hcltrs[zeroid]->set_mean(get_thd_data(cp.l1), 1);
+#if 0
         printf("SPAWN for %u --> \n", zeroid);
+#endif
         activate(zero_child_ids.first);
         activate(zero_child_ids.second);
     }
@@ -302,7 +306,9 @@ void hclust_coordinator::spawn(const unsigned& zeroid,
                 one_child_ids.first, one_child_ids.second);
         hcltrs[oneid]->set_mean(get_thd_data(cp.r0), 0);
         hcltrs[oneid]->set_mean(get_thd_data(cp.r1), 1);
+#if 0
         printf("SPAWN for %u --> \n", oneid);
+#endif
         activate(one_child_ids.first);
         activate(one_child_ids.second);
     }
@@ -363,14 +369,29 @@ bool hclust_coordinator::is_active(const unsigned id) {
     return (*cltr_active_vec)[id];
 }
 
+void hclust_coordinator::reset_thd_inited() {
+    for (auto thd : threads)
+        (std::static_pointer_cast<hclust>(thd))->reset_inited();
+}
+
 void hclust_coordinator::update_clusters() {
     // clear nchanged & means
-    nchanged.assign(k, 0);
-    for (auto kv : hcltrs) {
+    nchanged.assign(base::get_max_hnodes(k*2), 0);
 
+    for (auto kv : hcltrs) {
+#if 00
         // No need to update the state of this partition because it's converged
+        //if (!kv.second->has_converged()) {
+            //if (kv.second->is_complete(kv.first)) // It's changed
+                //kv.second->unfinalize_all();
+            //else
+                //kv.second->clear();
+        //}
+        kv.second->clear();
+#else
         if (!kv.second->has_converged())
-            kv.second->clear(); // clear means if it's changed
+            kv.second->clear();
+#endif
     }
 
     // Serial aggregate of nthread vectors
@@ -397,21 +418,21 @@ void hclust_coordinator::update_clusters() {
         cluster_assignment_counts[c->get_zeroid()] = c->get_num_members(0);
         cluster_assignment_counts[c->get_oneid()] = c->get_num_members(1);
 
-        if (c->has_converged()) // No need to do anything now
-            continue;
+         // Skip clusters that have converged, but are active
+        if (!c->has_converged()) {
+            c->finalize(0);
+            c->finalize(1);
 
-        c->finalize(0);
-        c->finalize(1);
-
-        // Premature End of computation
-        if (nchanged[pid] == 0 ||
-                (nchanged[pid]/(double)part_nmembers) <= tolerance) {
-            printf("\n\tPID: %u converged!\n", pid);
-            c->set_converged();
-        }
+            // Premature End of computation
+            if (nchanged[pid] == 0 ||
+                    (nchanged[pid]/(double)part_nmembers) <= tolerance) {
+                printf("\n\tPID: %u converged!\n", pid);
+                c->set_converged();
+            }
 #if 1
-        printf("PID: %u, with mean: ", pid); c->print_means();
+            printf("PID: %u, with mean: ", pid); c->print_means();
 #endif
+        }
     }
 
     printf("Cluster assignments:\n");
@@ -491,6 +512,9 @@ base::cluster_t hclust_coordinator::run(
 
         // Update global state
         init_splits(); // Initialize possible splits
+#if 1
+        reset_thd_inited();
+#endif
     }
 #ifdef PROFILER
     ProfilerStop();
