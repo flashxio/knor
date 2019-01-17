@@ -79,9 +79,6 @@ void hclust::run() {
         case ALLOC_DATA:
             numa_alloc_mem();
             break;
-        case KMSPP_INIT:
-            kmspp_dist();
-            break;
         case H_EM:
             H_EM_step();
             break;
@@ -196,28 +193,6 @@ void hclust::H_EM_step() {
 #if 00
     if (!inited)
         inited = true;
-#endif
-}
-
-/** Method for a distance computation vs a single cluster.
- * Used in kmeans++ init
- */
-void hclust::kmspp_dist() {
-#if 0
-    unsigned clust_idx = meta.clust_idx;
-    for (unsigned row = 0; row < nprocrows; row++) {
-        unsigned true_row_id = get_global_data_id(row);
-
-        double dist = base::dist_comp_raw<double>(&local_data[row*ncol],
-                &((g_hcltrs->get_means())[clust_idx*ncol]), ncol,
-                dist_metric);
-
-        if (dist < dist_v[true_row_id]) { // Found a closer cluster than before
-            dist_v[true_row_id] = dist;
-            cluster_assignments[true_row_id] = clust_idx;
-        }
-        cuml_dist += dist_v[true_row_id];
-    }
 #endif
 }
 } // End namespace knor

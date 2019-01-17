@@ -95,7 +95,6 @@ class hclust : public thread {
         // Given the current ID split it into two (or not)
         virtual void H_split_step();
         virtual void H_EM_step(); // Similar to EM step
-        void kmspp_dist();
         virtual void run() override;
 };
 }

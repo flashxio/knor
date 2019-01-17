@@ -103,21 +103,19 @@ class hclust_coordinator : public coordinator {
                     nnodes, nthreads, centers, _init_t, tolerance, _dist_t));
         }
 
-        void run_hinit();
-        unsigned forgy_select(const unsigned cid);
-        void print_active_clusters();
+        virtual void run_hinit();
+        virtual unsigned forgy_select(const unsigned cid);
+        virtual void print_active_clusters();
 
         // Pass file handle to threads to read & numa alloc
         virtual base::cluster_t run(double* allocd_data=NULL,
             const bool numa_opt=false) override;
-        void update_clusters();
-        void kmeanspp_init() override;
-        void random_partition_init() override;
-        void forgy_init() override;
+        virtual void update_clusters();
+        virtual void forgy_init() override;
         virtual void preprocess_data() {
             throw knor::base::abstract_exception();
         }
-        std::shared_ptr<hclust_id_generator> get_ider();
+        virtual std::shared_ptr<hclust_id_generator> get_ider();
         virtual void build_thread_state() override;
         virtual void init_splits();
         virtual void inner_init(std::vector<unsigned>& remove_cache);
@@ -128,7 +126,7 @@ class hclust_coordinator : public coordinator {
         virtual bool is_active(const unsigned i);
         virtual void reset_thd_inited();
 
-        void accumulate_cluster_counts();
+        virtual void accumulate_cluster_counts();
         ~hclust_coordinator();
 };
 }
