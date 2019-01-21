@@ -26,7 +26,7 @@ else
 	CXXFLAGS += -I.. -I../libauto -I../libman -I../libkcommon
 endif
 
-FILES := knori mb_knori medoids skmeans gmm fcm hclust #xmeans
+FILES := knori mb_knori medoids skmeans gmm fcm hclust xmeans
 
 all: $(FILES)
 
