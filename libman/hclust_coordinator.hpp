@@ -20,7 +20,7 @@
 #define __KNOR_HCLUST_COORDINATOR_HPP__
 
 #include <mutex>
-#include <unordered_map>
+#include "types.hpp"
 
 #include "coordinator.hpp"
 #include "util.hpp"
@@ -64,7 +64,9 @@ struct c_part {
 
 class hclust_coordinator : public coordinator {
     protected:
-        std::unordered_map<unsigned, std::shared_ptr<base::clusters>> hcltrs;
+        base::vmap<std::shared_ptr<base::clusters>> hcltrs;
+        size_t max_nodes;
+
         std::vector<unsigned> nchanged;
         // Whether a particular cluster is cluster is still actively splitting
         std::vector<bool>* cltr_active_vec;
@@ -74,13 +76,13 @@ class hclust_coordinator : public coordinator {
         // Keep track of the parent cluster id (partition id)
         std::vector<unsigned> part_id;
 
+    public:
         hclust_coordinator(const std::string fn, const size_t nrow,
                 const size_t ncol, const unsigned k, const unsigned max_iters,
                 const unsigned nnodes, const unsigned nthreads,
                 const double* centers, const base::init_t it,
                 const double tolerance, const base::dist_t dt);
 
-    public:
         static coordinator::ptr create(const std::string fn,
                 const size_t nrow,
                 const size_t ncol, const unsigned k, const unsigned max_iters,

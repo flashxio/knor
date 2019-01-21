@@ -43,6 +43,9 @@ hclust_coordinator::hclust_coordinator(const std::string fn, const size_t nrow,
 
         ui_distribution = std::uniform_int_distribution<unsigned>(0, nrow-1);
 
+        max_nodes = base::get_max_hnodes(k*2);
+        hcltrs.set_max_capacity(max_nodes);
+
         if (centers) {
             // There must be at least one
             hcltrs[0] = base::h_clusters::create(2, ncol, centers);
@@ -53,8 +56,8 @@ hclust_coordinator::hclust_coordinator(const std::string fn, const size_t nrow,
         std::fill(cluster_assignments.begin(), cluster_assignments.end(), 0);
         part_id.assign(nrow, 0);
 
-        nchanged.assign(base::get_max_hnodes(k*2), 0);
-        cluster_assignment_counts.assign(base::get_max_hnodes(k*2), 0);
+        nchanged.assign(max_nodes, 0);
+        cluster_assignment_counts.assign(max_nodes, 0);
     }
 
 void hclust_coordinator::build_thread_state() {
@@ -144,8 +147,10 @@ void hclust_coordinator::run_hinit() {
 }
 
 void hclust_coordinator::print_active_clusters() {
-    for (auto kv : hcltrs) {
-        printf("CID: %u\n", kv.first);
+    auto itr = hcltrs.get_iterator();
+    while (itr.has_next()) {
+        auto kv = itr.next();
+        printf("cid: %lu\n", kv.first);
         kv.second->print_means();
     }
 }
@@ -153,20 +158,17 @@ void hclust_coordinator::print_active_clusters() {
 // How to initialize when splitting
 void hclust_coordinator::inner_init(std::vector<unsigned>& remove_cache) {
     // TODO: ||ize
-    for (auto kv : hcltrs) {
+    auto itr = hcltrs.get_iterator();
+    while (itr.has_next()) {
+        auto kv = itr.next();
         if (cluster_assignment_counts[kv.first] < MIN_CLUST_SIZE);
             deactivate(kv.first);
     }
 
-    std::vector<unsigned> ids;
-    for (auto kv : hcltrs) {
-        ids.push_back(kv.first);
-    }
+    std::vector<size_t> ids;
+    hcltrs.get_keys(ids);
 
     for (auto id : ids) {
-#if 0
-        printf("Processing parent: %u\n", id);
-#endif
         auto zeroid = hcltrs[id]->get_zeroid();
         auto oneid = hcltrs[id]->get_oneid();
 
@@ -212,11 +214,6 @@ void hclust_coordinator::inner_init(std::vector<unsigned>& remove_cache) {
 void hclust_coordinator::spawn(const unsigned& zeroid,
         const unsigned& oneid, const c_part& cp) {
 
-#if 0
-    printf("In spawn\n");
-    printf("zeroid: %u, oneid: %u\n", zeroid, oneid);
-#endif
-    cp.print();
     auto zero_child_ids = ider->get_split_ids(zeroid);
     auto one_child_ids = ider->get_split_ids(oneid);
 
@@ -226,9 +223,6 @@ void hclust_coordinator::spawn(const unsigned& zeroid,
                 zero_child_ids.first, zero_child_ids.second);
         hcltrs[zeroid]->set_mean(get_thd_data(cp.l0), 0);
         hcltrs[zeroid]->set_mean(get_thd_data(cp.l1), 1);
-#if 0
-        printf("SPAWN for %u --> \n", zeroid);
-#endif
         activate(zero_child_ids.first);
         activate(zero_child_ids.second);
     }
@@ -238,45 +232,31 @@ void hclust_coordinator::spawn(const unsigned& zeroid,
                 one_child_ids.first, one_child_ids.second);
         hcltrs[oneid]->set_mean(get_thd_data(cp.r0), 0);
         hcltrs[oneid]->set_mean(get_thd_data(cp.r1), 1);
-#if 0
-        printf("SPAWN for %u --> \n", oneid);
-#endif
         activate(one_child_ids.first);
         activate(one_child_ids.second);
     }
 }
 
 void hclust_coordinator::init_splits() {
-#if 1
-    printf("Cluster assignments!\n");
-    base::print_vector(cluster_assignments, nrow);
-    printf("\n\n");
-#endif
-
     std::vector<unsigned> remove_cache;
     inner_init(remove_cache);
 
     // Now update with new clusters added and delete parent
     for (unsigned id : remove_cache) {
+#if 1
         printf("\t\tErasing: %u\n", id);
+#endif
         hcltrs.erase(id); // Delete
         deactivate(id);
     }
 
-    printf("hcltrs after init_splits:\n");
-    print_active_clusters();
-
     // Update partition ID
     part_id = cluster_assignments;
-#if 1
-    // We need a copy
-    assert(&part_id[0] != &cluster_assignments[0]);
-#endif
 }
 
 // Helper
 void hclust_coordinator::accumulate_cluster_counts() {
-    cluster_assignment_counts.assign(base::get_max_hnodes(k*2), 0);
+    cluster_assignment_counts.assign(max_nodes, 0);
 
     for (auto cid : cluster_assignments) {
             cluster_assignment_counts[cid]++;
@@ -308,9 +288,11 @@ void hclust_coordinator::reset_thd_inited() {
 
 void hclust_coordinator::update_clusters() {
     // clear nchanged & means
-    nchanged.assign(base::get_max_hnodes(k*2), 0);
+    nchanged.assign(max_nodes, 0);
 
-    for (auto kv : hcltrs) {
+    auto itr = hcltrs.get_iterator();
+    while (itr.has_next()) {
+        auto kv = itr.next();
 #if 00
         // No need to update the state of this partition because it's converged
         //if (!kv.second->has_converged()) {
@@ -335,14 +317,19 @@ void hclust_coordinator::update_clusters() {
             nchanged[i] += thd_nchanged[i];
 
         // Update the global hcltrs with local ones
-        for (auto kv : (std::static_pointer_cast<hclust>(
-                        thd))->get_local_hcltrs())
+        auto itr = (std::static_pointer_cast<hclust>(
+                        thd))->get_local_hcltrs().get_iterator();
+        while (itr.has_next()) {
+            auto kv = itr.next();
             hcltrs[kv.first]->peq(kv.second);
+        }
     }
 
-    cluster_assignment_counts.assign(base::get_max_hnodes(k*2), 0);
+    cluster_assignment_counts.assign(max_nodes, 0);
 
-    for (auto kv : hcltrs) {
+    auto _itr = hcltrs.get_iterator();
+    while (_itr.has_next()) {
+        auto kv = _itr.next();
         // There are only ever 2 of these for hclust
         auto pid = kv.first; // partition ID
         auto c = kv.second;
@@ -358,20 +345,19 @@ void hclust_coordinator::update_clusters() {
             // Premature End of computation
             if (nchanged[pid] == 0 ||
                     (nchanged[pid]/(double)part_nmembers) <= tolerance) {
-                printf("\n\tPID: %u converged!\n", pid);
+
+#if 0
+                printf("\n\tPID: %lu converged!\n", pid);
+#endif
                 c->set_converged();
             }
-#if 1
-            printf("PID: %u, with mean: ", pid); c->print_means();
+#if 0
+            printf("PID: %lu, with mean: ", pid); c->print_means();
 #endif
         }
     }
 
-    printf("Cluster assignments:\n");
-    base::print_vector(cluster_assignments, nrow);
-    printf("\n\n");
-
-#if 1 // Testing
+#if 0 // Testing
     size_t total_changed = 0;
     for (auto val : nchanged)
         total_changed += val;
@@ -387,7 +373,7 @@ void hclust_coordinator::update_clusters() {
 base::cluster_t hclust_coordinator::run(
         double* allocd_data, const bool numa_opt) {
 #ifdef PROFILER
-    ProfilerStart("libman/hclust_coordinator.perf");
+    ProfilerStart("hclust_coordinator.perf");
 #endif
 
     build_thread_state();
@@ -421,21 +407,13 @@ base::cluster_t hclust_coordinator::run(
             // Now pick between the cluster splits
             wake4run(H_EM);
             wait4complete();
-#if 1
-            // Accumulate the counts
-            printf("After H_EM step Global hcltrs: \n");
-            print_active_clusters();
-            printf("Cluster assignments:\n");
-            base::print_vector(cluster_assignments, nrow);
-            printf("\n\n");
-#endif
 
             update_clusters();
 #if 1
             printf("\nAfter update_clusters ... Global hcltrs:\n");
             print_active_clusters();
-            printf("Global cluster assignment counts:\n");
-            base::print(cluster_assignment_counts);
+            //printf("Global cluster assignment counts:\n");
+            //base::print(cluster_assignment_counts);
 #endif
             printf("\n*****************************************************\n");
         }
@@ -446,7 +424,7 @@ base::cluster_t hclust_coordinator::run(
 
         // Update global state
         init_splits(); // Initialize possible splits
-#if 1
+#if 0
         reset_thd_inited();
 #endif
     }

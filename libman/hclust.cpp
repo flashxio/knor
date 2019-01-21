@@ -69,6 +69,7 @@ hclust::hclust(const int node_id, const unsigned thd_id,
             this->inited = false;
 
             set_data_size(sizeof(double)*nprocrows*ncol);
+            local_hcltrs.set_max_capacity(base::get_max_hnodes(k*2));
         }
 
 void hclust::run() {
@@ -120,9 +121,10 @@ void hclust::H_EM_step() {
 
     nchanged.assign(base::get_max_hnodes(k*2), 0);
 
-    for (auto kv : (*g_hcltrs)) {
+    auto itr = g_hcltrs->get_iterator();
+    while (itr.has_next()) {
+        auto kv = itr.next();
         if (kv.second->has_converged()) {
-            printf("Partition: %u has converged!\n", kv.second->get_id());
             continue;
         }
 

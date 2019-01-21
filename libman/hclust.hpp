@@ -20,7 +20,7 @@
 #ifndef __KNOR_HCLUST_HPP__
 #define __KNOR_HCLUST_HPP__
 
-#include <unordered_map>
+#include "types.hpp"
 #include "thread.hpp"
 
 namespace knor {
@@ -29,8 +29,7 @@ namespace base {
     class h_clusters;
 }
 
-typedef std::unordered_map<unsigned, std::shared_ptr<base::clusters>>
-    hclust_map;
+typedef base::vmap<std::shared_ptr<base::clusters>> hclust_map;
 class hclust_id_generator;
 
 class hclust : public thread {
@@ -83,8 +82,8 @@ class hclust : public thread {
             return this->nchanged;
         }
 
-        const hclust_map& get_local_hcltrs() const {
-            return this->local_hcltrs;
+        hclust_map& get_local_hcltrs() {
+            return local_hcltrs;
         }
 
         void reset_inited() {
