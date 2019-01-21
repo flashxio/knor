@@ -20,8 +20,6 @@ OUTDIR_IM := outdir-IM
 OUTDIR_DM := outdir-DM
 OUTDIR_FDM := outdir-FDM
 
-TESTFILES := knori knors knord skmeans medoids fcm hclust mb_knori
-
 all:
 ifeq ($(UNAME_S), Linux)
 	$(MAKE) im dist
@@ -66,7 +64,5 @@ test: all
 	$(MAKE) test-dist
 
 clean:
-	rm -f *.d
-	rm -f *.o
-	rm -f *~
-	rm -f $(TESTFILES)
+	$(MAKE) clean -f Makefile.im
+	$(MAKE) clean -f Makefile.dist

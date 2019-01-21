@@ -21,7 +21,15 @@ LDFLAGS :=-L../libman -lman -L../libkcommon -lkcommon $(LDFLAGS)
 CXXFLAGS += -I.. -I../libman -I../libdist -I../libkcommon
 DIST_FLAGS := -L../libdist -ldist
 
-all: knord
+FILES := knord
+
+all: $(FILES)
 
 knord: knord.o
 	$(CXX) -o knord knord.o $(DIST_FLAGS) $(LDFLAGS)
+
+clean:
+	rm -f *.d
+	rm -f *.o
+	rm -f *~
+	rm -f $(FILES)
