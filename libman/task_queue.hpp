@@ -77,7 +77,7 @@ template <typename T>
 #ifndef BIND
                 printf("start_rid: %u, nrow: %u\n",
                         get_start_rid(), get_nrow());
-                kbase::print_mat<T>(get_data_ptr(), get_nrow(), ncol);
+                kbase::print<T>(get_data_ptr(), get_nrow(), ncol);
 #endif
             }
     };

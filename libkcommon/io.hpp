@@ -33,27 +33,6 @@
 #include <map>
 
 namespace knor { namespace base {
-
-/* \Internal
- * \brief print a col wise matrix of type double / double.
- * Used for testing only.
- * \param matrix The col wise matrix.
- * \param rows The number of rows in the mat
- * \param cols The number of cols in the mat
- */
-template <typename T>
-void print_mat(const T* matrix, const unsigned rows, const unsigned cols) {
-#ifndef BIND
-    for (unsigned row = 0; row < rows; row++) {
-        std::cout << "[";
-        for (unsigned col = 0; col < cols; col++) {
-            std::cout << " " << matrix[row*cols + col];
-        }
-        std::cout <<  " ]\n";
-    }
-#endif
-}
-
 // Unordered Map
 template <typename K, typename V>
 void print(const std::unordered_map<K,V>& map) {
@@ -103,6 +82,14 @@ void print(const T* arr, const unsigned len) {
 }
 
 // Matrix
+/* \Internal
+ * \brief print a col wise matrix of type double / double.
+ * Used for testing only.
+ * \param matrix The col wise matrix.
+ * \param rows The number of rows in the mat
+ * \param cols The number of cols in the mat
+ */
+
 template <typename T>
 void print(const T* matrix, const unsigned rows, const unsigned cols) {
 #ifndef BIND

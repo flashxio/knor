@@ -85,7 +85,7 @@ void test_dot() {
     std::vector<double> man_resv = {11, 14, 17, 23, 30, 37};
 
     std::cout << "Manual result: \n";
-    print_mat(&man_resv[0], 2, 3);
+    print(&man_resv[0], 2, 3);
 
     std::cout << "Computed result:\n";
     res->print();

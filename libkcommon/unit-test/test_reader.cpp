@@ -35,7 +35,7 @@ void test_text_reader(std::string fn, const size_t NROW, const size_t NCOL) {
     std::cout << "Readline: ==>\n";
     std::cout << "nrow: " << rdr.get_nrow() <<
         ", ncol: " << rdr.get_ncol() << std::endl;
-    kbase::print_mat<double>(&m[0], rdr.get_nrow(), rdr.get_ncol());
+    kbase::print<double>(&m[0], rdr.get_nrow(), rdr.get_ncol());
 
     std::cout << "Read: ==>\n";
     std::vector<double> v2(NROW*NCOL);
@@ -45,7 +45,7 @@ void test_text_reader(std::string fn, const size_t NROW, const size_t NCOL) {
     std::cout << "nrow: " << rdr2.get_nrow() <<
         ", ncol: " << rdr2.get_ncol() << std::endl;
 
-    kbase::print_mat<double>(&v2[0], rdr2.get_nrow(), rdr2.get_ncol());
+    kbase::print<double>(&v2[0], rdr2.get_nrow(), rdr2.get_ncol());
 
     assert(m.size() == NROW * NCOL);
     assert(m.size() == v2.size());

@@ -160,7 +160,7 @@ void thread::bind2node_id() {
 }
 
 const void thread::print_local_data() {
-    kbase::print_mat(local_data,
+    kbase::print(local_data,
             (get_data_size()/(sizeof(double)*ncol)), ncol);
 }
 

@@ -391,7 +391,7 @@ public:
     }
 
     void print() {
-        print_mat<T>(as_pointer(), nrow, ncol);
+        knor::base::print<T>(as_pointer(), nrow, ncol);
     }
 };
 } } // End namespace knor, base

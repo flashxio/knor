@@ -39,14 +39,14 @@ void test_det() {
 	double inv[N*N]; // To store inverse of A*
 
     printf("Input matrix is :\n");
-    kbase::print_mat(A, N, N);
+    kbase::print(A, N, N);
 
     printf("\nThe Determinant is : %.2f\n",
             kbase::linalg::determinant(A,N, N));
 
     printf("\nThe Inverse is :\n");
 	if (kbase::linalg::inverse(A, inv, N))
-		kbase::print_mat(inv, N, N);
+		kbase::print(inv, N, N);
 }
 
 void test_det_dense_mat() {
