@@ -67,7 +67,7 @@ void print_arr(const T* arr, const unsigned len) {
 
 // Unordered Map
 template <typename K, typename V>
-void print(const std::unordered_map<K,V> map) {
+void print(const std::unordered_map<K,V>& map) {
 #ifndef BIND
     for (auto kv : map) {
         std::cout << "k: " << kv.first << ", v: " << kv.second << std::endl;
@@ -78,7 +78,7 @@ void print(const std::unordered_map<K,V> map) {
 
 // Map
 template <typename K, typename V>
-void print(const std::map<K,V> map) {
+void print(const std::map<K,V>& map) {
 #ifndef BIND
     for (auto kv : map) {
         std::cout << "k: " << kv.first << ", v: " << kv.second << std::endl;
@@ -89,7 +89,7 @@ void print(const std::map<K,V> map) {
 
 // Vector
 template <typename T>
-void print(typename std::vector<T> v, size_t max_print=100) {
+void print(const typename std::vector<T>& v, size_t max_print=100) {
 #ifndef BIND
     auto print_len = v.size() > max_print ? max_print : v.size();
     std::cout << "[";
@@ -140,25 +140,10 @@ void sparse_print(const T* arr, const unsigned len) {
 
 // Vector
 template <typename T>
-void sparse_print(typename std::vector<T> v, size_t max_print=100) {
+void sparse_print(const typename std::vector<T>& v, size_t max_print=100) {
     sparse_print<T>(&v[0], std::min(v.size(), max_print));
     if (max_print < v.size())
         std::cout << (v.size()-max_print) << " results ommitted ....\n";
-}
-
-template <typename T>
-void print_vector(typename std::vector<T> v, size_t max_print=100) {
-#ifndef BIND
-    auto print_len = v.size() > max_print ? max_print : v.size();
-    std::cout << "[";
-    typename std::vector<T>::iterator itr = v.begin();
-    for (; itr != v.begin()+print_len; itr++) {
-        std::cout << " "<< *itr;
-    }
-
-    if (v.size() > print_len) std::cout << " ...";
-    std::cout <<  " ]\n";
-#endif
 }
 
 template <typename T>
