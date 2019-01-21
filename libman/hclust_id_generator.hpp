@@ -23,13 +23,6 @@
 #include <memory>
 #include <stdexcept>
 
-// This will be slow, but will allow for testing
-#if 0
-#include <shared_mutex>
-#else
-#include <mutex>
-#endif
-
 namespace knor {
 
 struct split_id {
@@ -46,17 +39,10 @@ class hclust_id_generator {
 private:
     unsigned max_id;
     std::unordered_map<unsigned, split_id> id_split_map;
-#if 0
-    mutable std::shared_mutex _mutex;
-#else
-    mutable std::mutex _mutex;
-#endif
 
     hclust_id_generator() {
-        _mutex.lock();
         max_id = 2;
         id_split_map[0] = split_id(1, 2);
-        _mutex.unlock();
     }
 
     // Method is only called with exclusive lock taken
@@ -84,38 +70,11 @@ public:
 
     // Given a cluster id to which a node is assigned, get the split IDs
     split_id& get_split_ids(unsigned id) {
-        // Readers lock
-#if 0
-        _mutex.lock_shared();
-#else
-        _mutex.lock();
-#endif
         auto entry = id_split_map.find(id);
         if (entry != id_split_map.end()) {
-#if 0
-            _mutex.unlock_shared();
-#else
-            _mutex.unlock();
-#endif
-            return entry->second; // i.e. the split_id struct
-        }
-#if 0
-        _mutex.unlock_shared();
-#else
-        _mutex.unlock();
-#endif
-
-        // else
-        // Acquire an exclusive lock for writing
-        _mutex.lock();
-        // Check no one else has updated the map between your check
-        entry = id_split_map.find(id);
-        if (entry != id_split_map.end()) {
-            _mutex.unlock();
             return entry->second; // i.e. the split_id struct
         } else {
             generate_next(id);
-            _mutex.unlock();
             return id_split_map[id]; // i.e. the split_id struct
         }
 

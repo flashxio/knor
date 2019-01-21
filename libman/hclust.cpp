@@ -25,7 +25,6 @@
 #include "util.hpp"
 #include "io.hpp"
 #include "clusters.hpp"
-#include "hclust_id_generator.hpp"
 
 namespace {
 void* callback(void* arg) {

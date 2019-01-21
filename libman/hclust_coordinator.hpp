@@ -34,7 +34,6 @@ namespace base {
 }
 
 class hclust_id_generator;
-static std::shared_ptr<hclust_id_generator> ider = nullptr;
 
 struct c_part {
     unsigned l0;
@@ -75,7 +74,7 @@ class hclust_coordinator : public coordinator {
         std::mutex _mutex;
         // Keep track of the parent cluster id (partition id)
         std::vector<unsigned> part_id;
-
+        std::shared_ptr<hclust_id_generator> ider;
     public:
         hclust_coordinator(const std::string fn, const size_t nrow,
                 const size_t ncol, const unsigned k, const unsigned max_iters,
@@ -117,7 +116,7 @@ class hclust_coordinator : public coordinator {
         virtual void preprocess_data() {
             throw knor::base::abstract_exception();
         }
-        virtual std::shared_ptr<hclust_id_generator> get_ider();
+
         virtual void build_thread_state() override;
         virtual void init_splits();
         virtual void inner_init(std::vector<unsigned>& remove_cache);

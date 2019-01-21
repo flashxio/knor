@@ -30,7 +30,6 @@ namespace base {
 }
 
 typedef base::vmap<std::shared_ptr<base::clusters>> hclust_map;
-class hclust_id_generator;
 
 class hclust : public thread {
     protected:
@@ -39,7 +38,6 @@ class hclust : public thread {
         hclust_map local_hcltrs;
         std::vector<unsigned> nchanged; // How many change in each partition
         std::vector<bool>* cltr_active_vec; // Which clusters are still active
-        std::shared_ptr<hclust_id_generator> ider; // ID provider
         bool inited;
 
         unsigned k;
@@ -68,10 +66,6 @@ class hclust : public thread {
 
         void set_cltr_active_vec(std::vector<bool>* av) {
             cltr_active_vec = av;
-        }
-
-        void set_ider(std::shared_ptr<hclust_id_generator> ider) {
-            this->ider = ider;
         }
 
         virtual void set_part_id(unsigned* part_id) {

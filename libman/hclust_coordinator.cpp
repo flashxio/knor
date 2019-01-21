@@ -58,6 +58,7 @@ hclust_coordinator::hclust_coordinator(const std::string fn, const size_t nrow,
 
         nchanged.assign(max_nodes, 0);
         cluster_assignment_counts.assign(max_nodes, 0);
+        ider = hclust_id_generator::create();
     }
 
 void hclust_coordinator::build_thread_state() {
@@ -74,8 +75,6 @@ void hclust_coordinator::build_thread_state() {
         threads[thd_id]->start(WAIT); // Thread puts itself to sleep
         std::static_pointer_cast<hclust>(threads[thd_id])
                     ->set_cltr_active_vec(cltr_active_vec);
-        std::static_pointer_cast<hclust>(threads[thd_id])
-                    ->set_ider(get_ider());
         std::static_pointer_cast<hclust>(threads[thd_id])
                     ->set_part_id(&part_id[0]);
     }
@@ -453,12 +452,6 @@ base::cluster_t hclust_coordinator::run(
 #else
     return base::cluster_t(); // TODO
 #endif
-}
-
-std::shared_ptr<hclust_id_generator> hclust_coordinator::get_ider() {
-    if (nullptr == ider)
-        ider = hclust_id_generator::create();
-    return ider;
 }
 
 hclust_coordinator::~hclust_coordinator() {
