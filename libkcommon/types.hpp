@@ -24,6 +24,7 @@
 #include <limits>
 #include <vector>
 #include <string>
+#include <utility>
 #include "dense_matrix.hpp"
 
 namespace knor {
@@ -81,6 +82,86 @@ struct gmm_t {
             const size_t k, double* _means,
             std::vector<base::dense_matrix<double>*>& _cov_mats,
             double* _resp_mat, double* _gaussian_prob);
+};
+
+/**
+  * A class that stores a map as a vector and is mostly STL compliant
+  */
+template <typename T>
+class vmap_iterator;
+
+template <typename T>
+class vmap {
+    private:
+        std::vector<T> data;
+    public:
+        vmap() { }
+        vmap(unsigned capacity) { data.assign(capacity, nullptr); }
+
+        void set_max_capacity(const unsigned capacity) {
+            data.assign(capacity, nullptr);
+        }
+
+        const size_t size() const { return data.size(); }
+        void erase(size_t idx) { data[idx] = nullptr; }
+
+        T& operator[] (const size_t idx) { return data[idx]; }
+        const T& operator[] (size_t idx) const { return data[idx]; }
+
+        T& at (const size_t idx) {
+            return (*this)[idx];
+        }
+
+        vmap_iterator<T> get_iterator() {
+            return vmap_iterator<T>(*this);
+        }
+
+        void clear() {
+            data.assign(size(), nullptr);
+        }
+
+        void get_keys(std::vector<size_t>& ids) {
+            for (size_t id = 0; id < size(); id++) {
+                if (nullptr != data[id]) {
+                    ids.push_back(id);
+                }
+            }
+        }
+};
+
+template <typename T>
+class vmap_iterator {
+    private:
+        size_t offset;
+        const vmap<T>& vm;
+
+    public:
+        vmap_iterator(const vmap<T>& _vm) : vm(_vm) {
+            offset = 0;
+            for (; offset < vm.size(); offset++) {
+                if (nullptr != vm[offset])
+                    return;
+            }
+        }
+
+        // TODO: can we remove copy
+        std::pair<size_t, T> next() {
+            std::pair<size_t, T> ret(offset, vm[offset]);
+            offset++;
+            return ret;
+            //return (std::pair<size_t, T>(offset, vm[offset++]));
+        }
+
+        bool has_next() {
+            if (offset == vm.size() || !vm.size())
+                return false;
+
+            for (; offset < vm.size(); offset++)
+                if (nullptr != vm[offset])
+                    return true;
+
+            return false;
+        }
 };
 } }
 #endif
