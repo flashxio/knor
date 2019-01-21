@@ -251,7 +251,7 @@ void kmeans_task_coordinator::random_partition_init() {
 #if VERBOSE
 #ifndef BIND
     printf("After rand paritions cluster_asgns: \n");
-    print_vector<unsigned>(cluster_assignments);
+    print<unsigned>(cluster_assignments);
 #endif
 #endif
 }
@@ -403,9 +403,9 @@ kbase::cluster_t kmeans_task_coordinator::mb_run(double* allocd_data) {
 
 #ifndef BIND
     printf("Final cluster counts: \n");
-    kbase::print_vector(cluster_assignment_counts);
+    kbase::print(cluster_assignment_counts);
     printf("Final cluster assignments: \n");
-    kbase::print_vector(cluster_assignments);
+    kbase::print(cluster_assignments);
     printf("\n******************************************\n");
 #endif
     return kbase::cluster_t(this->nrow, this->ncol, iter, this->k,
@@ -472,7 +472,7 @@ kbase::cluster_t kmeans_task_coordinator::run(
 #if VERBOSE
 #ifndef BIND
         printf("Cluster assignment counts: \n");
-        kbase::print_vector(cluster_assignment_counts);
+        kbase::print(cluster_assignment_counts);
 #endif
 #endif
 
@@ -513,7 +513,7 @@ kbase::cluster_t kmeans_task_coordinator::run(
 
 #ifndef BIND
     printf("Final cluster counts: \n");
-    kbase::print_vector(cluster_assignment_counts);
+    kbase::print(cluster_assignment_counts);
     printf("\n******************************************\n");
 #endif
 

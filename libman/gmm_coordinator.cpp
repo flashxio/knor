@@ -244,7 +244,7 @@ base::gmm_t gmm_coordinator::soft_run(double* allocd_data) {
 
     ////////////////////////////////////////////////////////////////////////////
     std::cout << "\nAFTER INIT:\nPk:\n";
-    base::print_vector(Pk);
+    base::print(Pk);
     std::cout << "mu_k:\n"; mu_k->print();
     std::cout << "P_nk:\n"; P_nk->print();
     std::cout << "cov_regularizer: " << cov_regularizer << "\n"
@@ -280,7 +280,7 @@ base::gmm_t gmm_coordinator::soft_run(double* allocd_data) {
 #ifndef BIND
         printf("Cluster assignment counts: \n");
 #endif
-        base::print_vector(cluster_assignment_counts);
+        base::print(cluster_assignment_counts);
 #endif
 
         if (num_changed == 0 ||
@@ -313,7 +313,7 @@ base::gmm_t gmm_coordinator::soft_run(double* allocd_data) {
 
 #ifndef BIND
     printf("Final cluster counts: \n");
-    base::print_vector(cluster_assignment_counts);
+    base::print(cluster_assignment_counts);
     printf("\n******************************************\n");
 #endif
 

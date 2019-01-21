@@ -199,7 +199,7 @@ kbase::cluster_t kmeans_coordinator::run(
 #ifndef BIND
         printf("Cluster assignment counts: \n");
 #endif
-        kbase::print_vector(cluster_assignment_counts);
+        kbase::print(cluster_assignment_counts);
 #endif
         if (num_changed == 0 ||
                 ((num_changed/(double)nrow)) <= tolerance) {
@@ -231,7 +231,7 @@ kbase::cluster_t kmeans_coordinator::run(
 
 #ifndef BIND
     printf("Final cluster counts: \n");
-    kbase::print_vector(cluster_assignment_counts);
+    kbase::print(cluster_assignment_counts);
     printf("\n******************************************\n");
 #endif
 

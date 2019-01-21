@@ -221,10 +221,10 @@ base::cluster_t fcm_coordinator::soft_run(double* allocd_data) {
 
 #ifndef BIND
     printf("Final cluster assignment: \n");
-    kbase::print_vector(cluster_assignments);
+    kbase::print(cluster_assignments);
 
     printf("Final cluster assignment count:\n");
-    kbase::print_vector(cluster_assignment_counts);
+    kbase::print(cluster_assignment_counts);
     printf("\n******************************************\n");
 #endif
 

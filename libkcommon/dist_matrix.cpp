@@ -80,7 +80,7 @@ void dist_matrix::print() {
 #ifndef BIND
         std::cout << row << " ==> ";
 #endif
-        knor::base::print_vector<double>(mat[row]);
+        knor::base::print<double>(mat[row]);
     }
 }
 

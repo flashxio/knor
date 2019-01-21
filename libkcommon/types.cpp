@@ -54,7 +54,7 @@ const void cluster_t::print() const {
     std::cout << "Iterations: " <<  iters << std::endl;
     std::cout << "Cluster count: ";
 #endif
-    print_vector(assignment_count);
+    knor::base::print(assignment_count);
 }
 
 /**

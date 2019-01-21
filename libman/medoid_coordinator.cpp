@@ -225,7 +225,7 @@ kbase::cluster_t medoid_coordinator::run(
 
 #ifndef BIND
         printf("Medoid Energy:\n");
-        kbase::print_vector(medoid_energy);
+        kbase::print(medoid_energy);
 #endif
 
         if (medoids_changed) {
@@ -240,7 +240,7 @@ kbase::cluster_t medoid_coordinator::run(
 
 #ifndef BIND
             printf("Cluster assignment counts: \n");
-            kbase::print_vector(cluster_assignment_counts);
+            kbase::print(cluster_assignment_counts);
             printf("\n******************************************\n");
 #endif
         } else {
@@ -278,7 +278,7 @@ kbase::cluster_t medoid_coordinator::run(
 
 #ifndef BIND
     printf("Final cluster counts: \n");
-    kbase::print_vector(cluster_assignment_counts);
+    kbase::print(cluster_assignment_counts);
     printf("\n******************************************\n");
 #endif
 

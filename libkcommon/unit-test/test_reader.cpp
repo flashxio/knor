@@ -61,7 +61,7 @@ void test_bin_rm_reader(std::string fn, const size_t NROW, const size_t NCOL) {
 
     while (rdr.readline(v)) {
         std::cout << "line: ==> ";
-        kbase::print_vector<double>(v);
+        kbase::print<double>(v);
     }
 }
 

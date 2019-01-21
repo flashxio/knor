@@ -58,7 +58,7 @@ int main() {
     dm->mean(dmmean, 0);
 
     std::cout << "Column means are: \n";
-    print_vector(dmmean);
+    print(dmmean);
     dense_matrix<double>* dmcentered = (*dm) - dmmean;
 
     std::cout << "Centered:\n";
