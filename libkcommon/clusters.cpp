@@ -139,7 +139,7 @@ const void clusters::print_means() const {
 #ifndef BIND
         std::cout << "#memb = " << get_num_members(cl_idx) << " ";
 #endif
-        print_arr<double>(&(means[cl_idx*ncol]), ncol);
+        print<double>(&(means[cl_idx*ncol]), ncol);
     }
 }
 
@@ -202,7 +202,7 @@ void prune_clusters::reset_s_val_v() {
 
 const void prune_clusters::print_prev_means_v() const {
     for (unsigned cl_idx = 0; cl_idx < get_nclust(); cl_idx++) {
-        print_arr<double>(&(prev_means[cl_idx*ncol]), ncol);
+        print<double>(&(prev_means[cl_idx*ncol]), ncol);
     }
 #ifndef BIND
     std::cout << "\n";

@@ -80,7 +80,7 @@ void random_partition_init(unsigned* cluster_assignments,
 #if VERBOSE
 #ifndef BIND
     printf("After rand paritions cluster_asgns: ");
-    print_arr(cluster_assignments, num_rows);
+    print(cluster_assignments, num_rows);
     printf("Random init end\n");
 #endif
 #endif
@@ -366,7 +366,7 @@ kbase::cluster_t compute_kmeans(const double* matrix, double* clusters_ptr,
 #ifndef BIND
     printf("Cluster assignment counts: ");
 #endif
-    kbase::print_arr(cluster_assignment_counts, K);
+    kbase::print(cluster_assignment_counts, K);
 #endif
 
 #ifndef BIND
@@ -414,7 +414,7 @@ kbase::cluster_t compute_kmeans(const double* matrix, double* clusters_ptr,
 #ifndef BIND
         printf("Cluster assignment counts: \n");
 #endif
-        kbase::print_arr(cluster_assignment_counts, K);
+        kbase::print(cluster_assignment_counts, K);
 #endif
 #if VERBOSE
 #ifndef BIND
@@ -459,7 +459,7 @@ kbase::cluster_t compute_kmeans(const double* matrix, double* clusters_ptr,
 #ifndef BIND
     printf("Final cluster counts: ");
 #endif
-    kbase::print_arr(cluster_assignment_counts, K);
+    kbase::print(cluster_assignment_counts, K);
 #ifndef BIND
     printf("\n******************************************\n");
 #endif

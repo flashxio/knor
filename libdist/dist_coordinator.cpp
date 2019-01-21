@@ -82,7 +82,7 @@ void dist_coordinator::random_partition_init() {
 #ifndef BIND
     printf("After rand paritions cluster_asgns: \n");
 #endif
-    kbase::print_arr<unsigned>(cluster_assignments, nrow);
+    kbase::print<unsigned>(cluster_assignments, nrow);
 #endif
 }
 

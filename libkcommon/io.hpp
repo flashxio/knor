@@ -54,17 +54,6 @@ void print_mat(const T* matrix, const unsigned rows, const unsigned cols) {
 #endif
 }
 
-template <typename T>
-void print_arr(const T* arr, const unsigned len) {
-#ifndef BIND
-    printf("[ ");
-    for (unsigned i = 0; i < len; i++) {
-        std::cout << arr[i] << " ";
-    }
-    printf("]\n");
-#endif
-}
-
 // Unordered Map
 template <typename K, typename V>
 void print(const std::unordered_map<K,V>& map) {

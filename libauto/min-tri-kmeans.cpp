@@ -83,7 +83,7 @@ void random_partition_init(unsigned* cluster_assignments,
 #if VERBOSE
 #ifndef BIND
     printf("After rand paritions cluster_asgns: \n");
-    print_arr(cluster_assignments, num_rows);
+    print(cluster_assignments, num_rows);
 #endif
 #endif
 
@@ -490,7 +490,7 @@ kbase::cluster_t compute_min_kmeans(const double* matrix, double* clusters_ptr,
 #if KM_TEST
 #ifndef BIND
         printf("Cluster assignment counts: ");
-        print_arr(cluster_assignment_counts, K);
+        print(cluster_assignment_counts, K);
 #endif
 #endif
 
@@ -543,7 +543,7 @@ kbase::cluster_t compute_min_kmeans(const double* matrix, double* clusters_ptr,
 #if KM_TEST
 #ifndef BIND
         printf("Printing cluster counts ...";
-        print_arr(cluster_assignment_counts, K);
+        print(cluster_assignment_counts, K);
 #endif
 #endif
 
@@ -583,7 +583,7 @@ kbase::cluster_t compute_min_kmeans(const double* matrix, double* clusters_ptr,
         }
 #ifndef BIND
     printf("Final cluster counts ...\n");
-    kbase::print_arr(cluster_assignment_counts, K);
+    kbase::print(cluster_assignment_counts, K);
 #endif
 
 #ifndef BIND
