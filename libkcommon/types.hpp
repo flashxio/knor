@@ -120,6 +120,12 @@ class vmap {
             data.assign(size(), nullptr);
         }
 
+        const bool has_key(const size_t idx) const {
+            if (idx > size()-1)
+                return false;
+            return (nullptr != data[idx]);
+        }
+
         void get_keys(std::vector<size_t>& ids) {
             for (size_t id = 0; id < size(); id++) {
                 if (nullptr != data[id]) {

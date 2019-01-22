@@ -80,8 +80,15 @@ void test_vector_map() {
 
     assert(tmp.size() == ids.size());
 
-    for (size_t i = 0; i < ids.size(); i++)
+    for (size_t i = 0; i < ids.size(); i++) {
         assert(ids[i] == tmp[i]);
+        assert(vm.has_key(ids[i]));
+    }
+
+    assert(!vm.has_key(0));
+    assert(!vm.has_key(3));
+    assert(!vm.has_key(5));
+    assert(!vm.has_key(8));
 }
 
 int main() {
