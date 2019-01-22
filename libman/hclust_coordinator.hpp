@@ -75,19 +75,22 @@ class hclust_coordinator : public coordinator {
         // Keep track of the parent cluster id (partition id)
         std::vector<unsigned> part_id;
         std::shared_ptr<hclust_id_generator> ider;
+        unsigned min_clust_size;
     public:
         hclust_coordinator(const std::string fn, const size_t nrow,
                 const size_t ncol, const unsigned k, const unsigned max_iters,
                 const unsigned nnodes, const unsigned nthreads,
                 const double* centers, const base::init_t it,
-                const double tolerance, const base::dist_t dt);
+                const double tolerance, const base::dist_t dt,
+                const unsigned min_clust_size);
 
         static coordinator::ptr create(const std::string fn,
                 const size_t nrow,
                 const size_t ncol, const unsigned k, const unsigned max_iters,
                 const unsigned nnodes, const unsigned nthreads,
                 const double* centers=NULL, const std::string init="kmeanspp",
-                const double tolerance=-1, const std::string dist_type="eucl") {
+                const double tolerance=-1, const std::string dist_type="eucl",
+                const unsigned min_clust_size=2) {
 
             base::init_t _init_t = base::get_init_type(init);
             base::dist_t _dist_t = base::get_dist_type(dist_type);
@@ -101,7 +104,8 @@ class hclust_coordinator : public coordinator {
 #endif
             return coordinator::ptr(
                     new hclust_coordinator(fn, nrow, ncol, k, max_iters,
-                    nnodes, nthreads, centers, _init_t, tolerance, _dist_t));
+                    nnodes, nthreads, centers, _init_t, tolerance,
+                    _dist_t, min_clust_size));
         }
 
         virtual void run_hinit();

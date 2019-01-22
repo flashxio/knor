@@ -34,9 +34,10 @@ xmeans_coordinator::xmeans_coordinator(const std::string fn, const size_t nrow,
     const size_t ncol, const unsigned k, const unsigned max_iters,
     const unsigned nnodes, const unsigned nthreads,
     const double* centers, const base::init_t it,
-    const double tolerance, const base::dist_t dt) :
+    const double tolerance, const base::dist_t dt,
+    const unsigned min_clust_size) :
         hclust_coordinator(fn, nrow, ncol, k, max_iters, nnodes, nthreads,
-            centers, it, tolerance, dt) {
+            centers, it, tolerance, dt, min_clust_size) {
 
 }
 

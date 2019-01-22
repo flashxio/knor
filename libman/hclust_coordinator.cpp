@@ -27,19 +27,20 @@
 #include "hclust_id_generator.hpp"
 
 namespace knor {
-static unsigned MIN_CLUST_SIZE = 2; // TODO: Param
 
 hclust_coordinator::hclust_coordinator(const std::string fn, const size_t nrow,
         const size_t ncol, const unsigned k, const unsigned max_iters,
         const unsigned nnodes, const unsigned nthreads,
         const double* centers, const base::init_t it,
-        const double tolerance, const base::dist_t dt) :
+        const double tolerance, const base::dist_t dt,
+        const unsigned min_clust_size) :
     coordinator(fn, nrow, ncol, (base::get_hclust_floor(k)/2), max_iters,
             nnodes, nthreads, centers, it, tolerance, dt) {
 
         cltr_active_vec = new std::vector<bool>(); // We know the max size!
         cltr_active_vec->assign(k, false);
         activate(0);
+        this->min_clust_size = min_clust_size;
 
         ui_distribution = std::uniform_int_distribution<unsigned>(0, nrow-1);
 
@@ -160,7 +161,7 @@ void hclust_coordinator::inner_init(std::vector<unsigned>& remove_cache) {
     auto itr = hcltrs.get_iterator();
     while (itr.has_next()) {
         auto kv = itr.next();
-        if (cluster_assignment_counts[kv.first] < MIN_CLUST_SIZE);
+        if (cluster_assignment_counts[kv.first] < min_clust_size);
             deactivate(kv.first);
     }
 
@@ -292,19 +293,8 @@ void hclust_coordinator::update_clusters() {
     auto itr = hcltrs.get_iterator();
     while (itr.has_next()) {
         auto kv = itr.next();
-#if 00
-        // No need to update the state of this partition because it's converged
-        //if (!kv.second->has_converged()) {
-            //if (kv.second->is_complete(kv.first)) // It's changed
-                //kv.second->unfinalize_all();
-            //else
-                //kv.second->clear();
-        //}
-        kv.second->clear();
-#else
         if (!kv.second->has_converged())
             kv.second->clear();
-#endif
     }
 
     // Serial aggregate of nthread vectors
@@ -344,15 +334,8 @@ void hclust_coordinator::update_clusters() {
             // Premature End of computation
             if (nchanged[pid] == 0 ||
                     (nchanged[pid]/(double)part_nmembers) <= tolerance) {
-
-#if 0
-                printf("\n\tPID: %lu converged!\n", pid);
-#endif
                 c->set_converged();
             }
-#if 0
-            printf("PID: %lu, with mean: ", pid); c->print_means();
-#endif
         }
     }
 
@@ -398,7 +381,6 @@ base::cluster_t hclust_coordinator::run(
     size_t iter = 0;
 
     /*TODO: Or all clusters are inactive*/
-    //for (unsigned curr_nclust = 1; curr_nclust < k; curr_nclust*=2)
     unsigned curr_nclust = 1;
     while (true) {
         for (iter = 0; iter < max_iters; iter++) {
@@ -411,8 +393,6 @@ base::cluster_t hclust_coordinator::run(
 #if 1
             printf("\nAfter update_clusters ... Global hcltrs:\n");
             print_active_clusters();
-            //printf("Global cluster assignment counts:\n");
-            //base::print(cluster_assignment_counts);
 #endif
             printf("\n*****************************************************\n");
         }
@@ -423,9 +403,6 @@ base::cluster_t hclust_coordinator::run(
 
         // Update global state
         init_splits(); // Initialize possible splits
-#if 0
-        reset_thd_inited();
-#endif
     }
 #ifdef PROFILER
     ProfilerStop();

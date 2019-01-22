@@ -43,6 +43,7 @@ int main(int argc, char* argv[]) {
 
     unsigned nnodes = kbase::get_num_nodes();
     std::string outdir = "";
+    unsigned min_clust_size = 2;
 
     cxxopts::Options options(argv[0],
             "xmeans data-file nsamples dim k [alg-options]\n");
@@ -61,6 +62,8 @@ int main(int argc, char* argv[]) {
             cxxopts::value<unsigned>(nthread))
       ("i,iters", "maximum number of iterations",
             cxxopts::value<unsigned>(max_iters))
+      ("s,min_clust_size", "min cluster size before splits aren't permitted",
+            cxxopts::value<unsigned>(min_clust_size))
       ("C,centersfn", "Path to centroids on disk",
             cxxopts::value<std::string>(centersfn), "FILE")
       ("N,nnodes", "No. of numa nodes you want to use",
@@ -125,7 +128,7 @@ int main(int argc, char* argv[]) {
     auto coord =
         knor::xmeans_coordinator::create(datafn, nrow, ncol, k,
                 max_iters, nnodes, nthread,(centers.size() ? &centers[0] : NULL),
-                init, tolerance, dist_type);
+                init, tolerance, dist_type, min_clust_size);
 
     auto clt = coord->run();
 

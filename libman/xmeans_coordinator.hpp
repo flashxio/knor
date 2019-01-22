@@ -29,7 +29,8 @@ class xmeans_coordinator : public hclust_coordinator {
                 const size_t ncol, const unsigned k, const unsigned max_iters,
                 const unsigned nnodes, const unsigned nthreads,
                 const double* centers, const base::init_t it,
-                const double tolerance, const base::dist_t dt);
+                const double tolerance, const base::dist_t dt,
+                const unsigned min_clust_size);
 
         typedef std::shared_ptr<xmeans_coordinator> ptr;
 
@@ -38,7 +39,8 @@ class xmeans_coordinator : public hclust_coordinator {
                 const size_t ncol, const unsigned k, const unsigned max_iters,
                 const unsigned nnodes, const unsigned nthreads,
                 const double* centers=NULL, const std::string init="kmeanspp",
-                const double tolerance=-1, const std::string dist_type="eucl") {
+                const double tolerance=-1, const std::string dist_type="eucl",
+                const unsigned min_clust_size=2) {
 
             base::init_t _init_t = base::get_init_type(init);
             base::dist_t _dist_t = base::get_dist_type(dist_type);
@@ -46,13 +48,14 @@ class xmeans_coordinator : public hclust_coordinator {
 #ifndef BIND
             printf("xmeans coordinator => NUMA nodes: %u, nthreads: %u, "
                     "nrow: %lu, ncol: %lu, init: '%s', dist_t: '%s', fn: '%s'"
-                    "\n\n", nnodes, nthreads, nrow, ncol, init.c_str(),
-                    dist_type.c_str(), fn.c_str());
+                    "min_clust_size: %u\n\n", nnodes, nthreads, nrow, ncol,
+                    init.c_str(), dist_type.c_str(), fn.c_str(), min_clust_size);
 #endif
 #endif
             return hclust_coordinator::ptr(
                     new xmeans_coordinator(fn, nrow, ncol, k, max_iters,
-                    nnodes, nthreads, centers, _init_t, tolerance, _dist_t));
+                    nnodes, nthreads, centers, _init_t, tolerance, _dist_t,
+                    min_clust_size));
         }
 
         virtual void build_thread_state() override;

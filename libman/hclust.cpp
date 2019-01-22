@@ -111,12 +111,7 @@ void hclust::H_split_step() {
 }
 
 void hclust::H_EM_step() {
-#if 00
-    if (!inited)
-        local_hcltrs.clear();
-#else
     local_hcltrs.clear();
-#endif
 
     nchanged.assign(base::get_max_hnodes(k*2), 0);
 
@@ -126,16 +121,9 @@ void hclust::H_EM_step() {
         if (kv.second->has_converged()) {
             continue;
         }
-
-#if 00
-        if (local_hcltrs.find(kv.first) == local_hcltrs.end()) {
-#endif
             // No need to set id, zeroid, oneid because global hcltrs knows them
             local_hcltrs[kv.first] = base::h_clusters::create(2, ncol);
             local_hcltrs[kv.first]->clear(); // NOTE: Could be combined into ctor
-#if 00
-        }
-#endif
     }
 
     for (unsigned row = 0; row < nprocrows; row++) {
@@ -170,30 +158,10 @@ void hclust::H_EM_step() {
 
         assert(asgnd_clust != base::INVALID_CLUSTER_ID);
 
-#if 00
-        if (inited) {
-            if (asgnd_clust != cluster_assignments[true_row_id])
-                nchanged[rpart_id]++;
-
-            local_hcltrs[rpart_id]->swap_membership(&local_data[row*ncol],
-                    !flag, flag);
-        } else {
-            if (asgnd_clust != cluster_assignments[true_row_id]) {
-                nchanged[rpart_id]++;
-            }
-            local_hcltrs[rpart_id]->add_member(&local_data[row*ncol], flag);
-        }
-#else
         if (asgnd_clust != cluster_assignments[true_row_id])
             nchanged[rpart_id]++;
         local_hcltrs[rpart_id]->add_member(&local_data[row*ncol], flag);
-#endif
         cluster_assignments[true_row_id] = asgnd_clust;
     }
-
-#if 00
-    if (!inited)
-        inited = true;
-#endif
 }
 } // End namespace knor
