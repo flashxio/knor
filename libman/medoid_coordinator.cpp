@@ -106,7 +106,7 @@ void medoid_coordinator::choose_global_medoids(double* gdata) {
             std::numeric_limits<double>::max());
 
     // Accumulate the possible candidates and their energy
-    for (auto th : threads) {
+    for (auto const& th : threads) {
         auto t = std::static_pointer_cast<medoid>(th);
         auto cm = t->get_candidate_medoids();
         auto ce = t->get_candidate_energy();
@@ -142,7 +142,7 @@ void medoid_coordinator::compute_globals() {
             cluster_assignment_counts.end(), 0);
     std::fill(medoid_energy.begin(), medoid_energy.end(), 0);
 
-    for (auto th : threads) {
+    for (auto const& th : threads) {
         auto t = std::static_pointer_cast<medoid>(th);
 
         num_changed += t->get_num_changed();

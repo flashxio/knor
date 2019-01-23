@@ -168,7 +168,7 @@ void hclust_coordinator::inner_init(std::vector<unsigned>& remove_cache) {
     std::vector<size_t> ids;
     hcltrs.get_keys(ids);
 
-    for (auto id : ids) {
+    for (auto const& id : ids) {
         auto zeroid = hcltrs[id]->get_zeroid();
         auto oneid = hcltrs[id]->get_oneid();
 
@@ -258,7 +258,7 @@ void hclust_coordinator::init_splits() {
 void hclust_coordinator::accumulate_cluster_counts() {
     cluster_assignment_counts.assign(max_nodes, 0);
 
-    for (auto cid : cluster_assignments) {
+    for (auto const& cid : cluster_assignments) {
             cluster_assignment_counts[cid]++;
     }
 }
@@ -282,7 +282,7 @@ bool hclust_coordinator::is_active(const unsigned id) {
 }
 
 void hclust_coordinator::reset_thd_inited() {
-    for (auto thd : threads)
+    for (auto const& thd : threads)
         (std::static_pointer_cast<hclust>(thd))->reset_inited();
 }
 
@@ -298,7 +298,7 @@ void hclust_coordinator::update_clusters() {
     }
 
     // Serial aggregate of nthread vectors
-    for (auto thd : threads) {
+    for (auto const& thd : threads) {
         // Update the changed cluster count
         auto thd_nchanged =
             (std::static_pointer_cast<hclust>(thd))->get_nchanged();
@@ -341,7 +341,7 @@ void hclust_coordinator::update_clusters() {
 
 #if 0 // Testing
     size_t total_changed = 0;
-    for (auto val : nchanged)
+    for (auto const& val : nchanged)
         total_changed += val;
 
     printf("Total nchanged: %lu\n", total_changed);

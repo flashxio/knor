@@ -67,7 +67,7 @@ void skmeans_coordinator::bounds_reduction() {
     g_feature_max.assign(ncol, std::numeric_limits<double>::min());
     g_feature_min.assign(ncol, std::numeric_limits<double>::max());
 
-    for (auto th : threads) {
+    for (auto const& th : threads) {
         auto t = std::static_pointer_cast<skmeans>(th);
 
         auto min_fv = t->get_min_feature_val();

@@ -170,7 +170,7 @@ void medoid::medoid_step() {
         double energy = 0;
 
         // member_id is a global identifier
-        for (auto member_id : coord->get_membership()[cid]) {
+        for (auto const& member_id : coord->get_membership()[cid]) {
             if (member_id != true_rid) {
                 energy += kbase::dist_comp_raw<double>(&local_data[row*ncol],
                     coord->get_thd_data(member_id), ncol, dist_metric);

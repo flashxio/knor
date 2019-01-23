@@ -84,7 +84,7 @@ int main(int argc, char* argv []) {
 
     std::vector<unsigned> new_ids {3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
         14, 15, 16, 17, 18};
-    for (auto entry : new_ids) {
+    for (auto const& entry : new_ids) {
         lr = geny->get_split_ids(entry);
         check_insert(entry, used, lr);
     }

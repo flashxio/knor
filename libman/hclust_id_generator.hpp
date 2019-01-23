@@ -58,7 +58,7 @@ public:
 
     const void print() const {
         printf("Printing hclust_id_generator:\n");
-        for (auto kv : id_split_map) {
+        for (auto const& kv : id_split_map) {
             printf("%u -> (%u, %u)\n", kv.first,
                     kv.second.first, kv.second.second);
         }

@@ -88,7 +88,7 @@ void gmm_coordinator::update_clusters() {
         }
     }
 
-    for (auto th : threads) {
+    for (auto const& th : threads) {
         // Now L is complete
         L += std::static_pointer_cast<gmm>(th)->get_L();
     }
@@ -208,7 +208,7 @@ void gmm_coordinator::random_partition_init() {
 
     random_prob_fill(Pk);
     random_prob_fill(P_nk);
-    for(auto cov : sigma_k)
+    for (auto const& cov : sigma_k)
         random_prob_fill(cov);
 }
 
@@ -249,7 +249,7 @@ base::gmm_t gmm_coordinator::soft_run(double* allocd_data) {
     std::cout << "P_nk:\n"; P_nk->print();
     std::cout << "cov_regularizer: " << cov_regularizer << "\n"
         << "sigma_k:\n";
-    for (auto cov : sigma_k) {
+    for (auto const& cov : sigma_k) {
         cov->print();
         std::cout << "\n";
     }

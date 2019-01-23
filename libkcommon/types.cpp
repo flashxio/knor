@@ -141,7 +141,7 @@ gmm_t::gmm_t(const size_t nrow, const size_t ncol, const size_t iters,
 
         means.resize(k*ncol);
         std::copy(&(_means[0]), &(_means[k*ncol]), means.begin());
-        for (auto dm : _cov_mats) {
+        for (auto const& dm : _cov_mats) {
             std::vector<double> v(ncol*ncol);
             std::copy(dm->as_vector().begin(), dm->as_vector().end(), v.begin());
             cov_mats.push_back(v);

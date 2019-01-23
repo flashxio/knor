@@ -110,7 +110,7 @@ void kmeans_task_coordinator::mb_iteration_end() {
 
     // Serial O(t*b)
     // NOTE: This updates global clusters
-    for (auto th : threads) {
+    for (auto const& th : threads) {
         std::static_pointer_cast<kmeans_task_thread>(th)
             ->mb_finalize_centroids(&v[0]);
     }
@@ -321,7 +321,7 @@ kbase::cluster_t kmeans_task_coordinator::mb_run(double* allocd_data) {
 
     // First set the thread mini-batch size
     double mb_perctg = (double)mb_size / (nthreads*nrow);
-    for (auto th : threads) {
+    for (auto const& th : threads) {
         std::static_pointer_cast<kmeans_task_thread>(th)->
             set_mb_perctg(mb_perctg);
     }
@@ -384,14 +384,14 @@ kbase::cluster_t kmeans_task_coordinator::mb_run(double* allocd_data) {
     }
 
     // Run regular EM step to assign all samples to a cluster
-    for (auto th : threads)
+    for (auto const& th : threads)
         th->set_prune_init(true);
     wake4run(EM);
     wait4complete();
 
     // Get cluster counts
     cluster_assignment_counts.assign(k, 0);
-    for (auto cid : cluster_assignments)
+    for (auto const& cid : cluster_assignments)
         cluster_assignment_counts[cid]++;
 
     gettimeofday(&end, NULL);

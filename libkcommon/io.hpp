@@ -37,7 +37,7 @@ namespace knor { namespace base {
 template <typename K, typename V>
 void print(const std::unordered_map<K,V>& map) {
 #ifndef BIND
-    for (auto kv : map) {
+    for (auto const& kv : map) {
         std::cout << "k: " << kv.first << ", v: " << kv.second << std::endl;
     }
     std::cout << "\n";
@@ -48,7 +48,7 @@ void print(const std::unordered_map<K,V>& map) {
 template <typename K, typename V>
 void print(const std::map<K,V>& map) {
 #ifndef BIND
-    for (auto kv : map) {
+    for (auto const& kv : map) {
         std::cout << "k: " << kv.first << ", v: " << kv.second << std::endl;
     }
     std::cout << "\n";
@@ -61,7 +61,7 @@ void print(const typename std::vector<T>& v, size_t max_print=100) {
 #ifndef BIND
     auto print_len = v.size() > max_print ? max_print : v.size();
     std::cout << "[";
-    for (auto val : v)
+    for (auto const& val : v)
         std::cout << " "<< val;
 
     if (v.size() > print_len) std::cout << " ...";

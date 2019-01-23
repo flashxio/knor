@@ -216,7 +216,7 @@ base::cluster_t fcm_coordinator::soft_run(double* allocd_data) {
 
     um->argmax(1, cluster_assignments);
     cluster_assignment_counts.assign(k, 0);
-    for (auto i : cluster_assignments)
+    for (auto const& i : cluster_assignments)
         cluster_assignment_counts[i]++;
 
 #ifndef BIND

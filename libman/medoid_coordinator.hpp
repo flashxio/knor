@@ -80,7 +80,7 @@ class medoid_coordinator : public coordinator {
         }
 
         void clear_membership() {
-            for (auto v : membership)
+            for (auto& v : membership)
                 v.clear();
         }
 

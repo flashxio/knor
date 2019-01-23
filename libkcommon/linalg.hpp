@@ -177,7 +177,7 @@ namespace knor { namespace base {
         static void scale(std::vector<double>& v, double factor,
                 std::vector<double>& res) {
             if (res.size() == 0) {
-                for (auto val : v)
+                for (auto const& val : v)
                     res.push_back(val*factor);
             } else {
                 for (size_t i = 0; i < v.size(); i++)

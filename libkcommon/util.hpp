@@ -236,7 +236,7 @@ public:
 
 template <typename K>
 void reset(std::unordered_map<K, unsigned> map) {
-    for (auto kv : map) {
+    for (auto const& kv : map) {
         map[kv.first] = 0;
     }
 }

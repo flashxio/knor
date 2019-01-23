@@ -109,7 +109,7 @@ void xmeans_coordinator::update_clusters() {
     }
 
     // Serial aggregate of nthread vectors
-    for (auto thd : threads) {
+    for (auto const& thd : threads) {
         // Update the changed cluster count
         auto thd_nchanged =
             (std::static_pointer_cast<hclust>(thd))->get_nchanged();
@@ -159,7 +159,7 @@ void xmeans_coordinator::update_clusters() {
 
 #if 0 // Testing
     size_t total_changed = 0;
-    for (auto val : nchanged)
+    for (auto const& val : nchanged)
         total_changed += val;
 
     printf("Total nchanged: %lu\n", total_changed);
