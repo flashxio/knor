@@ -121,7 +121,10 @@ class hclust_coordinator : public coordinator {
             throw knor::base::abstract_exception();
         }
 
+        // Used to take the mean of the full dataset
         virtual void build_thread_state() override;
+        virtual void partition_mean(base::vmap<
+        std::shared_ptr<base::clusters>>& part_hcltrs);
         virtual void init_splits();
         virtual void inner_init(std::vector<unsigned>& remove_cache);
         virtual void spawn(const unsigned& zeroid,

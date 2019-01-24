@@ -120,6 +120,8 @@ class vmap {
             data.assign(size(), nullptr);
         }
 
+        const bool empty() const { return !static_cast<bool>(size()); }
+
         const bool has_key(const size_t idx) const {
             if (idx > size()-1)
                 return false;

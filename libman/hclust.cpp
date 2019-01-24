@@ -85,6 +85,9 @@ void hclust::run() {
         case H_SPLIT:
             H_split_step();
             break;
+        case MEAN:
+            partition_mean();
+            break;
         case EXIT:
             throw base::thread_exception(
                     "Thread state is EXIT but running!\n");
@@ -137,7 +140,7 @@ void hclust::H_EM_step() {
             continue; // Skip it
 
         unsigned asgnd_clust = base::INVALID_CLUSTER_ID;
-        bool flag = 0; // Is the best the zeroid or oneid
+        bool flag = 0; // Is the best the zeroid or oneid?
         double best, dist;
         dist = best = std::numeric_limits<double>::max();
 
@@ -164,4 +167,14 @@ void hclust::H_EM_step() {
         cluster_assignments[true_row_id] = asgnd_clust;
     }
 }
+
+void hclust::partition_mean() {
+    local_hcltrs.clear();
+
+    for (unsigned row = 0; row < nprocrows; row++) {
+        auto rpart_id = part_id[get_global_data_id(row)];
+        local_hcltrs[rpart_id]->add_member(&local_data[row*ncol], rpart_id);
+    }
+}
+
 } // End namespace knor

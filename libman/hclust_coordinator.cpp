@@ -81,6 +81,34 @@ void hclust_coordinator::build_thread_state() {
     }
 }
 
+void hclust_coordinator::partition_mean(base::vmap<
+        std::shared_ptr<base::clusters>>& part_hcltrs) {
+    wake4run(MEAN);
+    wait4complete();
+
+    if (part_hcltrs.empty())
+        part_hcltrs.set_max_capacity(max_nodes);
+    else
+        part_hcltrs.clear();
+
+    for (auto const& thd : threads) {
+        // Update the global hcltrs with local ones
+        auto itr = (std::static_pointer_cast<hclust>(
+                        thd))->get_local_hcltrs().get_iterator();
+
+        while (itr.has_next()) {
+            auto kv = itr.next();
+            part_hcltrs[kv.first]->peq(kv.second);
+        }
+    }
+
+    // TODO: Verify correctness
+    for (size_t i = 0; i < part_hcltrs.size(); i++) {
+        if (part_hcltrs.has_key(i))
+            part_hcltrs[i]->finalize_all();
+    }
+}
+
 /**
   * Require a method by which to pick centroids when samples in a cluster are
   *     not contiguously numbered

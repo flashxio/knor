@@ -88,6 +88,7 @@ class hclust : public thread {
         // Given the current ID split it into two (or not)
         virtual void H_split_step();
         virtual void H_EM_step(); // Similar to EM step
+        virtual void partition_mean();
         virtual void run() override;
 };
 }

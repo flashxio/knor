@@ -35,6 +35,7 @@ namespace knor {
         WAIT, /*When the thread is waiting for a new task*/
         H_EM, /*Hierarchical EM step*/
         H_SPLIT, /*Hierarchical "recursive" split step*/
+        MEAN, /* Given a cluster assignment, compute the mean of the data*/
         EXIT /*Say goodnight*/
     };
 }
