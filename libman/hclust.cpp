@@ -65,7 +65,6 @@ hclust::hclust(const int node_id, const unsigned thd_id,
             this->nprocrows = nprocrows;
             this->g_hcltrs = g_hcltrs; // Global clusters
             this->k = k;
-            this->inited = false;
 
             set_data_size(sizeof(double)*nprocrows*ncol);
             local_hcltrs.set_max_capacity(base::get_max_hnodes(k*2));

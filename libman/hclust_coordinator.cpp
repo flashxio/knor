@@ -189,8 +189,10 @@ void hclust_coordinator::inner_init(std::vector<unsigned>& remove_cache) {
     auto itr = hcltrs.get_iterator();
     while (itr.has_next()) {
         auto kv = itr.next();
-        if (cluster_assignment_counts[kv.first] < min_clust_size);
+        if (cluster_assignment_counts[kv.first] < min_clust_size) {
+            printf("Min clust deactivation!\n");
             deactivate(kv.first);
+        }
     }
 
     std::vector<size_t> ids;
@@ -309,9 +311,13 @@ bool hclust_coordinator::is_active(const unsigned id) {
     return (*cltr_active_vec)[id];
 }
 
-void hclust_coordinator::reset_thd_inited() {
-    for (auto const& thd : threads)
-        (std::static_pointer_cast<hclust>(thd))->reset_inited();
+// NOTE: Only use after you've tried to split, because there can be no active
+//  clusters, but clusters can still be splittable during a run.
+const bool hclust_coordinator::steady_state() const {
+    for (auto const& flag : *cltr_active_vec)
+        if (flag)
+            return false;
+    return true; // No more clusters are active & none can be split
 }
 
 void hclust_coordinator::update_clusters() {
@@ -408,7 +414,6 @@ base::cluster_t hclust_coordinator::run(
     // Run loop
     size_t iter = 0;
 
-    /*TODO: Or all clusters are inactive*/
     unsigned curr_nclust = 1;
     while (true) {
         for (iter = 0; iter < max_iters; iter++) {
@@ -431,6 +436,11 @@ base::cluster_t hclust_coordinator::run(
 
         // Update global state
         init_splits(); // Initialize possible splits
+        /*TODO: Break when clusters are inactive due to size*/
+        //if (steady_state()) { // We can no longer split anymore
+            //printf("\n\nSTEADY STATE EXIT!\n");
+            //break;
+        //}
     }
 #ifdef PROFILER
     ProfilerStop();
