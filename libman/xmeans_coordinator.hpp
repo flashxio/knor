@@ -25,13 +25,7 @@ namespace knor {
 
 class xmeans_coordinator : public hclust_coordinator {
     public:
-        xmeans_coordinator(const std::string fn, const size_t nrow,
-                const size_t ncol, const unsigned k, const unsigned max_iters,
-                const unsigned nnodes, const unsigned nthreads,
-                const double* centers, const base::init_t it,
-                const double tolerance, const base::dist_t dt,
-                const unsigned min_clust_size);
-
+        using hclust_coordinator::hclust_coordinator;
         typedef std::shared_ptr<xmeans_coordinator> ptr;
 
         static hclust_coordinator::ptr create(const std::string fn,

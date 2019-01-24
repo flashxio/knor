@@ -30,17 +30,6 @@
 
 namespace knor {
 
-xmeans_coordinator::xmeans_coordinator(const std::string fn, const size_t nrow,
-    const size_t ncol, const unsigned k, const unsigned max_iters,
-    const unsigned nnodes, const unsigned nthreads,
-    const double* centers, const base::init_t it,
-    const double tolerance, const base::dist_t dt,
-    const unsigned min_clust_size) :
-        hclust_coordinator(fn, nrow, ncol, k, max_iters, nnodes, nthreads,
-            centers, it, tolerance, dt, min_clust_size) {
-
-}
-
 void xmeans_coordinator::build_thread_state() {
     // NUMA node affinity binding policy is round-robin
     unsigned thds_row = nrow / nthreads;
@@ -93,19 +82,8 @@ void xmeans_coordinator::update_clusters() {
     auto itr = hcltrs.get_iterator();
     while (itr.has_next()) {
         auto kv = itr.next();
-#if 00
-        // No need to update the state of this partition because it's converged
-        //if (!kv.second->has_converged()) {
-            //if (kv.second->is_complete(kv.first)) // It's changed
-                //kv.second->unfinalize_all();
-            //else
-                //kv.second->clear();
-        //}
-        kv.second->clear();
-#else
         if (!kv.second->has_converged())
             kv.second->clear();
-#endif
     }
 
     // Serial aggregate of nthread vectors
@@ -145,15 +123,8 @@ void xmeans_coordinator::update_clusters() {
             // Premature End of computation
             if (nchanged[pid] == 0 ||
                     (nchanged[pid]/(double)part_nmembers) <= tolerance) {
-
-#if 0
-                printf("\n\tPID: %lu converged!\n", pid);
-#endif
                 c->set_converged();
             }
-#if 0
-            printf("PID: %lu, with mean: ", pid); c->print_means();
-#endif
         }
     }
 
@@ -222,9 +193,6 @@ base::cluster_t xmeans_coordinator::run(
 
         // Update global state
         init_splits(); // Initialize possible splits
-#if 0
-        reset_thd_inited();
-#endif
     }
 #ifdef PROFILER
     ProfilerStop();

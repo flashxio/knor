@@ -135,6 +135,14 @@ class vmap {
                 }
             }
         }
+
+        const bool keyless() const {
+            // TODO: Wasteful, O(capacity)
+            for (auto const& key : data)
+                if (nullptr != key)
+                    return false;
+            return true;
+        }
 };
 
 template <typename T>
