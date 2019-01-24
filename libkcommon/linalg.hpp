@@ -53,6 +53,13 @@ namespace knor { namespace base {
             }
         }
 
+        template <typename T>
+        static void peq(T* to, const T* from, const size_t size) {
+            for (size_t i = 0; i < size; i++) {
+                to[i] += from[i];
+            }
+        }
+
         /* Recursive function for finding determinant of matrix.
            n is current dimension of A[][]. */
         static double determinant(double* A, size_t n, const size_t N) {

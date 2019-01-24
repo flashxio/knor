@@ -75,6 +75,10 @@ public:
         return means;
     }
 
+    const double* get_mean_rawptr(const size_t idx) const {
+        return &means[idx*ncol];
+    }
+
     const llong_t get_num_members(const llong_t idx) const {
         return num_members_v[idx];
     }
