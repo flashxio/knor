@@ -38,12 +38,11 @@ void xmeans_coordinator::build_thread_state() {
         thd_max_row_idx.push_back((thd_id*thds_row) + tup.second);
         threads.push_back(hclust::create((thd_id % nnodes),
                     thd_id, tup.first, tup.second,
-                    ncol, k, &hcltrs, &cluster_assignments[0], fn, _dist_t));
+                    ncol, k, &hcltrs, &cluster_assignments[0], fn,
+                    _dist_t, cltr_active_vec));
         threads[thd_id]->set_parent_cond(&cond);
         threads[thd_id]->set_parent_pending_threads(&pending_threads);
         threads[thd_id]->start(WAIT); // Thread puts itself to sleep
-        std::static_pointer_cast<hclust>(threads[thd_id])
-                    ->set_cltr_active_vec(cltr_active_vec);
         std::static_pointer_cast<hclust>(threads[thd_id])
                     ->set_part_id(&part_id[0]);
     }
@@ -167,8 +166,6 @@ base::cluster_t xmeans_coordinator::run(
     // Run loop
     size_t iter = 0;
 
-    /*TODO: Or all clusters are inactive*/
-    //for (unsigned curr_nclust = 1; curr_nclust < k; curr_nclust*=2)
     unsigned curr_nclust = 1;
     while (true) {
         for (iter = 0; iter < max_iters; iter++) {
@@ -178,11 +175,9 @@ base::cluster_t xmeans_coordinator::run(
             wait4complete();
 
             update_clusters();
-#if 1
+#if 0
             printf("\nAfter update_clusters ... Global hcltrs:\n");
             print_active_clusters();
-            //printf("Global cluster assignment counts:\n");
-            //base::print(cluster_assignment_counts);
 #endif
             printf("\n*****************************************************\n");
         }

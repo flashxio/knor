@@ -37,8 +37,7 @@ hclust_coordinator::hclust_coordinator(const std::string fn, const size_t nrow,
     coordinator(fn, nrow, ncol, (base::get_hclust_floor(k)/2), max_iters,
             nnodes, nthreads, centers, it, tolerance, dt) {
 
-        cltr_active_vec = new std::vector<bool>(); // We know the max size!
-        cltr_active_vec->assign(k, false);
+        cltr_active_vec.assign(k, false);
         activate(0);
         this->min_clust_size = min_clust_size;
 
@@ -70,12 +69,11 @@ void hclust_coordinator::build_thread_state() {
         thd_max_row_idx.push_back((thd_id*thds_row) + tup.second);
         threads.push_back(hclust::create((thd_id % nnodes),
                     thd_id, tup.first, tup.second,
-                    ncol, k, &hcltrs, &cluster_assignments[0], fn, _dist_t));
+                    ncol, k, &hcltrs, &cluster_assignments[0], fn, _dist_t,
+                    cltr_active_vec));
         threads[thd_id]->set_parent_cond(&cond);
         threads[thd_id]->set_parent_pending_threads(&pending_threads);
         threads[thd_id]->start(WAIT); // Thread puts itself to sleep
-        std::static_pointer_cast<hclust>(threads[thd_id])
-                    ->set_cltr_active_vec(cltr_active_vec);
         std::static_pointer_cast<hclust>(threads[thd_id])
                     ->set_part_id(&part_id[0]);
     }
@@ -294,27 +292,21 @@ void hclust_coordinator::accumulate_cluster_counts() {
 }
 
 void hclust_coordinator::deactivate(const unsigned id) {
-#if 1
-    printf("\tDeactivating CID: %u\n", id);
-#endif
-    (*cltr_active_vec)[id] = false;
+    cltr_active_vec[id] = false;
 }
 
 void hclust_coordinator::activate(const unsigned id) {
-#if 1
-    printf("\tActivating CID: %u\n", id);
-#endif
-    (*cltr_active_vec)[id] = true;
+    cltr_active_vec[id] = true;
 }
 
 bool hclust_coordinator::is_active(const unsigned id) {
-    return (*cltr_active_vec)[id];
+    return cltr_active_vec[id];
 }
 
 // NOTE: Only use after you've tried to split, because there can be no active
 //  clusters, but clusters can still be splittable during a run.
 const bool hclust_coordinator::steady_state() const {
-    for (auto const& flag : *cltr_active_vec)
+    for (auto const& flag : cltr_active_vec)
         if (flag)
             return false;
     return true; // No more clusters are active & none can be split
@@ -423,7 +415,7 @@ base::cluster_t hclust_coordinator::run(
             wait4complete();
 
             update_clusters();
-#if 1
+#if 0
             printf("\nAfter update_clusters ... Global hcltrs:\n");
             print_active_clusters();
 #endif
@@ -467,9 +459,5 @@ base::cluster_t hclust_coordinator::run(
 #else
     return base::cluster_t(); // TODO
 #endif
-}
-
-hclust_coordinator::~hclust_coordinator() {
-    delete (cltr_active_vec);
 }
 }

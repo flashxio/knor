@@ -37,7 +37,7 @@ class hclust : public thread {
         hclust_map* g_hcltrs;
         hclust_map local_hcltrs;
         std::vector<unsigned> nchanged; // How many change in each partition
-        std::vector<bool>* cltr_active_vec; // Which clusters are still active
+        const std::vector<bool>& cltr_active_vec; // Clusters still active
 
         unsigned k;
         unsigned nprocrows; // The number of rows in this threads partition
@@ -48,7 +48,8 @@ class hclust : public thread {
                 const unsigned ncol, unsigned k,
                 hclust_map* g_hcltrs,
                 unsigned* cluster_assignments,
-                const std::string fn, base::dist_t dist_metric);
+                const std::string fn, base::dist_t dist_metric,
+                const std::vector<bool>& cltr_active_vec);
     public:
         static thread::ptr create(
                 const int node_id, const unsigned thd_id,
@@ -56,16 +57,14 @@ class hclust : public thread {
                 const unsigned ncol, unsigned k,
                 hclust_map* g_hcltrs,
                 unsigned* cluster_assignments, const std::string fn,
-                base::dist_t dist_metric) {
+                base::dist_t dist_metric,
+                const std::vector<bool>& cltr_active_vec) {
             return thread::ptr(
                         new hclust(node_id, thd_id, start_rid,
                         nprocrows, ncol, k, g_hcltrs,
-                        cluster_assignments, fn, dist_metric));
+                        cluster_assignments, fn, dist_metric, cltr_active_vec));
         }
 
-        void set_cltr_active_vec(std::vector<bool>* av) {
-            cltr_active_vec = av;
-        }
 
         virtual void set_part_id(unsigned* part_id) {
             this->part_id = part_id;

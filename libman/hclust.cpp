@@ -55,16 +55,14 @@ void* callback(void* arg) {
 namespace knor {
 hclust::hclust(const int node_id, const unsigned thd_id,
         const unsigned start_rid,
-        const unsigned nprocrows, const unsigned ncol, unsigned k,
-        hclust_map* g_hcltrs, unsigned* cluster_assignments,
-        const std::string fn, base::dist_t dist_metric) :
+        const unsigned _nprocrows, const unsigned ncol, unsigned _k,
+        hclust_map* _g_hcltrs, unsigned* cluster_assignments,
+        const std::string fn, base::dist_t dist_metric,
+        const std::vector<bool>& _cltr_active_vec) :
             thread(node_id, thd_id, ncol,
-            cluster_assignments, start_rid, fn, dist_metric) {
-
-            local_clusters = nullptr; // Not used here
-            this->nprocrows = nprocrows;
-            this->g_hcltrs = g_hcltrs; // Global clusters
-            this->k = k;
+            cluster_assignments, start_rid, fn, dist_metric),
+            g_hcltrs(_g_hcltrs), cltr_active_vec(_cltr_active_vec),
+            k(_k), nprocrows(_nprocrows) {
 
             set_data_size(sizeof(double)*nprocrows*ncol);
             local_hcltrs.set_max_capacity(base::get_max_hnodes(k*2));
@@ -134,7 +132,7 @@ void hclust::H_EM_step() {
         auto rpart_id = part_id[true_row_id];
 
         // Not active
-        if (!(*cltr_active_vec)[cluster_assignments[true_row_id]] ||
+        if (!(cltr_active_vec[cluster_assignments[true_row_id]]) ||
                 g_hcltrs->at(rpart_id)->has_converged())
             continue; // Skip it
 
