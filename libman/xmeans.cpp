@@ -26,33 +26,6 @@
 #include "io.hpp"
 #include "clusters.hpp"
 
-namespace {
-    template <typename T>
-void* callback(void* arg) {
-    T* t = static_cast<T*>(arg);
-#ifdef USE_NUMA
-    t->bind2node_id();
-#endif
-
-    while (true) { // So we can receive task after task
-        if (t->get_state() == knor::WAIT)
-            t->wait();
-
-        if (t->get_state() == knor::EXIT) {// No more work to do
-            break;
-        }
-        t->run(); // else
-    }
-
-    // We've stopped running so exit
-    pthread_exit(NULL);
-
-#ifdef _WIN32
-    return NULL;
-#endif
-}
-}
-
 namespace knor {
 
 //void xmeans::run() {

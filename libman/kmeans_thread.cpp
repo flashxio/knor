@@ -26,33 +26,6 @@
 #include "io.hpp"
 #include "clusters.hpp"
 
-
-namespace {
-void* callback(void* arg) {
-    knor::kmeans_thread* t = static_cast<knor::kmeans_thread*>(arg);
-#ifdef USE_NUMA
-    t->bind2node_id();
-#endif
-
-    while (true) { // So we can receive task after task
-        if (t->get_state() == knor::WAIT)
-            t->wait();
-
-        if (t->get_state() == knor::EXIT) {// No more work to do
-            break;
-        }
-        t->run(); // else
-    }
-
-    // We've stopped running so exit
-    pthread_exit(NULL);
-
-#ifdef _WIN32
-    return NULL;
-#endif
-}
-}
-
 namespace knor {
 kmeans_thread::kmeans_thread(const int node_id, const unsigned thd_id,
         const unsigned start_rid,
@@ -60,13 +33,11 @@ kmeans_thread::kmeans_thread(const int node_id, const unsigned thd_id,
         kbase::clusters::ptr g_clusters, unsigned* cluster_assignments,
         const std::string fn, kbase::dist_t dist_metric) :
             thread(node_id, thd_id, ncol,
-            cluster_assignments, start_rid, fn, dist_metric) {
+            cluster_assignments, start_rid, fn, dist_metric),
+        g_clusters(g_clusters), nprocrows(nprocrows){
 
-            this->nprocrows = nprocrows;
-            this->g_clusters = g_clusters;
             local_clusters =
                 kbase::clusters::create(g_clusters->get_nclust(), ncol);
-
             set_data_size(sizeof(double)*nprocrows*ncol);
         }
 
@@ -95,7 +66,7 @@ void kmeans_thread::run() {
 
 void kmeans_thread::start(const thread_state_t state=WAIT) {
     this->state = state;
-    int rc = pthread_create(&hw_thd, NULL, callback, this);
+    int rc = pthread_create(&hw_thd, NULL, callback<kmeans_thread>, this);
     if (rc)
         throw kbase::thread_exception(
                 "Thread creation (pthread_create) failed!", rc);

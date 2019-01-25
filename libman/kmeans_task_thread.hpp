@@ -42,12 +42,8 @@ class task;
 class dist_matrix;
 
 class kmeans_task_thread : public task_thread {
-    kmeans_task_thread(const int node_id, const unsigned thd_id,
-            const unsigned start_rid, const unsigned nlocal_rows,
-            const unsigned ncol,
-            std::shared_ptr<kbase::prune_clusters> g_clusters,
-            unsigned* cluster_assignments,
-            const std::string fn, kbase::dist_t dist_metric);
+    using task_thread::task_thread;
+
 public:
     static task_thread::ptr create(const int node_id,
             const unsigned thd_id,
@@ -67,7 +63,7 @@ public:
     void mb_finalize_centroids(const double* eta);
     // End Mini-batch
 
-    void start(const knor::thread_state_t state);
+    void start(const knor::thread_state_t state) override;
     // Allocate and move data using this thread
     void EM_step();
     void mb_EM_step();

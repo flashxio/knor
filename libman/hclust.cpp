@@ -26,32 +26,6 @@
 #include "io.hpp"
 #include "clusters.hpp"
 
-namespace {
-void* callback(void* arg) {
-    knor::hclust* t = static_cast<knor::hclust*>(arg);
-#ifdef USE_NUMA
-    t->bind2node_id();
-#endif
-
-    while (true) { // So we can receive task after task
-        if (t->get_state() == knor::WAIT)
-            t->wait();
-
-        if (t->get_state() == knor::EXIT) {// No more work to do
-            break;
-        }
-        t->run(); // else
-    }
-
-    // We've stopped running so exit
-    pthread_exit(NULL);
-
-#ifdef _WIN32
-    return NULL;
-#endif
-}
-}
-
 namespace knor {
 hclust::hclust(const int node_id, const unsigned thd_id,
         const unsigned start_rid,
@@ -96,7 +70,7 @@ void hclust::run() {
 
 void hclust::start(const thread_state_t state=WAIT) {
     this->state = state;
-    int rc = pthread_create(&hw_thd, NULL, callback, this);
+    int rc = pthread_create(&hw_thd, NULL, callback<hclust>, this);
     if (rc)
         throw base::thread_exception(
                 "Thread creation (pthread_create) failed!", rc);

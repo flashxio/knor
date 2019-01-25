@@ -27,35 +27,6 @@
 #include "clusters.hpp"
 #include "medoid_coordinator.hpp"
 
-namespace {
-void* callback(void* arg) {
-    knor::medoid* t = static_cast<knor::medoid*>(arg);
-#ifdef USE_NUMA
-    t->bind2node_id();
-#endif
-
-    while (true) { // So we can receive task after task
-        if (t->get_state() == knor::WAIT)
-            t->wait();
-
-        if (t->get_state() == knor::EXIT) {// No more work to do
-            //printf("Thread %d exiting ...\n", t->thd_id);
-            break;
-        }
-
-        //printf("Thread %d awake and doing a run()\n", t->thd_id);
-        t->run(); // else
-    }
-
-    // We've stopped running so exit
-    pthread_exit(NULL);
-
-#ifdef _WIN32
-    return NULL;
-#endif
-}
-}
-
 namespace knor {
 medoid::medoid(const int node_id, const unsigned thd_id,
         const unsigned start_rid,
@@ -63,12 +34,10 @@ medoid::medoid(const int node_id, const unsigned thd_id,
         kbase::clusters::ptr g_clusters, unsigned* cluster_assignments,
         const std::string fn,
         double* global_medoid_energy, const double sample_rate):
-            thread(node_id, thd_id, ncol, cluster_assignments, start_rid, fn) {
-
-            this->sample_rate = sample_rate;
-            this->nprocrows = nprocrows;
-            this->g_clusters = g_clusters;
-            this->global_medoid_energy = global_medoid_energy;
+            thread(node_id, thd_id, ncol, cluster_assignments, start_rid, fn),
+            g_clusters(g_clusters), nprocrows(nprocrows),
+            global_medoid_energy(global_medoid_energy),
+            sample_rate(sample_rate) {
 
             local_clusters =
                 kbase::clusters::create(g_clusters->get_nclust(), ncol);
@@ -104,7 +73,7 @@ void medoid::run() {
 
 void medoid::start(const thread_state_t state=WAIT) {
     this->state = state;
-    int rc = pthread_create(&hw_thd, NULL, callback, this);
+    int rc = pthread_create(&hw_thd, NULL, callback<medoid>, this);
     if (rc)
         throw kbase::thread_exception(
                 "Thread creation (pthread_create) failed!", rc);

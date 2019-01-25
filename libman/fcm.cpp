@@ -23,32 +23,6 @@
 #include "io.hpp"
 #include "util.hpp"
 
-namespace {
-void* callback(void* arg) {
-    knor::fcm* t = static_cast<knor::fcm*>(arg);
-#ifdef USE_NUMA
-    t->bind2node_id();
-#endif
-
-    while (true) { // So we can receive task after task
-        if (t->get_state() == knor::WAIT)
-            t->wait();
-
-        if (t->get_state() == knor::EXIT) {// No more work to do
-            break;
-        }
-        t->run(); // else
-    }
-
-    // We've stopped running so exit
-    pthread_exit(NULL);
-
-#ifdef _WIN32
-    return NULL;
-#endif
-}
-}
-
 namespace knor {
 fcm::fcm(const int node_id, const unsigned thd_id,
             const unsigned start_rid, const unsigned nprocrows,
@@ -57,15 +31,11 @@ fcm::fcm(const int node_id, const unsigned thd_id,
             base::dense_matrix<double>* um,
             base::dense_matrix<double>* centers,
             const std::string fn, base::dist_t dist_metric) :
-        thread(node_id, thd_id, ncol, NULL, start_rid, fn, dist_metric) {
+        thread(node_id, thd_id, ncol, NULL, start_rid, fn, dist_metric),
+        nprocrows(nprocrows), centers(centers), um(um),
+        nclust(nclust), fuzzindex(fuzzindex){
 
-            this->nclust = nclust;
-            this->nprocrows = nprocrows;
-            this->fuzzindex = fuzzindex;
-            this->um = um;
-            this->centers = centers;
             this->innerprod = base::dense_matrix<double>::create(nclust, ncol);
-
             set_data_size(sizeof(double)*nprocrows*ncol);
     }
 
@@ -137,7 +107,7 @@ void fcm::run() {
 
 void fcm::start(const thread_state_t state=WAIT) {
     this->state = state;
-    int rc = pthread_create(&hw_thd, NULL, callback, this);
+    int rc = pthread_create(&hw_thd, NULL, callback<fcm>, this);
     if (rc)
         throw kbase::thread_exception(
                 "Thread creation (pthread_create) failed!", rc);

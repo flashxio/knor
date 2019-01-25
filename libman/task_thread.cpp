@@ -35,19 +35,17 @@ task_thread::task_thread(const int node_id, const unsigned thd_id,
         unsigned* cluster_assignments,
         const std::string fn, kbase::dist_t dist_metric):
             thread(node_id, thd_id, ncol,
-            cluster_assignments, start_rid, fn, dist_metric) {
+            cluster_assignments, start_rid, fn, dist_metric),
+        g_clusters(g_clusters), prune_init(true), _is_numa(false) {
 
                 ur_distribution =
                     std::uniform_real_distribution<double>(0.0, 1.0);
-                this->g_clusters = g_clusters;
                 // Init task queue
                 tasks = new task_queue();
 
                 tasks->set_start_rid(start_rid);
                 tasks->set_nrow(nlocal_rows);
                 tasks->set_ncol(ncol);
-                prune_init = true;
-                _is_numa = false;
                 local_clusters =
                     kbase::clusters::create(g_clusters->get_nclust(), ncol);
 
