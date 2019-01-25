@@ -20,15 +20,16 @@
 #include <iostream>
 #include <cassert>
 
-#include "hclust.hpp"
+#include "xmeans.hpp"
 #include "types.hpp"
 #include "util.hpp"
 #include "io.hpp"
 #include "clusters.hpp"
 
 namespace {
+    template <typename T>
 void* callback(void* arg) {
-    knor::hclust* t = static_cast<knor::hclust*>(arg);
+    T* t = static_cast<T*>(arg);
 #ifdef USE_NUMA
     t->bind2node_id();
 #endif
@@ -53,64 +54,42 @@ void* callback(void* arg) {
 }
 
 namespace knor {
-hclust::hclust(const int node_id, const unsigned thd_id,
-        const unsigned start_rid,
-        const unsigned nprocrows, const unsigned ncol, unsigned k,
-        hclust_map* g_hcltrs, unsigned* cluster_assignments,
-        const std::string fn, base::dist_t dist_metric,
-        const std::vector<bool>& cltr_active_vec) :
-            thread(node_id, thd_id, ncol,
-            cluster_assignments, start_rid, fn, dist_metric),
-            g_hcltrs(g_hcltrs), cltr_active_vec(cltr_active_vec),
-            k(k), nprocrows(nprocrows) {
 
-            set_data_size(sizeof(double)*nprocrows*ncol);
-            local_hcltrs.set_max_capacity(base::get_max_hnodes(k*2));
-        }
+//void xmeans::run() {
+    //switch(state) {
+        //case TEST:
+            //test();
+            //break;
+        //case ALLOC_DATA:
+            //numa_alloc_mem();
+            //break;
+        //case H_EM:
+            //H_EM_step();
+            //break;
+        //case H_SPLIT:
+            //H_split_step();
+            //break;
+        //case MEAN:
+            //partition_mean();
+            //break;
+        //case EXIT:
+            //throw base::thread_exception(
+                    //"Thread state is EXIT but running!\n");
+        //default:
+            //throw base::thread_exception("Unknown thread state\n");
+    //}
+    //sleep();
+//}
 
-void hclust::run() {
-    switch(state) {
-        case TEST:
-            test();
-            break;
-        case ALLOC_DATA:
-            numa_alloc_mem();
-            break;
-        case H_EM:
-            H_EM_step();
-            break;
-        case H_SPLIT:
-            H_split_step();
-            break;
-        case MEAN:
-            partition_mean();
-            break;
-        case EXIT:
-            throw base::thread_exception(
-                    "Thread state is EXIT but running!\n");
-        default:
-            throw base::thread_exception("Unknown thread state\n");
-    }
-    sleep();
-}
-
-void hclust::start(const thread_state_t state=WAIT) {
+void xmeans::start(const thread_state_t state=WAIT) {
     this->state = state;
-    int rc = pthread_create(&hw_thd, NULL, callback, this);
+    int rc = pthread_create(&hw_thd, NULL, callback<xmeans>, this);
     if (rc)
         throw base::thread_exception(
                 "Thread creation (pthread_create) failed!", rc);
 }
 
-// Simply pick a new partition
-void hclust::H_split_step() {
-    for (unsigned row = 0; row < nprocrows; row++) {
-        unsigned true_row_id = get_global_data_id(row);
-        part_id[true_row_id] = cluster_assignments[true_row_id];
-    }
-}
-
-void hclust::H_EM_step() {
+void xmeans::H_EM_step() {
     local_hcltrs.clear();
 
     nchanged.assign(base::get_max_hnodes(k*2), 0);
@@ -164,14 +143,5 @@ void hclust::H_EM_step() {
         cluster_assignments[true_row_id] = asgnd_clust;
     }
 }
-
-void hclust::partition_mean() {
-    local_hcltrs.clear();
-
-    for (unsigned row = 0; row < nprocrows; row++) {
-        auto rpart_id = part_id[get_global_data_id(row)];
-        local_hcltrs[rpart_id]->add_member(&local_data[row*ncol], rpart_id);
-    }
-}
-
 } // End namespace knor
+

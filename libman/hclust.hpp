@@ -85,5 +85,5 @@ class hclust : public thread {
         virtual void partition_mean();
         virtual void run() override;
 };
-}
+} // End namespace knor
 #endif

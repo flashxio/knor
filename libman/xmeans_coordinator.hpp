@@ -27,6 +27,7 @@ class xmeans_coordinator : public hclust_coordinator {
     public:
         using hclust_coordinator::hclust_coordinator;
         typedef std::shared_ptr<xmeans_coordinator> ptr;
+        std::vector<double> dist_v; // Keep the
 
         static hclust_coordinator::ptr create(const std::string fn,
                 const size_t nrow,

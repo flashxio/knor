@@ -22,7 +22,7 @@
 
 #include "xmeans_coordinator.hpp"
 
-#include "hclust.hpp" // TODO: change to xmeans
+#include "xmeans.hpp"
 
 #include "io.hpp"
 #include "clusters.hpp"
@@ -36,14 +36,14 @@ void xmeans_coordinator::build_thread_state() {
     for (unsigned thd_id = 0; thd_id < nthreads; thd_id++) {
         std::pair<unsigned, unsigned> tup = get_rid_len_tup(thd_id);
         thd_max_row_idx.push_back((thd_id*thds_row) + tup.second);
-        threads.push_back(hclust::create((thd_id % nnodes),
+        threads.push_back(xmeans::create((thd_id % nnodes),
                     thd_id, tup.first, tup.second,
                     ncol, k, &hcltrs, &cluster_assignments[0], fn,
                     _dist_t, cltr_active_vec));
         threads[thd_id]->set_parent_cond(&cond);
         threads[thd_id]->set_parent_pending_threads(&pending_threads);
         threads[thd_id]->start(WAIT); // Thread puts itself to sleep
-        std::static_pointer_cast<hclust>(threads[thd_id])
+        std::static_pointer_cast<xmeans>(threads[thd_id])
                     ->set_part_id(&part_id[0]);
     }
 }
@@ -89,12 +89,12 @@ void xmeans_coordinator::update_clusters() {
     for (auto const& thd : threads) {
         // Update the changed cluster count
         auto thd_nchanged =
-            (std::static_pointer_cast<hclust>(thd))->get_nchanged();
+            (std::static_pointer_cast<xmeans>(thd))->get_nchanged();
         for (size_t i = 0; i < thd_nchanged.size(); i++)
             nchanged[i] += thd_nchanged[i];
 
         // Update the global hcltrs with local ones
-        auto itr = (std::static_pointer_cast<hclust>(
+        auto itr = (std::static_pointer_cast<xmeans>(
                         thd))->get_local_hcltrs().get_iterator();
         while (itr.has_next()) {
             auto kv = itr.next();
@@ -107,7 +107,7 @@ void xmeans_coordinator::update_clusters() {
     auto _itr = hcltrs.get_iterator();
     while (_itr.has_next()) {
         auto kv = _itr.next();
-        // There are only ever 2 of these for hclust
+        // There are only ever 2 of these for hierarchical algs
         auto pid = kv.first; // partition ID
         auto c = kv.second;
         auto part_nmembers = c->get_num_members(0) + c->get_num_members(1);
