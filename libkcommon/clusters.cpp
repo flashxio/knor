@@ -65,10 +65,12 @@ void clusters::finalize(const unsigned idx) {
 }
 
 void clusters::unfinalize(const unsigned idx) {
-    if (!is_complete(idx)) {
+    if (!is_complete(idx))
         return;
-    }
+
     complete_v[idx] = false;
+    if (num_members_v[idx] < 2)
+        return;
 
     for (unsigned col = 0; col < ncol; col++) {
         this->means[(ncol*idx) + col] *= (double)num_members_v[idx];
