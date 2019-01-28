@@ -29,8 +29,10 @@
 
 namespace knor {
 
-    typedef long long int llong_t;
-    namespace base {
+typedef long long int llong_t;
+static const double PI = std::atan(1.0)*4;
+
+namespace base {
 
 static const unsigned INVALID_CLUSTER_ID = std::numeric_limits<unsigned>::max();
 enum stage_t { INIT, ESTEP }; // What phase of the algo we're in
@@ -134,6 +136,15 @@ class vmap {
                     ids.push_back(id);
                 }
             }
+        }
+
+        const size_t keycount() {
+            size_t count = 0;
+            for (size_t i = 0; i < size(); i++) {
+                if (nullptr != data[i])
+                    count++;
+            }
+            return count;
         }
 
         const bool keyless() const {
