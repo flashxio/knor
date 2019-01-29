@@ -52,6 +52,7 @@ hclust_coordinator::hclust_coordinator(const std::string fn, const size_t nrow,
         } else {
             hcltrs[0] = base::h_clusters::create(2, ncol);
         }
+        hcltrs[0]->set_id(0);
 
         std::fill(cluster_assignments.begin(), cluster_assignments.end(), 0);
         part_id.assign(nrow, 0);
@@ -141,7 +142,6 @@ unsigned hclust_coordinator::forgy_select(const unsigned cid) {
 void hclust_coordinator::forgy_init() {
         auto splits = ider->get_split_ids(0);
         auto cluster_ptr = hcltrs[0];
-        cluster_ptr->set_id(0);
 
         auto rand_idx = ui_distribution(ui_generator);
         printf("Selected row: %u for cid: %u\n ", rand_idx, splits.first);
@@ -396,9 +396,9 @@ base::cluster_t hclust_coordinator::run(
     struct timeval start, end;
     gettimeofday(&start , NULL);
 
-    run_hinit(); // Initialize clusters
     if (_init_t == kbase::init_t::NONE)
         _init_t = kbase::init_t::FORGY;
+    run_hinit(); // Initialize clusters
 
     printf("After initial init: \n");
     hcltrs[0]->print_means();

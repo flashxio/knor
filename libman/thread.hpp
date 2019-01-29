@@ -120,7 +120,7 @@ protected:
             const std::string fn="",
             kbase::dist_t dist_metric=kbase::dist_t::EUCL) :
         node_id(node_id), thd_id(thd_id), ncol(ncol),
-        start_rid(start_rid), dist_metric(dist_metric),
+        start_rid(start_rid), local_clusters(nullptr), dist_metric(dist_metric),
         preallocd_data(false) {
 
         this->cluster_assignments = cluster_assignments;

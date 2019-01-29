@@ -38,6 +38,8 @@ hclust::hclust(const int node_id, const unsigned thd_id,
             g_hcltrs(g_hcltrs), cltr_active_vec(cltr_active_vec),
             k(k), nprocrows(nprocrows) {
 
+            local_clusters = kbase::clusters::create(
+                                base::get_max_hnodes(k), ncol);
             set_data_size(sizeof(double)*nprocrows*ncol);
             local_hcltrs.set_max_capacity(base::get_max_hnodes(k*2));
         }
@@ -140,11 +142,12 @@ void hclust::H_EM_step() {
 }
 
 void hclust::partition_mean() {
-    local_hcltrs.clear();
+    // TODO: k can be non 2^n
+    local_clusters->clear(); // This sets all means to 0 -- no resizing
 
     for (unsigned row = 0; row < nprocrows; row++) {
         auto rpart_id = part_id[get_global_data_id(row)];
-        local_hcltrs[rpart_id]->add_member(&local_data[row*ncol], rpart_id);
+        local_clusters->add_member(&local_data[row*ncol], rpart_id);
     }
 }
 
