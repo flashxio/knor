@@ -25,9 +25,21 @@
 namespace knor {
 class xmeans : public hclust {
     protected:
-        using hclust::hclust;
-        //std::vector<double>& dist_v; // TODO
+        std::vector<double>& partition_dist; // Data point to partition dist
+        std::vector<double>& nearest_cdist; // Data point to centroid dist
+        const bool& compute_pdist;
+        std::shared_ptr<kbase::clusters> g_clusters;
 
+        xmeans(const int node_id, const unsigned thd_id,
+                const unsigned start_rid, const unsigned nprocrows,
+                const unsigned ncol, unsigned k,
+                hclust_map* g_hcltrs,
+                unsigned* cluster_assignments,
+                const std::string fn, base::dist_t dist_metric,
+                const std::vector<bool>& cltr_active_vec,
+                std::vector<double>& partition_dist,
+                std::vector<double>& nearest_cdist,
+                const bool& compute_pdist);
     public:
         static hclust::ptr create(
                 const int node_id, const unsigned thd_id,
@@ -36,12 +48,16 @@ class xmeans : public hclust {
                 hclust_map* g_hcltrs,
                 unsigned* cluster_assignments, const std::string fn,
                 base::dist_t dist_metric,
-                const std::vector<bool>& cltr_active_vec) {
+                const std::vector<bool>& cltr_active_vec,
+                std::vector<double>& partition_dist,
+                std::vector<double>& nearest_cdist,
+                const bool& compute_pdist) {
             return hclust::ptr(
                         new xmeans(node_id, thd_id, start_rid,
                         nprocrows, ncol, k, g_hcltrs,
                         cluster_assignments, fn, dist_metric,
-                        cltr_active_vec));
+                        cltr_active_vec, partition_dist, nearest_cdist,
+                        compute_pdist));
         }
 
         virtual void start(const thread_state_t state) override;
@@ -49,7 +65,10 @@ class xmeans : public hclust {
         //virtual void H_split_step();
         virtual void H_EM_step(); // Similar to EM step
         //virtual void partition_mean();
-        //virtual void run() override;
+        virtual void run() override;
+        void set_g_clusters(std::shared_ptr<kbase::clusters> g_clusters) {
+            this->g_clusters = g_clusters;
+        }
 };
 } // End namespace knor
 #endif

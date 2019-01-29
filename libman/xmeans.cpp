@@ -28,31 +28,48 @@
 
 namespace knor {
 
-//void xmeans::run() {
-    //switch(state) {
-        //case TEST:
-            //test();
-            //break;
-        //case ALLOC_DATA:
-            //numa_alloc_mem();
-            //break;
-        //case H_EM:
-            //H_EM_step();
-            //break;
-        //case H_SPLIT:
-            //H_split_step();
-            //break;
-        //case MEAN:
-            //partition_mean();
-            //break;
-        //case EXIT:
-            //throw base::thread_exception(
-                    //"Thread state is EXIT but running!\n");
-        //default:
-            //throw base::thread_exception("Unknown thread state\n");
-    //}
-    //sleep();
-//}
+    xmeans::xmeans(const int node_id, const unsigned thd_id,
+            const unsigned start_rid, const unsigned nprocrows,
+            const unsigned ncol, unsigned k,
+            hclust_map* g_hcltrs,
+            unsigned* cluster_assignments,
+            const std::string fn, base::dist_t dist_metric,
+            const std::vector<bool>& cltr_active_vec,
+            std::vector<double>& partition_dist,
+            std::vector<double>& nearest_cdist, const bool& compute_pdist) :
+        hclust(node_id, thd_id, start_rid, nprocrows, ncol, k,
+                g_hcltrs, cluster_assignments, fn, dist_metric,
+                cltr_active_vec), partition_dist(partition_dist),
+                nearest_cdist(nearest_cdist), compute_pdist(compute_pdist) {
+
+            // Use this for the mean of the full partition calculation
+        }
+
+void xmeans::run() {
+    switch(state) {
+        case TEST:
+            test();
+            break;
+        case ALLOC_DATA:
+            numa_alloc_mem();
+            break;
+        case H_EM:
+            H_EM_step();
+            break;
+        case H_SPLIT:
+            H_split_step();
+            break;
+        case MEAN:
+            partition_mean();
+            break;
+        case EXIT:
+            throw base::thread_exception(
+                    "Thread state is EXIT but running!\n");
+        default:
+            throw base::thread_exception("Unknown thread state\n");
+    }
+    sleep();
+}
 
 void xmeans::start(const thread_state_t state=WAIT) {
     this->state = state;
@@ -83,6 +100,14 @@ void xmeans::H_EM_step() {
         unsigned true_row_id = get_global_data_id(row);
         auto rpart_id = part_id[true_row_id];
 
+        // Get distance to partition
+        if (compute_pdist) {
+            partition_dist[true_row_id] =
+                base::dist_comp_raw<double>(&local_data[row*ncol],
+                    &(g_clusters->
+                        get_means()[rpart_id*ncol]), ncol, dist_metric);
+        }
+
         // Not active
         if (!(cltr_active_vec[cluster_assignments[true_row_id]]) ||
                 g_hcltrs->at(rpart_id)->has_converged())
@@ -107,6 +132,8 @@ void xmeans::H_EM_step() {
                 }
             }
         }
+
+        partition_dist[true_row_id] = best; // Update the best dist
 
         assert(asgnd_clust != base::INVALID_CLUSTER_ID);
 
