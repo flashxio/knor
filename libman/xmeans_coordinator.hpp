@@ -21,13 +21,41 @@
 
 #include "hclust_coordinator.hpp"
 
+#if 1
+#include <unordered_map>
+#endif
+
 namespace knor {
+
+struct split_score_t {
+
+    unsigned pid; // parent
+    unsigned lid; // left child
+    unsigned rid; // right child
+    double pscore; // Parent score
+    double cscore; // Child score
+
+    split_score_t(const unsigned pid, const unsigned lid, const unsigned rid) :
+        pid(pid), lid(lid), rid(rid),
+        pscore(std::numeric_limits<double>::min()),
+        cscore(std::numeric_limits<double>::min()) {
+        }
+
+    split_score_t() :
+        pscore(std::numeric_limits<double>::min()),
+        cscore(std::numeric_limits<double>::min()) {
+        }
+};
 
 class xmeans_coordinator : public hclust_coordinator {
     public:
         using hclust_coordinator::hclust_coordinator;
         typedef std::shared_ptr<xmeans_coordinator> ptr;
-        std::vector<double> dist_v; // Keep the
+
+        std::vector<double> partition_dist; // Data point to partition dist
+        std::vector<double> nearest_cdist; // Data point to centroid dist
+        std::shared_ptr<base::clusters> cltrs; // Record partition -> data point
+        bool compute_pdist; // Should threads comp the partition_dist this iter?
 
         static hclust_coordinator::ptr create(const std::string fn,
                 const size_t nrow,
@@ -53,6 +81,16 @@ class xmeans_coordinator : public hclust_coordinator {
                     min_clust_size));
         }
 
+        template <typename T>
+        void accumulate(const std::vector<T>& in,
+                std::unordered_map<T, std::vector<T>>& out) {
+            for (size_t i = 0; i < in.size(); i++) {
+                if (out.find(in[i]) == out.end())
+                    out[in[i]] = std::vector<T>();
+
+                out[in[i]].push_back(i);
+            }
+        }
         virtual void build_thread_state() override;
         virtual void spawn(const unsigned& zeroid,
                 const unsigned& oneid, const c_part& cp) override;
@@ -60,6 +98,15 @@ class xmeans_coordinator : public hclust_coordinator {
         // Pass file handle to threads to read & numa alloc
         virtual base::cluster_t run(double* allocd_data=NULL,
             const bool numa_opt=false) override;
+        virtual void combine_partition_means();
+        virtual void partition_decision();
+        void bic(split_score_t& score,
+                std::unordered_map<unsigned, std::vector<unsigned>>& memb_cltrs);
+
+        void compute_bic_scores(
+                std::vector<split_score_t>& bic_scores,
+                std::unordered_map<unsigned,
+                std::vector<unsigned>>& memb_cltrs);
 };
 }
 #endif
