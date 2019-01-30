@@ -139,6 +139,7 @@ class vmap {
         }
 
         const size_t keycount() {
+            // TODO: Wasteful, O(capacity)
             size_t count = 0;
             for (size_t i = 0; i < size(); i++) {
                 if (nullptr != data[i])
@@ -153,6 +154,14 @@ class vmap {
                 if (nullptr != key)
                     return false;
             return true;
+        }
+
+        const void print() const {
+            for (size_t i = 0; i < size(); i++) {
+                if (nullptr != data[i]) {
+                    printf("k: %lu\nv: ", i); data[i]->print_means();
+                }
+            }
         }
 };
 
