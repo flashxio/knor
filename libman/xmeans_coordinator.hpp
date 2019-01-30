@@ -85,9 +85,6 @@ class xmeans_coordinator : public hclust_coordinator {
         void accumulate(const std::vector<T>& in,
                 std::unordered_map<T, std::vector<T>>& out) {
             for (size_t i = 0; i < in.size(); i++) {
-                if (out.find(in[i]) == out.end())
-                    out[in[i]] = std::vector<T>();
-
                 out[in[i]].push_back(i);
             }
         }

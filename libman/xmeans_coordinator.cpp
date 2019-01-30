@@ -64,26 +64,9 @@ void xmeans_coordinator::combine_partition_means() {
 
     for (auto const& th : threads) {
         auto thd_lcltrs = th->get_local_clusters();
-
-        // TODO: Check that we don't overcount
-        for (size_t i = 0; i < cltrs->get_nclust(); i++) {
-            if (thd_lcltrs->get_num_members(i) && cltrs->get_num_members(i))
-                assert(0);
-        }
-        // TODO: End check
-
         cltrs->peq(thd_lcltrs);
     }
     cltrs->finalize_all();
-
-#if 1
-    printf("After combine_partition_means -- Part clusters:\n");
-    cltrs->print_means();
-    // Wrong check
-    //assert(std::accumulate(cltrs->get_num_members_v().begin(),
-                //cltrs->get_num_members_v().end(), 0)
-                            //== static_cast<llong_t>(nrow));
-#endif
 }
 
  /**
@@ -102,7 +85,6 @@ void xmeans_coordinator::bic(split_score_t& score,
     double cK = 2; // children K
     double N = cluster_assignment_counts[score.lid]
                         + cluster_assignment_counts[score.rid];
-
     double psigma = 0;
     double csigma = 0;
 
@@ -116,25 +98,17 @@ void xmeans_coordinator::bic(split_score_t& score,
             csigma += nearest_cdist[idx];
     }
 
-#if 1
-    printf("Parent sigma: %.4f\nChild sigma: %.4f\n", psigma, csigma);
-#endif
     // Parent
     if (N - pK > 0) {
         psigma /= (double) (N - pK);
         double p = (pK - 1) + ncol * pK + 1;
 
         /* splitting criterion */
-        double n = (double) N;
-        double L = N * std::log(N) - n * std::log(N) - N *
-            std::log(2.0 * PI) / 2.0 - N * ncol *
-            std::log(psigma) / 2.0 - (N - pK) / 2.0;
+        double L = N * std::log(N) - N * std::log(N) - N *
+            std::log(2.0 * PI) * .5 - N * ncol *
+            std::log(psigma) * .5 - (N - pK) * .5;
 
         score.pscore = L - p * 0.5 * std::log(N);
-    } else {
-#if 1
-    printf("Doing nothing for Parent BIC score coz N: %.f, cK: %.f!\n", N, pK);
-#endif
     }
 
     // Children
@@ -145,20 +119,16 @@ void xmeans_coordinator::bic(split_score_t& score,
         /* splitting criterion */
         double nl = cluster_assignment_counts[score.lid];
         double L = N * std::log(N) - nl * std::log(N) - N *
-            std::log(2.0 * PI) / 2.0 - N * ncol *
-            std::log(csigma) / 2.0 - (N - cK) / 2.0;
+            std::log(2.0 * PI) * .5 - N * ncol *
+            std::log(csigma) * .5 - (N - cK) * .5;
 
         score.cscore = L - p * 0.5 * std::log(N);
 
         double nr = cluster_assignment_counts[score.lid];
         L = N * std::log(N) - nr * std::log(N) - N *
-            std::log(2.0 * PI) / 2.0 - N * ncol *
-            std::log(csigma) / 2.0 - (N - cK) / 2.0;
-        score.cscore += L - p * 0.5 * std::log(N);
-    } else {
-#if 1
-    printf("Doing nothing for Children BIC score coz N: %.f, cK: %.f!\n", N, cK);
-#endif
+            std::log(2.0 * PI) * .5- N * ncol *
+            std::log(csigma) * .5 - (N - cK) * .5;
+        score.cscore += L - p * .5 * std::log(N);
     }
 }
 
@@ -166,33 +136,32 @@ void xmeans_coordinator::compute_bic_scores(
         std::vector<split_score_t>& bic_scores,
     std::unordered_map<unsigned, std::vector<unsigned>>& memb_cltrs) {
 
-    // TODO ||ize
-
-    // Creates structures to store bic scores
+    // Creates structures to store bic scores & cluster membership
     auto itr = hcltrs.get_iterator();
     while (itr.has_next()) {
         auto kv = itr.next();
-        if (is_active(kv.first)) {
-            assert(kv.first == kv.second->get_id());
-            printf("BIC evaluation for pid: %lu, lid: %u, rid: %u\n",
-                    kv.first, kv.second->get_zeroid(), kv.second->get_oneid());
-            bic_scores.push_back(split_score_t(kv.second->get_id(),
-                        kv.second->get_zeroid(), kv.second->get_oneid()));
-        }
+        assert(kv.first == kv.second->get_id());
+#if 1
+        printf("BIC evaluation for pid: %lu, lid: %u, rid: %u\n",
+                kv.first, kv.second->get_zeroid(), kv.second->get_oneid());
+#endif
+        bic_scores.push_back(split_score_t(kv.second->get_id(),
+                    kv.second->get_zeroid(), kv.second->get_oneid()));
+        memb_cltrs[kv.first] = std::vector<unsigned>();
     }
 
-#if 1
+#if 0
     assert(std::accumulate(cluster_assignment_counts.begin(),
                 cluster_assignment_counts.end(), 0)
                         == static_cast<llong_t>(nrow));
 #endif
 
-    // FIXME: Slow
+    // TODO: Slow
     // Creates structures to hold cluster membership
     accumulate(cluster_assignments, memb_cltrs);
 
-    // FIXME: parallel
     // Computes the bic scores for each parent, child combo
+#pragma omp parallel for shared (bic_scores) schedule (dynamic)
     for (size_t idx = 0; idx < bic_scores.size(); idx++) {
         bic(bic_scores[idx], memb_cltrs);
     }
@@ -204,8 +173,12 @@ void xmeans_coordinator::partition_decision() {
     std::unordered_map<unsigned, std::vector<unsigned>> memb_cltrs; // Parent
     compute_bic_scores(bic_scores, memb_cltrs);
 
-    // FIXME: parallel
-    for (auto const& score : bic_scores) {
+    std::vector<bool> remove_cache;
+    remove_cache.assign(false, bic_scores.size());
+
+#pragma omp parallel for shared (bic_scores)
+    for (size_t i = 0; i < bic_scores.size(); i++) {
+        auto score = bic_scores[i];
         if (score.pscore > score.cscore) {
 #if 1
             printf("\nPart: %u will NOT split! pscore: %.4f > cscore: %.4f\n",
@@ -223,9 +196,8 @@ void xmeans_coordinator::partition_decision() {
             // Deactivate both lid and rid
             deactivate(score.lid); deactivate(score.rid);
 
-            // FIXME: Create Erase cache for ||ism
+            // Deactivate pid
             deactivate(score.pid);
-            hcltrs.erase(score.pid);
             final_centroids[score.pid] = std::vector<double>(
                     cltrs->get_mean_rawptr(score.pid),
                     cltrs->get_mean_rawptr(score.pid) + ncol);
@@ -236,13 +208,18 @@ void xmeans_coordinator::partition_decision() {
 #endif
         }
     }
+
+    for (size_t i = 0; i < remove_cache.size(); i++) {
+        if (remove_cache[i])
+            hcltrs.erase(bic_scores[i].pid);
+    }
 }
 
 // Main driver
 base::cluster_t xmeans_coordinator::run(
         double* allocd_data, const bool numa_opt) {
 #ifdef PROFILER
-    ProfilerStart("hclust_coordinator.perf");
+    ProfilerStart("xmeans_coordinator.perf");
 #endif
 
     build_thread_state();
@@ -284,8 +261,8 @@ base::cluster_t xmeans_coordinator::run(
             print_clusters();
             printf("\nAssignment counts:\n");
             base::sparse_print(cluster_assignment_counts);
-            printf("\nAssignments:\n");
-            base::print(cluster_assignments, nrow);
+            //printf("\nAssignments:\n");
+            //base::print(cluster_assignments, nrow);
 #endif
             printf("\n*****************************************************\n");
             if (compute_pdist)
