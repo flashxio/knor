@@ -244,6 +244,8 @@ void xmeans_coordinator::compute_bic_scores(
     std::unordered_map<unsigned, std::vector<unsigned>>& memb_cltrs) {
 
     // TODO ||ize
+
+    // Creates structures to store bic scores
     auto itr = hcltrs.get_iterator();
     while (itr.has_next()) {
         auto kv = itr.next();
@@ -263,9 +265,11 @@ void xmeans_coordinator::compute_bic_scores(
 #endif
 
     // FIXME: Slow
+    // Creates structures to hold cluster membership
     accumulate(cluster_assignments, memb_cltrs);
 
     // FIXME: parallel
+    // Computes the bic scores for each parent, child combo
     for (size_t idx = 0; idx < bic_scores.size(); idx++) {
         bic(bic_scores[idx], memb_cltrs);
     }
@@ -339,7 +343,7 @@ base::cluster_t xmeans_coordinator::run(
             update_clusters();
 #if 1
             printf("\nAfter update_clusters ... Global hcltrs:\n");
-            print_active_clusters();
+            print_clusters();
 #endif
             // Decide if a split is necessary
             printf("\n*****************************************************\n");

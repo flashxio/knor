@@ -76,6 +76,7 @@ class hclust_coordinator : public coordinator {
         std::vector<unsigned> part_id;
         std::shared_ptr<hclust_id_generator> ider;
         unsigned min_clust_size;
+        std::unordered_map<unsigned, std::vector<double>> final_centroids;
     public:
         hclust_coordinator(const std::string fn, const size_t nrow,
                 const size_t ncol, const unsigned k, const unsigned max_iters,
@@ -110,7 +111,7 @@ class hclust_coordinator : public coordinator {
 
         virtual void run_hinit();
         virtual unsigned forgy_select(const unsigned cid);
-        virtual void print_active_clusters();
+        virtual void print_clusters();
 
         // Pass file handle to threads to read & numa alloc
         virtual base::cluster_t run(double* allocd_data=NULL,

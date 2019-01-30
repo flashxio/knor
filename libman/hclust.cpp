@@ -107,7 +107,7 @@ void hclust::H_EM_step() {
         unsigned true_row_id = get_global_data_id(row);
         auto rpart_id = part_id[true_row_id];
 
-        // Not active
+        // Not active or has converged
         if (!(cltr_active_vec[cluster_assignments[true_row_id]]) ||
                 g_hcltrs->at(rpart_id)->has_converged())
             continue; // Skip it
