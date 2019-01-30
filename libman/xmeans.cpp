@@ -133,8 +133,7 @@ void xmeans::H_EM_step() {
             }
         }
 
-        partition_dist[true_row_id] = best; // Update the best dist
-
+        nearest_cdist[true_row_id] = best; // Update the best dist
         assert(asgnd_clust != base::INVALID_CLUSTER_ID);
 
         if (asgnd_clust != cluster_assignments[true_row_id])

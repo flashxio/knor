@@ -340,8 +340,10 @@ void hclust_coordinator::update_clusters() {
     auto itr = hcltrs.get_iterator();
     while (itr.has_next()) {
         auto kv = itr.next();
-        if (is_active(kv.first) && !kv.second->has_converged())
+        assert(is_active(kv.first));
+        if (!kv.second->has_converged()) {
             kv.second->clear();
+        }
     }
 
     // Serial aggregate of nthread vectors
@@ -364,7 +366,6 @@ void hclust_coordinator::update_clusters() {
     auto _itr = hcltrs.get_iterator();
     while (_itr.has_next()) {
         auto kv = _itr.next();
-        assert(is_active(kv.first));
         // There are only ever 2 of these for hclust
         auto pid = kv.first; // partition ID
         auto c = kv.second;

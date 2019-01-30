@@ -92,9 +92,6 @@ class xmeans_coordinator : public hclust_coordinator {
             }
         }
         virtual void build_thread_state() override;
-        virtual void spawn(const unsigned& zeroid,
-                const unsigned& oneid, const c_part& cp) override;
-        virtual void update_clusters() override;
         // Pass file handle to threads to read & numa alloc
         virtual base::cluster_t run(double* allocd_data=NULL,
             const bool numa_opt=false) override;

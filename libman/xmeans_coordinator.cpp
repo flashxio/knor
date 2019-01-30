@@ -59,95 +59,6 @@ void xmeans_coordinator::build_thread_state() {
     }
 }
 
-void xmeans_coordinator::spawn(const unsigned& zeroid,
-        const unsigned& oneid, const c_part& cp) {
-
-    auto zero_child_ids = ider->get_split_ids(zeroid);
-    auto one_child_ids = ider->get_split_ids(oneid);
-
-    // Add parent with two children
-    if (cp.l_splittable()) {
-        hcltrs[zeroid] = base::h_clusters::create(2, ncol, zeroid,
-                zero_child_ids.first, zero_child_ids.second);
-        hcltrs[zeroid]->set_mean(get_thd_data(cp.l0), 0);
-        hcltrs[zeroid]->set_mean(get_thd_data(cp.l1), 1);
-        activate(zero_child_ids.first);
-        activate(zero_child_ids.second);
-    }
-
-    if (cp.r_splittable()) {
-        hcltrs[oneid] = base::h_clusters::create(2, ncol, oneid,
-                one_child_ids.first, one_child_ids.second);
-        hcltrs[oneid]->set_mean(get_thd_data(cp.r0), 0);
-        hcltrs[oneid]->set_mean(get_thd_data(cp.r1), 1);
-        activate(one_child_ids.first);
-        activate(one_child_ids.second);
-    }
-}
-
-void xmeans_coordinator::update_clusters() {
-    // clear nchanged & means
-    nchanged.assign(max_nodes, 0);
-
-    auto itr = hcltrs.get_iterator();
-    while (itr.has_next()) {
-        auto kv = itr.next();
-        if (!kv.second->has_converged())
-            kv.second->clear();
-    }
-
-    // Serial aggregate of nthread vectors
-    for (auto const& thd : threads) {
-        // Update the changed cluster count
-        auto thd_nchanged =
-            (std::static_pointer_cast<xmeans>(thd))->get_nchanged();
-        for (size_t i = 0; i < thd_nchanged.size(); i++)
-            nchanged[i] += thd_nchanged[i];
-
-        // Update the global hcltrs with local ones
-        auto itr = (std::static_pointer_cast<xmeans>(
-                        thd))->get_local_hcltrs().get_iterator();
-        while (itr.has_next()) {
-            auto kv = itr.next();
-            hcltrs[kv.first]->peq(kv.second);
-        }
-    }
-
-    cluster_assignment_counts.assign(max_nodes, 0);
-
-    auto _itr = hcltrs.get_iterator();
-    while (_itr.has_next()) {
-        auto kv = _itr.next();
-        // There are only ever 2 of these for hierarchical algs
-        auto pid = kv.first; // partition ID
-        auto c = kv.second;
-        auto part_nmembers = c->get_num_members(0) + c->get_num_members(1);
-        cluster_assignment_counts[c->get_zeroid()] = c->get_num_members(0);
-        cluster_assignment_counts[c->get_oneid()] = c->get_num_members(1);
-
-         // Skip clusters that have converged, but are active
-        if (!c->has_converged()) {
-            c->finalize(0);
-            c->finalize(1);
-
-            // Premature End of computation
-            if (nchanged[pid] == 0 ||
-                    (nchanged[pid]/(double)part_nmembers) <= tolerance) {
-                c->set_converged();
-            }
-        }
-    }
-
-#if 1 // Testing
-    size_t total_changed = 0;
-    for (auto const& val : nchanged)
-        total_changed += val;
-
-    printf("Total nchanged: %lu\n", total_changed);
-    assert(total_changed <= nrow);
-#endif
-}
-
 void xmeans_coordinator::combine_partition_means() {
     cltrs->unfinalize_all();
 
@@ -166,11 +77,12 @@ void xmeans_coordinator::combine_partition_means() {
     cltrs->finalize_all();
 
 #if 1
-    assert(std::accumulate(cltrs->get_num_members_v().begin(),
-                cltrs->get_num_members_v().end(), 0)
-                            == static_cast<llong_t>(nrow));
     printf("After combine_partition_means -- Part clusters:\n");
     cltrs->print_means();
+    // Wrong check
+    //assert(std::accumulate(cltrs->get_num_members_v().begin(),
+                //cltrs->get_num_members_v().end(), 0)
+                            //== static_cast<llong_t>(nrow));
 #endif
 }
 
@@ -204,6 +116,9 @@ void xmeans_coordinator::bic(split_score_t& score,
             csigma += nearest_cdist[idx];
     }
 
+#if 1
+    printf("Parent sigma: %.4f\nChild sigma: %.4f\n", psigma, csigma);
+#endif
     // Parent
     if (N - pK > 0) {
         psigma /= (double) (N - pK);
@@ -216,6 +131,10 @@ void xmeans_coordinator::bic(split_score_t& score,
             std::log(psigma) / 2.0 - (N - pK) / 2.0;
 
         score.pscore = L - p * 0.5 * std::log(N);
+    } else {
+#if 1
+    printf("Doing nothing for Parent BIC score coz N: %.f, cK: %.f!\n", N, pK);
+#endif
     }
 
     // Children
@@ -236,6 +155,10 @@ void xmeans_coordinator::bic(split_score_t& score,
             std::log(2.0 * PI) / 2.0 - N * ncol *
             std::log(csigma) / 2.0 - (N - cK) / 2.0;
         score.cscore += L - p * 0.5 * std::log(N);
+    } else {
+#if 1
+    printf("Doing nothing for Children BIC score coz N: %.f, cK: %.f!\n", N, cK);
+#endif
     }
 }
 
@@ -275,6 +198,7 @@ void xmeans_coordinator::compute_bic_scores(
     }
 }
 
+// NOTE: This modifies hcltrs
 void xmeans_coordinator::partition_decision() {
     std::vector<split_score_t> bic_scores;
     std::unordered_map<unsigned, std::vector<unsigned>> memb_cltrs; // Parent
@@ -283,6 +207,10 @@ void xmeans_coordinator::partition_decision() {
     // FIXME: parallel
     for (auto const& score : bic_scores) {
         if (score.pscore > score.cscore) {
+#if 1
+            printf("\nPart: %u will NOT split! pscore: %.4f > cscore: %.4f\n",
+                    score.pid, score.pscore, score.cscore);
+#endif
             // Move all in children clusters to (parent) partition
             auto const& lmembers = memb_cltrs[score.lid];
             for (size_t i = 0; i < memb_cltrs[score.lid].size(); i++)
@@ -294,8 +222,18 @@ void xmeans_coordinator::partition_decision() {
 
             // Deactivate both lid and rid
             deactivate(score.lid); deactivate(score.rid);
-            // TODO: Deactivate pid
-            // TODO: Set the mean to be the partition_mean
+
+            // FIXME: Create Erase cache for ||ism
+            deactivate(score.pid);
+            hcltrs.erase(score.pid);
+            final_centroids[score.pid] = std::vector<double>(
+                    cltrs->get_mean_rawptr(score.pid),
+                    cltrs->get_mean_rawptr(score.pid) + ncol);
+        } else {
+#if 1
+            printf("\nPart: %u will split! pscore: %.4f <= cscore: %.4f\n",
+                    score.pid, score.pscore, score.cscore);
+#endif
         }
     }
 }
@@ -344,23 +282,34 @@ base::cluster_t xmeans_coordinator::run(
 #if 1
             printf("\nAfter update_clusters ... Global hcltrs:\n");
             print_clusters();
+            printf("\nAssignment counts:\n");
+            base::sparse_print(cluster_assignment_counts);
+            printf("\nAssignments:\n");
+            base::print(cluster_assignments, nrow);
 #endif
-            // Decide if a split is necessary
             printf("\n*****************************************************\n");
             if (compute_pdist)
                 compute_pdist = false;
         }
 
-        // FIXME: Decide on split or not here
+        // Decide on split or not here
         partition_decision();
-        exit(911);
 
-        //curr_nclust*=2;
-        //if (curr_nclust > k)
-            //break;
+        if (curr_nclust >= k*2) {
+            printf("\n\nCLUSTER SIZE EXIT @ %u!\n", curr_nclust);
+            break;
+        }
 
         // Update global state
         init_splits(); // Initialize possible splits
+
+        // Break when clusters are inactive due to size
+        if (hcltrs.keyless()) {
+            assert(steady_state()); // NOTE: Comment when benchmarking
+            printf("\n\nSTEADY STATE EXIT!\n");
+            break;
+        }
+        curr_nclust = hcltrs.keycount()*2 + final_centroids.size();
     }
 #ifdef PROFILER
     ProfilerStop();
