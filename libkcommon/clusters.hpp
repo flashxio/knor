@@ -312,6 +312,7 @@ private:
     bool converged;
 public:
     using clusters::clusters;
+    std::vector<double> metadata; // Wildcard data for the clusters
 
     static ptr create(const unsigned nclust, const unsigned ncol) {
         auto ret = ptr(new h_clusters(nclust, ncol));
