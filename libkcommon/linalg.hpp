@@ -173,12 +173,44 @@ namespace knor { namespace base {
             //// TODO
         //}
 
-        static double dot(std::vector<double>& v1, std::vector<double>& v2) {
-            assert(v1.size() == v2.size());
-            double sum = 0;
-            for (size_t i = 0; i < v1.size(); i++)
+        template <typename T>
+        static double dot(const T* v1, const T* v2, const size_t sz) {
+            T sum = 0;
+            for (size_t i = 0; i < sz; i++)
                 sum += v1[i]*v2[i];
             return sum;
+        }
+
+        template <typename T>
+        static T dot(std::vector<T>& v1, std::vector<T>& v2) {
+            assert(v1.size() == v2.size());
+            return dot(&v1[0], &v2[0], v1.size());
+        }
+
+        /**
+          * Performs identical function as:
+          *     https://scikit-learn.org/stable/modules/generated/
+          *                                  sklearn.preprocessing.scale.html
+          * Given with mean and with stddev set to true
+          */
+        static void scale(double* v, const size_t sz) {
+            // Compute mean
+            double sum = std::accumulate(v, v+sz, 0);
+            double mean = sum / static_cast<double>(sz);
+
+            // Compute std dev
+            double stddev = 0;
+            for (size_t i = 0; i < sz; i++) {
+                double tmp = v[i] - mean;
+                stddev += tmp * tmp;
+            }
+            stddev = std::sqrt(stddev / static_cast<double>(sz));
+
+            assert(stddev);
+            // Subtract the mean, then divide by the stddev
+            for (size_t i = 0; i < sz; i++) {
+                v[i] = ((v[i] - mean) / stddev);
+            }
         }
 
         static void scale(std::vector<double>& v, double factor,

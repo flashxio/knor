@@ -27,6 +27,20 @@
 namespace kbase = knor::base;
 constexpr unsigned N = 6;
 
+void test_scale() {
+    std::vector<double> v {1,2,3,4};
+    kbase::linalg::scale(&v[0], v.size());
+
+    constexpr double EPS = 0.0000001;
+    const std::vector<double> truth
+                    {-1.34164079, -0.4472136 ,  0.4472136 ,  1.34164079};
+    for (size_t i = 0; i < v.size(); i++) {
+        assert(v[i] - truth[i] < EPS);
+    }
+
+    printf("Successful 'test_scale' test!\n");
+}
+
 void test_det() {
 	double A[N*N] = { 5, -2, 2, 7, 12, 2,
 					1, 0, 0, 3, 1, 2,
@@ -86,6 +100,7 @@ void test_det_dense_mat() {
 int main() {
     test_det();
     test_det_dense_mat();
+    test_scale();
 
     printf("Successful 'testit' test ...\n");
     return EXIT_SUCCESS;
