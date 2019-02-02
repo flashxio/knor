@@ -30,6 +30,7 @@ exec/gmm
 exec/fcm
 exec/hclust
 exec/xmeans
+exec/gmeans
 scratch/
 release-test/test_auto
 release-test/test_man

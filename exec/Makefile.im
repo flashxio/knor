@@ -26,7 +26,7 @@ else
 	CXXFLAGS += -I.. -I../libauto -I../libman -I../libkcommon
 endif
 
-FILES := knori mb_knori medoids skmeans gmm fcm hclust xmeans
+FILES := knori mb_knori medoids skmeans gmm fcm hclust xmeans gmeans
 
 all: $(FILES)
 
@@ -53,6 +53,9 @@ hclust: hclust.o
 
 xmeans: xmeans.o
 	$(CXX) -o xmeans xmeans.o $(LDFLAGS)
+
+gmeans: gmeans.o
+	$(CXX) -o gmeans gmeans.o $(LDFLAGS)
 
 clean:
 	rm -f *.d
