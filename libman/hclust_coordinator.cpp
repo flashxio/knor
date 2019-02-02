@@ -70,7 +70,7 @@ void hclust_coordinator::build_thread_state() {
         thd_max_row_idx.push_back((thd_id*thds_row) + tup.second);
         threads.push_back(hclust::create((thd_id % nnodes),
                     thd_id, tup.first, tup.second,
-                    ncol, k, &hcltrs, &cluster_assignments[0], fn, _dist_t,
+                    ncol, k, hcltrs, &cluster_assignments[0], fn, _dist_t,
                     cltr_active_vec));
         threads[thd_id]->set_parent_cond(&cond);
         threads[thd_id]->set_parent_pending_threads(&pending_threads);

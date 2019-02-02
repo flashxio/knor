@@ -34,7 +34,7 @@ typedef base::vmap<std::shared_ptr<base::clusters>> hclust_map;
 class hclust : public thread {
     protected:
          // Pointer to global cluster data
-        hclust_map* g_hcltrs;
+        hclust_map& g_hcltrs;
         hclust_map local_hcltrs;
         std::vector<unsigned> nchanged; // How many change in each partition
         const std::vector<bool>& cltr_active_vec; // Clusters still active
@@ -46,7 +46,7 @@ class hclust : public thread {
         hclust(const int node_id, const unsigned thd_id,
                 const unsigned start_rid, const unsigned nprocrows,
                 const unsigned ncol, unsigned k,
-                hclust_map* g_hcltrs,
+                hclust_map& g_hcltrs,
                 unsigned* cluster_assignments,
                 const std::string fn, base::dist_t dist_metric,
                 const std::vector<bool>& cltr_active_vec);
@@ -55,7 +55,7 @@ class hclust : public thread {
                 const int node_id, const unsigned thd_id,
                 const unsigned start_rid, const unsigned nprocrows,
                 const unsigned ncol, unsigned k,
-                hclust_map* g_hcltrs,
+                hclust_map& g_hcltrs,
                 unsigned* cluster_assignments, const std::string fn,
                 base::dist_t dist_metric,
                 const std::vector<bool>& cltr_active_vec) {
