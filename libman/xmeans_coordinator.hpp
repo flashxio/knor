@@ -49,7 +49,13 @@ struct split_score_t {
 
 class xmeans_coordinator : public hclust_coordinator {
     public:
-        using hclust_coordinator::hclust_coordinator;
+        xmeans_coordinator(const std::string fn, const size_t nrow,
+                const size_t ncol, const unsigned k, const unsigned max_iters,
+                const unsigned nnodes, const unsigned nthreads,
+                const double* centers, const base::init_t it,
+                const double tolerance, const base::dist_t dt,
+                const unsigned min_clust_size);
+
         typedef std::shared_ptr<xmeans_coordinator> ptr;
 
         std::vector<double> partition_dist; // Data point to partition dist

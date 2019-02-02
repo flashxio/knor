@@ -31,7 +31,7 @@ namespace knor {
     xmeans::xmeans(const int node_id, const unsigned thd_id,
             const unsigned start_rid, const unsigned nprocrows,
             const unsigned ncol, unsigned k,
-            hclust_map* g_hcltrs,
+            hclust_map& g_hcltrs,
             unsigned* cluster_assignments,
             const std::string fn, base::dist_t dist_metric,
             const std::vector<bool>& cltr_active_vec,
@@ -44,32 +44,6 @@ namespace knor {
 
             // Use this for the mean of the full partition calculation
         }
-
-void xmeans::run() {
-    switch(state) {
-        case TEST:
-            test();
-            break;
-        case ALLOC_DATA:
-            numa_alloc_mem();
-            break;
-        case H_EM:
-            H_EM_step();
-            break;
-        case H_SPLIT:
-            H_split_step();
-            break;
-        case MEAN:
-            partition_mean();
-            break;
-        case EXIT:
-            throw base::thread_exception(
-                    "Thread state is EXIT but running!\n");
-        default:
-            throw base::thread_exception("Unknown thread state\n");
-    }
-    sleep();
-}
 
 void xmeans::start(const thread_state_t state=WAIT) {
     this->state = state;
@@ -84,7 +58,7 @@ void xmeans::H_EM_step() {
 
     nchanged.assign(base::get_max_hnodes(k*2), 0);
 
-    auto itr = g_hcltrs->get_iterator();
+    auto itr = g_hcltrs.get_iterator();
     while (itr.has_next()) {
         auto kv = itr.next();
         if (kv.second->has_converged()) {
@@ -110,7 +84,7 @@ void xmeans::H_EM_step() {
 
         // Not active
         if (!(cltr_active_vec[cluster_assignments[true_row_id]]) ||
-                g_hcltrs->at(rpart_id)->has_converged())
+                g_hcltrs[rpart_id]->has_converged())
             continue; // Skip it
 
         unsigned asgnd_clust = base::INVALID_CLUSTER_ID;
@@ -120,14 +94,14 @@ void xmeans::H_EM_step() {
 
         for (unsigned clust_idx = 0; clust_idx < 2; clust_idx++) {
             dist = base::dist_comp_raw<double>(&local_data[row*ncol],
-                    &(g_hcltrs->at(rpart_id)->
+                    &(g_hcltrs[rpart_id]->
                         get_means()[clust_idx*ncol]), ncol, dist_metric);
             if (dist < best) {
                 best = dist;
                 if (clust_idx == 0) {
-                    asgnd_clust = g_hcltrs->at(rpart_id)->get_zeroid();
+                    asgnd_clust = g_hcltrs[rpart_id]->get_zeroid();
                 } else {
-                    asgnd_clust = g_hcltrs->at(rpart_id)->get_oneid();
+                    asgnd_clust = g_hcltrs[rpart_id]->get_oneid();
                     flag = 1;
                 }
             }

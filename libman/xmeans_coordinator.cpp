@@ -30,23 +30,33 @@
 
 namespace knor {
 
+    xmeans_coordinator::xmeans_coordinator(const std::string fn,
+            const size_t nrow,
+            const size_t ncol, const unsigned k, const unsigned max_iters,
+            const unsigned nnodes, const unsigned nthreads,
+            const double* centers, const base::init_t it,
+            const double tolerance, const base::dist_t dt,
+            const unsigned min_clust_size) :
+        hclust_coordinator(fn, nrow, ncol, k, max_iters, nnodes, nthreads,
+                centers, it, tolerance, dt, min_clust_size) {
+
+            partition_dist.resize(nrow);
+            nearest_cdist.resize(nrow);
+            // TODO: k can be non 2^n
+            cltrs = kbase::clusters::create(
+                    base::get_max_hnodes(this->k), ncol);
+    }
+
 void xmeans_coordinator::build_thread_state() {
     // NUMA node affinity binding policy is round-robin
     unsigned thds_row = nrow / nthreads;
-
-    // TODO: Things that should be in the ctor
-    partition_dist.resize(nrow);
-    nearest_cdist.resize(nrow);
-    // TODO: k can be non 2^n
-    cltrs = kbase::clusters::create(base::get_max_hnodes(k), ncol);
-    // TODO: End Things that should be in the ctor
 
     for (unsigned thd_id = 0; thd_id < nthreads; thd_id++) {
         std::pair<unsigned, unsigned> tup = get_rid_len_tup(thd_id);
         thd_max_row_idx.push_back((thd_id*thds_row) + tup.second);
         threads.push_back(xmeans::create((thd_id % nnodes),
                     thd_id, tup.first, tup.second,
-                    ncol, k, &hcltrs, &cluster_assignments[0], fn,
+                    ncol, k, hcltrs, &cluster_assignments[0], fn,
                     _dist_t, cltr_active_vec, partition_dist, nearest_cdist,
                     compute_pdist));
         threads[thd_id]->set_parent_cond(&cond);
@@ -147,7 +157,6 @@ void xmeans_coordinator::compute_bic_scores(
 #endif
         bic_scores.push_back(split_score_t(kv.second->get_id(),
                     kv.second->get_zeroid(), kv.second->get_oneid()));
-        memb_cltrs[kv.first] = std::vector<unsigned>();
     }
 
 #if 0
@@ -198,6 +207,7 @@ void xmeans_coordinator::partition_decision() {
 
             // Deactivate pid
             deactivate(score.pid);
+            remove_cache[i] = true;
             final_centroids[score.pid] = std::vector<double>(
                     cltrs->get_mean_rawptr(score.pid),
                     cltrs->get_mean_rawptr(score.pid) + ncol);

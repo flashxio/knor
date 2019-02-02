@@ -33,7 +33,7 @@ class xmeans : public hclust {
         xmeans(const int node_id, const unsigned thd_id,
                 const unsigned start_rid, const unsigned nprocrows,
                 const unsigned ncol, unsigned k,
-                hclust_map* g_hcltrs,
+                hclust_map& g_hcltrs,
                 unsigned* cluster_assignments,
                 const std::string fn, base::dist_t dist_metric,
                 const std::vector<bool>& cltr_active_vec,
@@ -45,7 +45,7 @@ class xmeans : public hclust {
                 const int node_id, const unsigned thd_id,
                 const unsigned start_rid, const unsigned nprocrows,
                 const unsigned ncol, unsigned k,
-                hclust_map* g_hcltrs,
+                hclust_map& g_hcltrs,
                 unsigned* cluster_assignments, const std::string fn,
                 base::dist_t dist_metric,
                 const std::vector<bool>& cltr_active_vec,
@@ -62,10 +62,7 @@ class xmeans : public hclust {
 
         virtual void start(const thread_state_t state) override;
         // Given the current ID split it into two (or not)
-        //virtual void H_split_step();
         virtual void H_EM_step(); // Similar to EM step
-        //virtual void partition_mean();
-        virtual void run() override;
         void set_g_clusters(std::shared_ptr<kbase::clusters> g_clusters) {
             this->g_clusters = g_clusters;
         }
