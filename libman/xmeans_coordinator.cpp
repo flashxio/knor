@@ -183,7 +183,7 @@ void xmeans_coordinator::partition_decision() {
     compute_bic_scores(bic_scores, memb_cltrs);
 
     std::vector<bool> remove_cache;
-    remove_cache.assign(false, bic_scores.size());
+    remove_cache.assign(bic_scores.size(), false);
 
 #pragma omp parallel for shared (bic_scores)
     for (size_t i = 0; i < bic_scores.size(); i++) {
@@ -251,7 +251,7 @@ base::cluster_t xmeans_coordinator::run(
     // Run loop
     size_t iter = 0;
 
-    unsigned curr_nclust = 1;
+    unsigned curr_nclust = 2;
     while (true) {
         printf("Running a Partition Mean step...\n");
         // TODO: Do this simultaneously with H_EM step
@@ -311,7 +311,6 @@ base::cluster_t xmeans_coordinator::run(
 
 #ifndef BIND
     printf("Final cluster counts: \n");
-    accumulate_cluster_counts();
     base::sparse_print(cluster_assignment_counts);
     printf("\n******************************************\n");
 #endif
