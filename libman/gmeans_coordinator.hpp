@@ -69,7 +69,7 @@ class gmeans_coordinator : public xmeans_coordinator {
             const bool numa_opt=false) override;
         void partition_decision() override;
         void compute_cluster_diffs();
-        void assemble_ad_stats(std::unordered_map<unsigned,
+        void assemble_ad_vecs(std::unordered_map<unsigned,
                 std::vector<double>>& ad_vecs);
         void compute_ad_stats(
                 std::unordered_map<unsigned, std::vector<double>>& ad_vecs);

@@ -48,10 +48,6 @@ class gmeans : public xmeans {
 
         void start(const thread_state_t state) override;
         void H_split_step() override;
-
-        // Given the current ID split it into two (or not)
-        //void H_EM_step() override; // Similar to EM step
-        //void run() override;
 };
 } // End namespace knor
 #endif

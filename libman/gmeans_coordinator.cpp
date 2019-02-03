@@ -66,12 +66,12 @@ void gmeans_coordinator::build_thread_state() {
     }
 }
 
-void gmeans_coordinator::assemble_ad_stats(std::unordered_map<unsigned,
+void gmeans_coordinator::assemble_ad_vecs(std::unordered_map<unsigned,
         std::vector<double>>& ad_vecs) {
-    assert(nearest_cdist.size() == part_id.size());
+    assert(nearest_cdist.size() == part_id.size() && part_id.size() == nrow);
+
     for (size_t i = 0; i < nearest_cdist.size(); i++) {
         ad_vecs[part_id[i]].push_back(nearest_cdist[i]);
-
         assert(hcltrs.has_key(part_id[i])); // TODO: RM
     }
 }
@@ -87,13 +87,13 @@ void gmeans_coordinator::compute_ad_stats(
 
 // NOTE: This modifies hcltrs
 void gmeans_coordinator::partition_decision() {
-    // Each Anderson Darling (AD) vector represents the vector for which each cluster
-    //  gets its AD statistic.
+    // Each Anderson Darling (AD) vector represents the vector for which
+    //  each cluster gets its AD statistic.
     std::unordered_map<unsigned, std::vector<double>> ad_vecs;
     std::vector<double> critical_values;
 
     // Populate the AD vectors
-    assemble_ad_stats(ad_vecs);
+    assemble_ad_vecs(ad_vecs);
 
     for (auto& kv : ad_vecs) {
         base::linalg::scale(&(kv.second)[0], kv.second.size());
@@ -117,10 +117,9 @@ void gmeans_coordinator::partition_decision() {
 
     // NOTE: We use ad_vecs.back() to store the score
 
-    std::vector<bool> remove_cache;
-    remove_cache.assign(false, keys.size());
+    std::unordered_map<unsigned, bool> remove_cache;
 
-//#pragma omp parallel for
+#pragma omp parallel for
     for (size_t i = 0; i < keys.size(); i++) {
         unsigned pid = keys[i];
         auto score = ad_vecs[pid].back();
@@ -133,25 +132,21 @@ void gmeans_coordinator::partition_decision() {
             unsigned lid = hcltrs[pid]->get_zeroid();
             unsigned rid = hcltrs[pid]->get_oneid();
 
-            // FIXME: Move all in children clusters to (parent) partition
-            //auto const& lmembers = memb_cltrs[score.lid];
-            //for (size_t i = 0; i < memb_cltrs[score.lid].size(); i++)
-               //cluster_assignments[lmembers[i]] = score.pid;
-
-            //auto const& rmembers = memb_cltrs[score.lid];
-            //for (size_t i = 0; i < memb_cltrs[score.rid].size(); i++)
-               //cluster_assignments[rmembers[i]] = score.pid;
-
             // Deactivate both lid and rid
             deactivate(lid); deactivate(rid);
 
             // Deactivate pid
             deactivate(pid);
-            remove_cache[i] = true;
+            remove_cache[pid] = true;
+
             final_centroids[pid] = std::vector<double>(
                     cltrs->get_mean_rawptr(pid),
                     cltrs->get_mean_rawptr(pid) + ncol);
+            cluster_assignment_counts[pid] =
+                cluster_assignment_counts[lid] + cluster_assignment_counts[rid];
+            cluster_assignment_counts[lid] = cluster_assignment_counts[rid] = 0;
         } else {
+            remove_cache[pid] = false;
 #if 1
             printf("\nPart: %u will split! score: %.4f > crit val: %.4f\n",
                     pid, score, critical_values[strictness]);
@@ -159,9 +154,19 @@ void gmeans_coordinator::partition_decision() {
         }
     }
 
-    for (size_t i = 0; i < remove_cache.size(); i++) {
-        if (remove_cache[i])
-            hcltrs.erase(keys[i]);
+    // Assemble cluster membership
+#pragma omp parallel for
+    for (size_t rid = 0; rid < nrow; rid++) {
+        auto pid = part_id[rid];
+        if (remove_cache[pid]) {
+            // Means that row assignments needs to be reverted to part_id
+            cluster_assignments[rid] = pid;
+        }
+    }
+
+    for (auto const& kv : remove_cache) {
+        if (kv.second)
+            hcltrs.erase(kv.first);
     }
 }
 
@@ -209,7 +214,7 @@ base::cluster_t gmeans_coordinator::run(
     // Run loop
     size_t iter = 0;
 
-    unsigned curr_nclust = 1;
+    unsigned curr_nclust = 2;
 #if 1
     while (true) {
         printf("Running a Partition Mean step...\n");
@@ -230,8 +235,6 @@ base::cluster_t gmeans_coordinator::run(
             print_clusters();
             printf("\nAssignment counts:\n");
             base::sparse_print(cluster_assignment_counts);
-            //printf("\nAssignments:\n");
-            //base::print(cluster_assignments, nrow);
 #endif
             printf("\n*****************************************************\n");
             if (compute_pdist)
@@ -277,8 +280,11 @@ base::cluster_t gmeans_coordinator::run(
 
 #ifndef BIND
     printf("Final cluster counts: \n");
-    accumulate_cluster_counts();
     base::sparse_print(cluster_assignment_counts);
+    //printf("Final centroids\n");
+    //for (auto const& kv : final_centroids) {
+        //printf("k: %u, v: ", kv.first); base::print(kv.second);
+    //}
     printf("\n******************************************\n");
 #endif
 
