@@ -78,14 +78,6 @@ void hclust::start(const thread_state_t state=WAIT) {
                 "Thread creation (pthread_create) failed!", rc);
 }
 
-// Simply pick a new partition
-void hclust::H_split_step() {
-    for (unsigned row = 0; row < nprocrows; row++) {
-        unsigned true_row_id = get_global_data_id(row);
-        part_id[true_row_id] = cluster_assignments[true_row_id];
-    }
-}
-
 void hclust::H_EM_step() {
     local_hcltrs.clear();
 
