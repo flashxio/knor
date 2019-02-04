@@ -95,8 +95,7 @@ void kmeans_task_coordinator::set_global_ptrs() {
 }
 
 void kmeans_task_coordinator::mb_iteration_end() {
-    // Serial O(n)
-    // TODO: Use reduction
+    // Fine at for O(n)
     std::vector<double>v; v.assign(k, 0);// Use std::fill
     for (size_t rid = 0; rid < nrow; rid++) {
         auto cid = cluster_assignments[rid];
@@ -104,11 +103,11 @@ void kmeans_task_coordinator::mb_iteration_end() {
             v[cid]++;
     }
 
-    // Serial O(k)
+    // Fine at O(k)
     for (size_t cid = 0; cid < k; cid++)
         v[cid] = 1.0/v[cid];
 
-    // Serial O(t*b)
+    // BAD: Serial O(t*b)
     // NOTE: This updates global clusters
     for (auto const& th : threads) {
         std::static_pointer_cast<kmeans_task_thread>(th)
@@ -418,7 +417,7 @@ kbase::cluster_t kmeans_task_coordinator::mb_run(double* allocd_data) {
 kbase::cluster_t kmeans_task_coordinator::run(
         double* allocd_data, const bool numa_opt) {
 #ifdef PROFILER
-    ProfilerStart("libman/kmeans_task_coordinator.perf");
+    ProfilerStart("kmeans_task_coordinator.perf");
 #endif
 
     set_global_ptrs();
