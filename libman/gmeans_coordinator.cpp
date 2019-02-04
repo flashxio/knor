@@ -155,7 +155,7 @@ void gmeans_coordinator::partition_decision() {
     }
 
     // Assemble cluster membership
-#pragma omp parallel for
+#pragma omp parallel for firstprivate(remove_cache), shared(cluster_assignments)
     for (size_t rid = 0; rid < nrow; rid++) {
         auto pid = part_id[rid];
         if (remove_cache[pid]) {
