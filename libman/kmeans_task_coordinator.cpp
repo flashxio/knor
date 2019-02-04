@@ -312,7 +312,7 @@ kbase::cluster_t kmeans_task_coordinator::dump_state() {
 
 kbase::cluster_t kmeans_task_coordinator::mb_run(double* allocd_data) {
 #ifdef PROFILER
-    ProfilerStart("libman/mb_kmeans_task_coordinator.perf");
+    ProfilerStart("mb_kmeans_task_coordinator.perf");
 #endif
 
     if ((double)mb_size / nthreads < 1)
@@ -404,8 +404,6 @@ kbase::cluster_t kmeans_task_coordinator::mb_run(double* allocd_data) {
 #ifndef BIND
     printf("Final cluster counts: \n");
     kbase::print(cluster_assignment_counts);
-    printf("Final cluster assignments: \n");
-    kbase::print(cluster_assignments);
     printf("\n******************************************\n");
 #endif
 
