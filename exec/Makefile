@@ -38,9 +38,9 @@ test-dist:
 	./knori ../test-data/matrix_r50_c5_rrw.bin 50 5 8 \
 		-t none -C ../test-data/init_clusters_k8_c5.bin -T 2 -o $(OUTDIR_IM)
 	@echo "Running DIST .."
-	mpirun.mpich -n 2 ./knord ../test-data/matrix_r50_c5_rrw.bin 50 5 8 \
+	mpirun -n 2 ./knord ../test-data/matrix_r50_c5_rrw.bin 50 5 8 \
 		-t none -C ../test-data/init_clusters_k8_c5.bin -T 2 -o $(OUTDIR_DM)
-	mpirun.mpich -n 2 ./knord ../test-data/matrix_r50_c5_rrw.bin 50 5 8 \
+	mpirun -n 2 ./knord ../test-data/matrix_r50_c5_rrw.bin 50 5 8 \
 		    -t none -C ../test-data/init_clusters_k8_c5.bin -T 2 \
 			-P -o $(OUTDIR_FDM)
 	./test-outdiff.sh
