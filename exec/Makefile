@@ -48,6 +48,8 @@ test-dist:
 	rm -rf $(OUTDIR_IM) $(OUTDIR_DM) $(OUTDIR_FDM)
 
 test-nor:
+	@echo "Testing gmeans"
+	./gmeans -f ../test-data/iris.bin -n 150 -m 4 -k 4 -T 2 -i 4 -l .2
 	@echo "Testing medoids!"
 	./medoids -f ../test-data/iris.bin -n 150 -m 4 -k 3 -T 2 -i 10
 	@echo "Testing skmeans"
@@ -58,8 +60,6 @@ test-nor:
 	./hclust -f ../test-data/iris.bin -n 150 -m 4 -k 4 -T 2 -i 4 -l .2
 	@echo "Testing xmeans"
 	./xmeans -f ../test-data/iris.bin -n 150 -m 4 -k 4 -T 2 -i 4 -l .2
-	@echo "Testing gmeans"
-	./gmeans -f ../test-data/iris.bin -n 150 -m 4 -k 4 -T 2 -i 4 -l .2
 	@echo "Testing mb_knori"
 	./mb_knori -f ../test-data/iris.bin -n 150 -m 4 -k 3 -T 2 -i 10 -M 30
 

@@ -29,13 +29,13 @@ update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-5 60 \
 
 # Make sure the package information is up-to-date
 apt-get -y update
-apt-get sudo apt-get -o Dpkg::Options::="--force-confold" --force-yes -y upgrade
+apt-get -o Dpkg::Options::="--force-confold" --allow -y upgrade
 
 apt-get install -y python-pip python-dev build-essential
 # In memory dependencies
 apt-get install -y libboost-all-dev libeigen3-dev
 # NUMA
-apt-get install -y libnuma-dbg libnuma-dev libnuma1
+apt-get install -y libnuma-dev libnuma1
 
 # Message Passing Interface
 apt-get install -y libmpich-dev
