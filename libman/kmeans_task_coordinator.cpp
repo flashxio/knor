@@ -408,6 +408,7 @@ kbase::cluster_t kmeans_task_coordinator::mb_run(double* allocd_data) {
     kbase::print(cluster_assignments);
     printf("\n******************************************\n");
 #endif
+
     return kbase::cluster_t(this->nrow, this->ncol, iter, this->k,
             &cluster_assignments[0], &cluster_assignment_counts[0],
             cltrs->get_means());

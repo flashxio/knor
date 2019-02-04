@@ -44,7 +44,6 @@ namespace knor { namespace prune {
 class task_thread : public knor::thread {
 protected: // Lazy
     std::shared_ptr<kbase::prune_clusters> g_clusters; // Ptr to global cluster data
-    unsigned start_rid; // The row id of the first item in this partition
 
     void* driver; // Hacky, but no time ...
     knor::task_queue* tasks;

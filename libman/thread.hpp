@@ -86,11 +86,11 @@ void* callback(void* arg) {
 class thread {
 protected:
     pthread_t hw_thd;
-    unsigned node_id; // Which NUMA node are you on?
+    const unsigned node_id; // Which NUMA node are you on?
     int thd_id;
-    size_t ncol; // How many columns in the data
+    const size_t ncol; // How many columns in the data
     unsigned* cluster_assignments;
-    size_t start_rid; // With respect to the original data
+    unsigned start_rid; // With respect to the original data
     double* local_data; // Pointer to where the data begins that the thread works on
     size_t data_size; // true size of local_data at any point
     std::shared_ptr<kbase::clusters> local_clusters;
@@ -243,7 +243,7 @@ public:
         return start_rid;
     }
 
-    void set_start_rid(size_t start_rid) {
+    void set_start_rid(const size_t start_rid) {
         this->start_rid = start_rid;
     }
 
