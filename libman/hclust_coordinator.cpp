@@ -25,6 +25,7 @@
 #include "io.hpp"
 #include "clusters.hpp"
 #include "hclust_id_generator.hpp"
+#include "thd_safe_bool_vector.hpp"
 
 namespace knor {
 
@@ -35,16 +36,16 @@ hclust_coordinator::hclust_coordinator(const std::string fn, const size_t nrow,
         const double tolerance, const base::dist_t dt,
         const unsigned min_clust_size) :
     coordinator(fn, nrow, ncol, (base::get_hclust_floor(k)/2), max_iters,
-            nnodes, nthreads, centers, it, tolerance, dt) {
-
-        cltr_active_vec.assign(k, false);
-        activate(0);
-        this->min_clust_size = min_clust_size;
+            nnodes, nthreads, centers, it, tolerance, dt),
+    min_clust_size(min_clust_size) {
 
         ui_distribution = std::uniform_int_distribution<unsigned>(0, nrow-1);
 
         max_nodes = base::get_max_hnodes(k*2);
         hcltrs.set_max_capacity(max_nodes);
+
+        cltr_active_vec = base::thd_safe_bool_vector::create(max_nodes, false);
+        activate(0);
 
         if (centers) {
             // There must be at least one
@@ -213,6 +214,10 @@ void hclust_coordinator::inner_init(std::vector<unsigned>& remove_cache) {
         }
 
         remove_cache.push_back(id); // Should have no data members
+        if (cluster_assignment_counts[id] > 0) {
+            printf("Attempting to remove pid: %lu with %lld members\n",
+                    id, cluster_assignment_counts[id]);
+        }
         assert(cluster_assignment_counts[id] == 0);
 
         c_part cp;
@@ -299,21 +304,21 @@ void hclust_coordinator::accumulate_cluster_counts() {
 }
 
 void hclust_coordinator::deactivate(const unsigned id) {
-    cltr_active_vec[id] = false;
+    cltr_active_vec->set(id, false);
 }
 
 void hclust_coordinator::activate(const unsigned id) {
-    cltr_active_vec[id] = true;
+    cltr_active_vec->set(id, true);
 }
 
-bool hclust_coordinator::is_active(const unsigned id) {
-    return cltr_active_vec[id];
+const bool hclust_coordinator::is_active(const unsigned id) const {
+    return cltr_active_vec->get(id);
 }
 
 // NOTE: Only use after you've tried to split, because there can be no active
 //  clusters, but clusters can still be splittable during a run.
 const bool hclust_coordinator::steady_state() const {
-    for (auto const& flag : cltr_active_vec)
+    for (auto const& flag : cltr_active_vec->raw())
         if (flag)
             return false;
     return true; // No more clusters are active & none can be split

@@ -25,6 +25,7 @@
 #include "util.hpp"
 #include "io.hpp"
 #include "clusters.hpp"
+#include "thd_safe_bool_vector.hpp"
 
 namespace knor {
 
@@ -34,7 +35,7 @@ namespace knor {
             hclust_map& g_hcltrs,
             unsigned* cluster_assignments,
             const std::string fn, base::dist_t dist_metric,
-            const std::vector<bool>& cltr_active_vec,
+            const base::thd_safe_bool_vector::ptr cltr_active_vec,
             std::vector<double>& partition_dist,
             std::vector<double>& nearest_cdist, const bool& compute_pdist) :
         hclust(node_id, thd_id, start_rid, nprocrows, ncol, k,
@@ -83,7 +84,7 @@ void xmeans::H_EM_step() {
         }
 
         // Not active
-        if (!(cltr_active_vec[cluster_assignments[true_row_id]]) ||
+        if (!((*cltr_active_vec)[cluster_assignments[true_row_id]]) ||
                 g_hcltrs[rpart_id]->has_converged())
             continue; // Skip it
 

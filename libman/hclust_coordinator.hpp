@@ -72,7 +72,8 @@ class hclust_coordinator : public coordinator {
 
         std::vector<unsigned> nchanged;
         // Whether a particular cluster is cluster is still actively splitting
-        std::vector<bool> cltr_active_vec;
+        //  Multithreaded write
+        std::shared_ptr<base::thd_safe_bool_vector> cltr_active_vec;
         std::default_random_engine ui_generator;
         std::uniform_int_distribution<unsigned> ui_distribution;
         std::mutex _mutex;
@@ -136,7 +137,7 @@ class hclust_coordinator : public coordinator {
                 const unsigned& oneid, const c_part& cp);
         virtual void deactivate(const unsigned id);
         virtual void activate(const unsigned id);
-        virtual bool is_active(const unsigned i);
+        virtual const bool is_active(const unsigned i) const ;
         virtual const bool steady_state() const;
         virtual void accumulate_cluster_counts();
 };

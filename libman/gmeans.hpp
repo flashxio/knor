@@ -34,7 +34,7 @@ class gmeans : public xmeans {
                 hclust_map& g_hcltrs,
                 unsigned* cluster_assignments, const std::string fn,
                 base::dist_t dist_metric,
-                const std::vector<bool>& cltr_active_vec,
+                const std::shared_ptr<base::thd_safe_bool_vector> cltr_active_vec,
                 std::vector<double>& partition_dist,
                 std::vector<double>& nearest_cdist,
                 const bool& compute_pdist) {

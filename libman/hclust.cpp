@@ -25,6 +25,7 @@
 #include "util.hpp"
 #include "io.hpp"
 #include "clusters.hpp"
+#include "thd_safe_bool_vector.hpp"
 
 namespace knor {
 hclust::hclust(const int node_id, const unsigned thd_id,
@@ -32,7 +33,7 @@ hclust::hclust(const int node_id, const unsigned thd_id,
         const unsigned nprocrows, const unsigned ncol, unsigned k,
         hclust_map& g_hcltrs, unsigned* cluster_assignments,
         const std::string fn, base::dist_t dist_metric,
-        const std::vector<bool>& cltr_active_vec) :
+        const base::thd_safe_bool_vector::ptr cltr_active_vec) :
             thread(node_id, thd_id, ncol,
             cluster_assignments, start_rid, fn, dist_metric),
             g_hcltrs(g_hcltrs), cltr_active_vec(cltr_active_vec),
@@ -100,7 +101,7 @@ void hclust::H_EM_step() {
         auto rpart_id = part_id[true_row_id];
 
         // Not active or has converged
-        if (!(cltr_active_vec[cluster_assignments[true_row_id]]) ||
+        if (!((*cltr_active_vec)[cluster_assignments[true_row_id]]) ||
                 g_hcltrs[rpart_id]->has_converged())
             continue; // Skip it
 

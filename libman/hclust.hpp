@@ -27,6 +27,7 @@ namespace knor {
 namespace base {
     class clusters;
     class h_clusters;
+    class thd_safe_bool_vector;
 }
 
 typedef base::vmap<std::shared_ptr<base::clusters>> hclust_map;
@@ -37,7 +38,7 @@ class hclust : public thread {
         hclust_map& g_hcltrs;
         hclust_map local_hcltrs;
         std::vector<unsigned> nchanged; // How many change in each partition
-        const std::vector<bool>& cltr_active_vec; // Clusters still active
+        const std::shared_ptr<base::thd_safe_bool_vector> cltr_active_vec; // Clusters still active
 
         unsigned k;
         unsigned nprocrows; // The number of rows in this threads partition
@@ -49,7 +50,7 @@ class hclust : public thread {
                 hclust_map& g_hcltrs,
                 unsigned* cluster_assignments,
                 const std::string fn, base::dist_t dist_metric,
-                const std::vector<bool>& cltr_active_vec);
+                const std::shared_ptr<base::thd_safe_bool_vector> cltr_active_vec);
     public:
         static thread::ptr create(
                 const int node_id, const unsigned thd_id,
@@ -58,7 +59,7 @@ class hclust : public thread {
                 hclust_map& g_hcltrs,
                 unsigned* cluster_assignments, const std::string fn,
                 base::dist_t dist_metric,
-                const std::vector<bool>& cltr_active_vec) {
+                const std::shared_ptr<base::thd_safe_bool_vector> cltr_active_vec) {
             return thread::ptr(
                         new hclust(node_id, thd_id, start_rid,
                         nprocrows, ncol, k, g_hcltrs,
