@@ -35,11 +35,15 @@ if (strcmp(_, "1"))
 return true;
 }
 
-const bool thd_safe_bool_vector::get(const unsigned idx) const {
+const bool thd_safe_bool_vector::get(const size_t idx) const {
     return data[idx];
 }
 
-void thd_safe_bool_vector::set(const unsigned idx, const bool val) {
+bool thd_safe_bool_vector::operator[](const size_t idx) const {
+    return data[idx];
+}
+
+void thd_safe_bool_vector::set(const size_t idx, const bool val) {
     if (val) {
         data[idx] = _bool('1');
     } else {
@@ -47,7 +51,7 @@ void thd_safe_bool_vector::set(const unsigned idx, const bool val) {
     }
 }
 
-unsigned thd_safe_bool_vector::size() const {
+size_t thd_safe_bool_vector::size() const {
     return data.size();
 }
 

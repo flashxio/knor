@@ -52,7 +52,7 @@ private:
     thd_safe_bool_vector(const size_t len, const bool init) :
         thd_safe_bool_vector(len) {
             if (init) {
-                for (unsigned i = 0; i < data.size(); i++)
+                for (size_t i = 0; i < data.size(); i++)
                     data[i] = _bool('1');
             } else {
                 for (unsigned i = 0; i < data.size(); i++)
@@ -69,12 +69,14 @@ public:
         return ptr(new thd_safe_bool_vector(len, init));
     }
 
-    const bool get(const unsigned idx) const;
+    const bool get(const size_t idx) const;
 
-    void set(const unsigned idx, const bool val);
+    void set(const size_t idx, const bool val);
+    bool operator[](const size_t) const;
 
-    unsigned size() const;
+    size_t size() const;
     void print() const;
+    const std::vector<_bool>& raw() const { return data; }
 };
 } } // End namespace knor, base
 #endif
