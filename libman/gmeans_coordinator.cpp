@@ -216,7 +216,7 @@ base::cluster_t gmeans_coordinator::run(
 
         for (iter = 0; iter < max_iters; iter++) {
 #ifndef BIND
-            printf("\n\nNCLUST: %u, Iteration: %lu\n", curr_nclust, iter);
+            printf("\nNCLUST: %u, Iteration: %lu\n", curr_nclust, iter);
 #endif
             // Now pick between the cluster splits
             wake4run(H_EM);

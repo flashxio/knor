@@ -55,8 +55,12 @@ struct c_part {
                 r1 != std::numeric_limits<unsigned>::max());
     }
 
-    void print() const { printf("l0: %u, l1: %u, r0: %u, r1: %u\n",
-            l0, l1, r0, r1); }
+    void print() const {
+#ifndef BIND
+        printf("l0: %u, l1: %u, r0: %u, r1: %u\n",
+            l0, l1, r0, r1);
+#endif
+    }
     bool splittable() const { return l_splittable() && r_splittable(); }
     void check() const { assert(splittable()); }
 };

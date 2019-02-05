@@ -53,7 +53,7 @@ void gmeans::H_split_step() {
         for (size_t col = 0; col < ncol; col++)
             dotprod += local_data[offset+col] * v[col];
 
-        nearest_cdist[true_row_id] = dotprod/v[ncol]; // TODO: Verify with xmeans
+        nearest_cdist[true_row_id] = dotprod/v[ncol];
     }
 }
 

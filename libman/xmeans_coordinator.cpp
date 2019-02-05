@@ -151,19 +151,13 @@ void xmeans_coordinator::compute_bic_scores(
     while (itr.has_next()) {
         auto kv = itr.next();
         assert(kv.first == kv.second->get_id());
-#if 1
+#if VERBOSE
         printf("BIC evaluation for pid: %lu, lid: %u, rid: %u\n",
                 kv.first, kv.second->get_zeroid(), kv.second->get_oneid());
 #endif
         bic_scores.push_back(split_score_t(kv.second->get_id(),
                     kv.second->get_zeroid(), kv.second->get_oneid()));
     }
-
-#if 0
-    assert(std::accumulate(cluster_assignment_counts.begin(),
-                cluster_assignment_counts.end(), 0)
-                        == static_cast<llong_t>(nrow));
-#endif
 
     // TODO: Slow
     // Creates structures to hold cluster membership
@@ -189,7 +183,7 @@ void xmeans_coordinator::partition_decision() {
     for (size_t i = 0; i < bic_scores.size(); i++) {
         auto score = bic_scores[i];
         if (score.pscore > score.cscore) {
-#if 1
+#if VERBOSE
             printf("\nPart: %u will NOT split! pscore: %.4f > cscore: %.4f\n",
                     score.pid, score.pscore, score.cscore);
 #endif
@@ -212,7 +206,7 @@ void xmeans_coordinator::partition_decision() {
                     cltrs->get_mean_rawptr(score.pid),
                     cltrs->get_mean_rawptr(score.pid) + ncol);
         } else {
-#if 1
+#if VERBOSE
             printf("\nPart: %u will split! pscore: %.4f <= cscore: %.4f\n",
                     score.pid, score.pscore, score.cscore);
 #endif
@@ -253,7 +247,6 @@ base::cluster_t xmeans_coordinator::run(
 
     unsigned curr_nclust = 2;
     while (true) {
-        printf("Running a Partition Mean step...\n");
         // TODO: Do this simultaneously with H_EM step
         wake4run(MEAN);
         wait4complete();
@@ -261,20 +254,18 @@ base::cluster_t xmeans_coordinator::run(
         compute_pdist = true;
 
         for (iter = 0; iter < max_iters; iter++) {
-            printf("\n\nNCLUST: %u, Iteration: %lu\n", curr_nclust, iter);
+#ifndef BIND
+            printf("\nNCLUST: %u, Iteration: %lu\n", curr_nclust, iter);
+#endif
             // Now pick between the cluster splits
             wake4run(H_EM);
             wait4complete();
             update_clusters();
-#if 1
-            printf("\nAfter update_clusters ... Global hcltrs:\n");
-            print_clusters();
+#ifndef BIND
             printf("\nAssignment counts:\n");
             base::sparse_print(cluster_assignment_counts);
-            //printf("\nAssignments:\n");
-            //base::print(cluster_assignments, nrow);
-#endif
             printf("\n*****************************************************\n");
+#endif
             if (compute_pdist)
                 compute_pdist = false;
         }
@@ -283,7 +274,9 @@ base::cluster_t xmeans_coordinator::run(
         partition_decision();
 
         if (curr_nclust >= k*2) {
+#ifndef BIND
             printf("\n\nCLUSTER SIZE EXIT @ %u!\n", curr_nclust);
+#endif
             break;
         }
 
@@ -293,7 +286,9 @@ base::cluster_t xmeans_coordinator::run(
         // Break when clusters are inactive due to size
         if (hcltrs.keyless()) {
             assert(steady_state()); // NOTE: Comment when benchmarking
+#ifndef BIND
             printf("\n\nSTEADY STATE EXIT!\n");
+#endif
             break;
         }
         curr_nclust = hcltrs.keycount()*2 + final_centroids.size();

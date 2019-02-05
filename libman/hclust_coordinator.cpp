@@ -168,12 +168,14 @@ void hclust_coordinator::run_hinit() {
 }
 
 void hclust_coordinator::print_clusters() {
+#ifndef BIND
     auto itr = hcltrs.get_iterator();
     while (itr.has_next()) {
         auto kv = itr.next();
         printf("cid: %lu\n", kv.first);
         kv.second->print_means();
     }
+#endif
 }
 
 // How to initialize when splitting
@@ -193,9 +195,6 @@ void hclust_coordinator::inner_init(std::vector<unsigned>& remove_cache) {
 
         // Min cluster deactivation
         if (cluster_assignment_counts[zeroid] < min_clust_size) {
-#if 0
-            printf("MIN CLUST DEACTIVATION!\n");
-#endif
             deactivate(zeroid); // So we no longer process this
             // Record this as an output
             final_centroids[zeroid] = std::vector<double>(
@@ -206,9 +205,6 @@ void hclust_coordinator::inner_init(std::vector<unsigned>& remove_cache) {
         }
 
         if (cluster_assignment_counts[oneid] < min_clust_size) {
-#if 0
-            printf("MIN CLUST DEACTIVATION!\n");
-#endif
             deactivate(oneid); // But never remove
             final_centroids[oneid] = std::vector<double>(
                     hcltrs[id]->get_mean_rawptr(1),
@@ -285,9 +281,6 @@ void hclust_coordinator::init_splits() {
 
     // Now update with new clusters added and delete parent
     for (unsigned id : remove_cache) {
-#if 0
-        printf("\t\tErasing: %u\n", id);
-#endif
         hcltrs.erase(id); // Delete
         deactivate(id);
     }
@@ -306,16 +299,10 @@ void hclust_coordinator::accumulate_cluster_counts() {
 }
 
 void hclust_coordinator::deactivate(const unsigned id) {
-#if 0
-    printf("Deactivating %u\n", id);
-#endif
     cltr_active_vec[id] = false;
 }
 
 void hclust_coordinator::activate(const unsigned id) {
-#if 0
-    printf("Activating %u\n", id);
-#endif
     cltr_active_vec[id] = true;
 }
 
@@ -385,15 +372,6 @@ void hclust_coordinator::update_clusters() {
             }
         }
     }
-
-#if 0 // Testing
-    size_t total_changed = 0;
-    for (auto const& val : nchanged)
-        total_changed += val;
-
-    printf("Total nchanged: %lu\n", total_changed);
-    assert(total_changed <= nrow);
-#endif
 }
 
 /**
@@ -421,11 +399,6 @@ base::cluster_t hclust_coordinator::run(
         _init_t = kbase::init_t::FORGY;
     run_hinit(); // Initialize clusters
 
-#if 1
-    printf("After initial init: \n");
-    hcltrs[0]->print_means();
-#endif
-
     // Run loop
     size_t iter = 0;
 
@@ -438,20 +411,18 @@ base::cluster_t hclust_coordinator::run(
             wait4complete();
 
             update_clusters();
-#if 1
-            //printf("\nAfter update_clusters ... Global hcltrs:\n");
-            //print_clusters();
+#ifndef BIND
             printf("\nAssignment counts:\n");
             base::sparse_print(cluster_assignment_counts);
-            //printf("\nAssignments:\n");
-            //base::print(cluster_assignments, nrow);
-#endif
             printf("\n*****************************************************\n");
+#endif
         }
 
         if (curr_nclust >= k*2) {
+#ifndef BIND
             printf("\n\nCLUSTER SIZE EXIT @ %u!\n", curr_nclust);
             break;
+#endif
         }
 
         // Update global state
@@ -459,8 +430,9 @@ base::cluster_t hclust_coordinator::run(
 
         // Break when clusters are inactive due to size
         if (hcltrs.keyless()) {
-            assert(steady_state()); // NOTE: Comment when benchmarking
+#ifndef BIND
             printf("\n\nSTEADY STATE EXIT!\n");
+#endif
             break;
         }
         curr_nclust = hcltrs.keycount()*2 + final_centroids.size();
@@ -491,7 +463,6 @@ base::cluster_t hclust_coordinator::run(
 
 #ifndef BIND
     printf("Final cluster counts & means: \n");
-    //accumulate_cluster_counts();
     base::sparse_print(cluster_assignment_counts);
     //for (auto const& kv : final_centroids) {
         //printf("k: %u, v: ", kv.first); base::print(kv.second);
