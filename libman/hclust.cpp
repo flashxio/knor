@@ -139,7 +139,13 @@ void hclust::partition_mean() {
     local_clusters->clear(); // This sets all means to 0 -- no resizing
 
     for (unsigned row = 0; row < nprocrows; row++) {
-        auto rpart_id = part_id[get_global_data_id(row)];
+        unsigned true_row_id = get_global_data_id(row);
+
+        // Not active
+        if (!((*cltr_active_vec)[cluster_assignments[true_row_id]]))
+            continue; // Skip it
+
+        auto rpart_id = part_id[true_row_id];
         local_clusters->add_member(&local_data[row*ncol], rpart_id);
     }
 }

@@ -130,7 +130,9 @@ void gmeans_coordinator::partition_decision() {
             deactivate(pid);
 
 #pragma omp critical
+            {
             remove_cache[pid] = true;
+            }
 
             final_centroids[pid] = std::vector<double>(
                     cltrs->get_mean_rawptr(pid),
@@ -140,7 +142,9 @@ void gmeans_coordinator::partition_decision() {
             cluster_assignment_counts[lid] = cluster_assignment_counts[rid] = 0;
         } else {
 #pragma omp critical
+            {
             remove_cache[pid] = false;
+            }
 #if VERBOSE
             printf("\nPart: %u will split! score: %.4f > crit val: %.4f\n",
                     pid, score, critical_values[strictness]);
