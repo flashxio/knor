@@ -27,6 +27,7 @@
 #include "io.hpp"
 #include "clusters.hpp"
 #include "hclust_id_generator.hpp"
+#include "thd_safe_bool_vector.hpp"
 
 namespace knor {
 
@@ -176,8 +177,8 @@ void xmeans_coordinator::partition_decision() {
     std::unordered_map<unsigned, std::vector<unsigned>> memb_cltrs; // Parent
     compute_bic_scores(bic_scores, memb_cltrs);
 
-    std::vector<bool> remove_cache;
-    remove_cache.assign(bic_scores.size(), false);
+    base::thd_safe_bool_vector::ptr remove_cache =
+        base::thd_safe_bool_vector::create(bic_scores.size(), false);
 
 #pragma omp parallel for shared (bic_scores)
     for (size_t i = 0; i < bic_scores.size(); i++) {
@@ -201,7 +202,7 @@ void xmeans_coordinator::partition_decision() {
 
             // Deactivate pid
             deactivate(score.pid);
-            remove_cache[i] = true;
+            remove_cache->set(i, true);
             final_centroids[score.pid] = std::vector<double>(
                     cltrs->get_mean_rawptr(score.pid),
                     cltrs->get_mean_rawptr(score.pid) + ncol);
@@ -213,8 +214,8 @@ void xmeans_coordinator::partition_decision() {
         }
     }
 
-    for (size_t i = 0; i < remove_cache.size(); i++) {
-        if (remove_cache[i])
+    for (size_t i = 0; i < remove_cache->size(); i++) {
+        if (remove_cache->get(i))
             hcltrs.erase(bic_scores[i].pid);
     }
 }

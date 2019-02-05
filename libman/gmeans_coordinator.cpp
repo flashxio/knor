@@ -125,13 +125,11 @@ void gmeans_coordinator::partition_decision() {
             unsigned rid = hcltrs[pid]->get_oneid();
 
             // Deactivate both lid and rid
-            // FIXME: Multiple writers to a boolean vector
             deactivate(lid); deactivate(rid);
-
             // Deactivate pid
-            // FIXME: Multiple writers to a boolean vector
             deactivate(pid);
-            // FIXME: Multiple writers to a map
+
+#pragma omp critical
             remove_cache[pid] = true;
 
             final_centroids[pid] = std::vector<double>(
@@ -141,7 +139,7 @@ void gmeans_coordinator::partition_decision() {
                 cluster_assignment_counts[lid] + cluster_assignment_counts[rid];
             cluster_assignment_counts[lid] = cluster_assignment_counts[rid] = 0;
         } else {
-            // FIXME: Multiple writers to a map
+#pragma omp critical
             remove_cache[pid] = false;
 #if VERBOSE
             printf("\nPart: %u will split! score: %.4f > crit val: %.4f\n",
