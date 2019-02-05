@@ -117,9 +117,8 @@ void sparse_print(const T* arr, const unsigned len) {
 // Vector
 template <typename T>
 void sparse_print(const typename std::vector<T>& v, size_t max_print=100) {
-    sparse_print<T>(&v[0], std::min(v.size(), max_print));
-    if (max_print < v.size())
-        std::cout << (v.size()-max_print) << " results ommitted ....\n";
+    //sparse_print<T>(&v[0], std::min(v.size(), max_print));
+    sparse_print<T>(&v[0], v.size());
 }
 
 template <typename T>
