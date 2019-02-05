@@ -68,11 +68,10 @@ void gmeans_coordinator::build_thread_state() {
 
 void gmeans_coordinator::assemble_ad_vecs(std::unordered_map<unsigned,
         std::vector<double>>& ad_vecs) {
-    assert(nearest_cdist.size() == part_id.size() && part_id.size() == nrow);
+    //assert(nearest_cdist.size() == part_id.size() && part_id.size() == nrow);
 
     for (size_t i = 0; i < nearest_cdist.size(); i++) {
         ad_vecs[part_id[i]].push_back(nearest_cdist[i]);
-        assert(hcltrs.has_key(part_id[i])); // TODO: RM
     }
 }
 
@@ -109,14 +108,7 @@ void gmeans_coordinator::partition_decision() {
     std::vector<size_t> keys;
     hcltrs.get_keys(keys);
 
-    // TODO: RM
-    assert(keys.size() == ad_vecs.size());
-    for (auto key : keys)
-        assert(!(ad_vecs.find(key) == ad_vecs.end()));
-    // END TODO: RM
-
     // NOTE: We use ad_vecs.back() to store the score
-
     std::unordered_map<unsigned, bool> remove_cache;
 
 #pragma omp parallel for
@@ -125,7 +117,7 @@ void gmeans_coordinator::partition_decision() {
         auto score = ad_vecs[pid].back();
 
         if (score <= critical_values[strictness]) {
-#if 1
+#if VERBOSE
             printf("\nPart: %u will NOT split! score: %.4f <= crit val: %.4f\n",
                     pid, score, critical_values[strictness]);
 #endif
@@ -147,7 +139,7 @@ void gmeans_coordinator::partition_decision() {
             cluster_assignment_counts[lid] = cluster_assignment_counts[rid] = 0;
         } else {
             remove_cache[pid] = false;
-#if 1
+#if VERBOSE
             printf("\nPart: %u will split! score: %.4f > crit val: %.4f\n",
                     pid, score, critical_values[strictness]);
 #endif
@@ -215,9 +207,7 @@ base::cluster_t gmeans_coordinator::run(
     size_t iter = 0;
 
     unsigned curr_nclust = 2;
-#if 1
     while (true) {
-        printf("Running a Partition Mean step...\n");
         // TODO: Do this simultaneously with H_EM step
         wake4run(MEAN);
         wait4complete();
@@ -225,18 +215,18 @@ base::cluster_t gmeans_coordinator::run(
         compute_pdist = true;
 
         for (iter = 0; iter < max_iters; iter++) {
+#ifndef BIND
             printf("\n\nNCLUST: %u, Iteration: %lu\n", curr_nclust, iter);
+#endif
             // Now pick between the cluster splits
             wake4run(H_EM);
             wait4complete();
             update_clusters();
-#if 1
-            printf("\nAfter update_clusters ... Global hcltrs:\n");
-            print_clusters();
+#ifndef BIND
             printf("\nAssignment counts:\n");
             base::sparse_print(cluster_assignment_counts);
-#endif
             printf("\n*****************************************************\n");
+#endif
             if (compute_pdist)
                 compute_pdist = false;
         }
@@ -250,7 +240,9 @@ base::cluster_t gmeans_coordinator::run(
         partition_decision();
 
         if (curr_nclust >= k*2) {
+#ifndef BIND
             printf("\n\nCLUSTER SIZE EXIT @ %u!\n", curr_nclust);
+#endif
             break;
         }
 
@@ -259,16 +251,16 @@ base::cluster_t gmeans_coordinator::run(
 
         // Break when clusters are inactive due to size
         if (hcltrs.keyless()) {
-            assert(steady_state()); // NOTE: Comment when benchmarking
+            //assert(steady_state()); // NOTE: Comment when benchmarking
+#ifndef BIND
             printf("\n\nSTEADY STATE EXIT!\n");
+#endif
             break;
         }
         curr_nclust = hcltrs.keycount()*2 + final_centroids.size();
     }
 #ifdef PROFILER
     ProfilerStop();
-#endif
-
 #endif
 
     gettimeofday(&end, NULL);

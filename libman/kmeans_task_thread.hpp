@@ -61,6 +61,7 @@ public:
     // Mini-batch
     void set_mb_perctg(const double mb_perctg) { this->mb_perctg = mb_perctg; }
     void mb_finalize_centroids(const double* eta);
+    const size_t sample_size() const { return mb_selected.size(); }
     // End Mini-batch
 
     void start(const knor::thread_state_t state) override;

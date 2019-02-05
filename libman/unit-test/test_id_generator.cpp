@@ -55,7 +55,6 @@ int main(int argc, char* argv []) {
     // <child, parent>
     std::unordered_map<unsigned, unsigned> used;
 
-    // TODO: Dispatch each job to a thread
     auto lr = geny->get_split_ids(0);
     check_insert(0, used, lr);
 

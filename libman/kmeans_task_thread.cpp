@@ -115,7 +115,7 @@ void kmeans_task_thread::wake(thread_state_t state) {
         curr_task = tasks->get_task();
         assert(curr_task->get_nrow() <= tasks->get_nrow());
 
-        // TODO: These are exceptions to the rule & therefore not good
+        // NOTE: These are exceptions to the rule & therefore not good
         if (state == thread_state_t::EM || state == thread_state_t::MB_EM) {
             meta.num_changed = 0; // Always reset at the beginning of an EM-step
         }
@@ -150,8 +150,6 @@ void kmeans_task_thread::mb_finalize_centroids(const double* eta) {
 
         auto cid = cluster_assignments[g_rid];
         assert(cid < g_clusters->get_nclust());
-
-        // TODO: Use a reduction
         g_clusters->scale_centroid(eta[cid], cid, &(local_data[local_rid*ncol]));
     }
 

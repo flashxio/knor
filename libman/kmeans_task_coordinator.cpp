@@ -109,11 +109,21 @@ void kmeans_task_coordinator::mb_iteration_end() {
 
     // BAD: Serial O(t*b)
     // NOTE: This updates global clusters
+#if 0
+    size_t total_procd = 0;
+#endif
     for (auto const& th : threads) {
+#if 0
+        total_procd += std::static_pointer_cast<kmeans_task_thread>(th)
+            ->sample_size();
+#endif
         std::static_pointer_cast<kmeans_task_thread>(th)
             ->mb_finalize_centroids(&v[0]);
     }
 
+#if 0
+    printf("Total samples for iteration: %lu\n", total_procd);
+#endif
     // Reset the distances
     std::fill(&dist_v[0], &dist_v[nrow], std::numeric_limits<double>::max());
 }
@@ -319,7 +329,8 @@ kbase::cluster_t kmeans_task_coordinator::mb_run(double* allocd_data) {
                 " 1");
 
     // First set the thread mini-batch size
-    double mb_perctg = (double)mb_size / (nthreads*nrow);
+    double mb_perctg = (double)mb_size / nrow;
+
     for (auto const& th : threads) {
         std::static_pointer_cast<kmeans_task_thread>(th)->
             set_mb_perctg(mb_perctg);

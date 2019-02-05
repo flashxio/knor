@@ -101,7 +101,6 @@ void hclust_coordinator::partition_mean(base::vmap<
         }
     }
 
-    // TODO: Verify correctness
     for (size_t i = 0; i < part_hcltrs.size(); i++) {
         if (part_hcltrs.has_key(i))
             part_hcltrs[i]->finalize_all();
@@ -468,7 +467,6 @@ base::cluster_t hclust_coordinator::run(
     }
 
     // Finally update the final centroids with the values in hcltrs
-    // TODO: Time waster
     auto itr = hcltrs.get_iterator();
     while (itr.has_next()) {
         auto const& c = itr.next().second;
