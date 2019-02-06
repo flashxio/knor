@@ -51,7 +51,7 @@ void gmeans_coordinator::build_thread_state() {
     for (unsigned thd_id = 0; thd_id < nthreads; thd_id++) {
         std::pair<unsigned, unsigned> tup = get_rid_len_tup(thd_id);
         thd_max_row_idx.push_back((thd_id*thds_row) + tup.second);
-        threads.push_back(xmeans::create((thd_id % nnodes),
+        threads.push_back(gmeans::create((thd_id % nnodes),
                     thd_id, tup.first, tup.second,
                     ncol, k, hcltrs, &cluster_assignments[0], fn,
                     _dist_t, cltr_active_vec, partition_dist, nearest_cdist,
@@ -59,9 +59,9 @@ void gmeans_coordinator::build_thread_state() {
         threads[thd_id]->set_parent_cond(&cond);
         threads[thd_id]->set_parent_pending_threads(&pending_threads);
         threads[thd_id]->start(WAIT); // Thread puts itself to sleep
-        std::static_pointer_cast<xmeans>(threads[thd_id])
+        std::static_pointer_cast<gmeans>(threads[thd_id])
                     ->set_part_id(&part_id[0]);
-        std::static_pointer_cast<xmeans>(threads[thd_id])
+        std::static_pointer_cast<gmeans>(threads[thd_id])
                     ->set_g_clusters(cltrs);
     }
 }
