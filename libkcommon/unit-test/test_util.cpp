@@ -42,6 +42,16 @@ void test_hclust_floor() {
     printf("hclust_floor test OK ...\n");
 }
 
+void test_get_max_hnodes() {
+    assert(get_max_hnodes(4) == 7);
+    assert(get_max_hnodes(8) == 15);
+    assert(get_max_hnodes(16) == 31);
+    assert(get_max_hnodes(32) == 63);
+    assert(get_max_hnodes(64) == 127);
+    assert(get_max_hnodes(128) == 255);
+    printf("test_get_max_hnodes test OK ...\n");
+}
+
 void test_hclust_ceil() {
     assert(get_hclust_ceil(1) == 1);
     assert(get_hclust_ceil(2) == 2);
@@ -68,5 +78,6 @@ void test_hclust_ceil() {
 int main() {
     test_hclust_floor();
     test_hclust_ceil();
+    test_get_max_hnodes();
     printf("Successful util test!\n");
 }
