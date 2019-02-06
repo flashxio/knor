@@ -81,9 +81,9 @@ class hclust : public thread {
 
         virtual void start(const thread_state_t state) override;
         // Given the current ID split it into two (or not)
-        virtual void H_split_step() { }
+        virtual void H_split_step() { };
         virtual void H_EM_step(); // Similar to EM step
-        virtual void partition_mean();
+        virtual void partition_mean() { };
         virtual void run() override;
 };
 } // End namespace knor

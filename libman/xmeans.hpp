@@ -66,6 +66,7 @@ class xmeans : public hclust {
         void set_g_clusters(std::shared_ptr<kbase::clusters> g_clusters) {
             this->g_clusters = g_clusters;
         }
+        virtual void partition_mean() override;
 };
 } // End namespace knor
 #endif

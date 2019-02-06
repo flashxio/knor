@@ -43,6 +43,8 @@ namespace knor {
                 cltr_active_vec), partition_dist(partition_dist),
                 nearest_cdist(nearest_cdist), compute_pdist(compute_pdist) {
 
+            local_clusters = kbase::clusters::create(
+                                base::get_max_hnodes(k), ncol);
             // Use this for the mean of the full partition calculation
         }
 
@@ -53,6 +55,24 @@ void xmeans::start(const thread_state_t state=WAIT) {
         throw base::thread_exception(
                 "Thread creation (pthread_create) failed!", rc);
 }
+
+void xmeans::partition_mean() {
+    local_clusters->clear(); // This sets all means to 0 -- no resizing
+
+    for (unsigned row = 0; row < nprocrows; row++) {
+        unsigned true_row_id = get_global_data_id(row);
+
+        // Not active
+        if (!((*cltr_active_vec)[cluster_assignments[true_row_id]]))
+            continue; // Skip it
+
+        auto rpart_id = part_id[true_row_id];
+        assert(rpart_id < local_clusters->get_nclust());
+
+        local_clusters->add_member(&local_data[row*ncol], rpart_id);
+    }
+}
+
 
 void xmeans::H_EM_step() {
     local_hcltrs.clear();
@@ -65,9 +85,11 @@ void xmeans::H_EM_step() {
         if (kv.second->has_converged()) {
             continue;
         }
-            // No need to set id, zeroid, oneid because global hcltrs knows them
-            local_hcltrs[kv.first] = base::h_clusters::create(2, ncol);
-            local_hcltrs[kv.first]->clear(); // NOTE: Could be combined into ctor
+
+        // No need to set id, zeroid, oneid because global hcltrs knows them
+        assert(local_hcltrs.size() > kv.first);
+        local_hcltrs[kv.first] = base::h_clusters::create(2, ncol);
+        local_hcltrs[kv.first]->clear(); // NOTE: Could be combined into ctor
     }
 
     for (unsigned row = 0; row < nprocrows; row++) {
