@@ -30,7 +30,6 @@
 namespace knor {
 
 typedef long long int llong_t;
-static const double PI = std::atan(1.0)*4;
 
 namespace base {
 
@@ -100,17 +99,27 @@ class vmap {
         vmap() { }
         vmap(unsigned capacity) { data.assign(capacity, nullptr); }
 
-        void set_max_capacity(const unsigned capacity) {
+        void set_capacity(const unsigned capacity) {
             data.assign(capacity, nullptr);
         }
 
         const size_t size() const { return data.size(); }
         void erase(size_t idx) { data[idx] = nullptr; }
 
-        T& operator[] (const size_t idx) { return data[idx]; }
-        const T& operator[] (size_t idx) const { return data[idx]; }
+        T& operator[] (const size_t idx) {
+            if (idx >= size())
+                data.resize(idx+1); // TODO: Efficiency
+            return data[idx];
+        }
+
+        const T& operator[] (const size_t idx) const {
+            assert(idx < size()); // TODO: Efficiency
+            return data[idx];
+        }
 
         T& at (const size_t idx) {
+            if (idx >= size())
+                data.resize(idx+1); // TODO: Efficiency
             return (*this)[idx];
         }
 
