@@ -37,13 +37,13 @@ fcm_coordinator::fcm_coordinator(const std::string fn, const size_t nrow,
         const double tolerance, const kbase::dist_t dt,
         const unsigned fuzzindex) :
     coordinator(fn, nrow, ncol, k, max_iters,
-            nnodes, nthreads, centers, it, tolerance, dt) {
+            nnodes, nthreads, centers, it, tolerance, dt),
+            fuzzindex(fuzzindex) {
 
 #ifdef _OPENMP
         omp_set_num_threads(nthreads);
 #endif
 
-        this->fuzzindex = fuzzindex;
         this->centers = base::dense_matrix<double>::create(k, ncol);
         this->prev_centers = base::dense_matrix<double>::create(k, ncol);
         this->um = base::dense_matrix<double>::create(k, nrow);
@@ -220,9 +220,6 @@ base::cluster_t fcm_coordinator::soft_run(double* allocd_data) {
         cluster_assignment_counts[i]++;
 
 #ifndef BIND
-    printf("Final cluster assignment: \n");
-    kbase::print(cluster_assignments);
-
     printf("Final cluster assignment count:\n");
     kbase::print(cluster_assignment_counts);
     printf("\n******************************************\n");
