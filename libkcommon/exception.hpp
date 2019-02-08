@@ -40,6 +40,13 @@ public:
         }
 };
 
+class oob_exception : public std::runtime_error {
+public:
+    oob_exception() :
+        runtime_error("[ERROR]: Out of Bounds!\n") {
+        }
+};
+
 class io_exception : public std::runtime_error {
 public:
     io_exception(const std::string msg) :
