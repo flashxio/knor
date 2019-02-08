@@ -30,7 +30,6 @@ else
 build_libs: build_common
 	$(MAKE) -C libauto # OMP
 	$(MAKE) -C libman # pthreads
-	$(MAKE) -C binding
 	$(MAKE) -C libdist # MPI
 	$(MAKE) -C libsem # FG
 endif
@@ -50,7 +49,6 @@ clean:
 	make --ignore-errors -C libman clean
 	make --ignore-errors -C exec clean
 	make --ignore-errors -C release-test clean
-	make --ignore-errors -C binding clean
 	make --ignore-errors -C libsem clean
 	make --ignore-errors -C libdist clean
 
