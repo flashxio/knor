@@ -46,10 +46,6 @@ int main(int argc, char* argv[]) {
     double tolerance = -1;
     double sample_rate = .2;
 
-    bool no_prune = false;
-    bool omp = false;
-
-    if (omp) { }
     unsigned nnodes = kbase::get_num_nodes();
     std::string outdir = "";
 
@@ -72,8 +68,6 @@ int main(int argc, char* argv[]) {
             cxxopts::value<unsigned>(max_iters))
       ("C,centersfn", "Path to centroids on disk",
             cxxopts::value<std::string>(centersfn), "FILE")
-      ("P,prune", "DO NOT use the minimal triangle inequality (~Elkan's alg)",
-            cxxopts::value<bool>(no_prune))
       ("N,nnodes", "No. of numa nodes you want to use",
             cxxopts::value<unsigned>(nnodes))
       ("d,dist", "Distance metric [eucl,cos,taxi]",
