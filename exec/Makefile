@@ -62,6 +62,8 @@ test-nor:
 	./xmeans -f ../test-data/iris.bin -n 150 -m 4 -k 4 -T 2 -i 4 -l .2
 	@echo "Testing mb_knori"
 	./mb_knori -f ../test-data/iris.bin -n 150 -m 4 -k 3 -T 2 -i 10 -M 30
+	@echo "Testing mb_knori"
+	./kmeanspp -f ../test-data/iris.bin -n 150 -m 4 -k 3 -T 2 -s 10
 
 test: all
 	$(MAKE) test-nor

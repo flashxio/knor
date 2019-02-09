@@ -76,7 +76,13 @@ std::pair<std::pair<unsigned, double>, cluster_t> kmeansPP(
     coord->tally_assignment_counts();
     double best_energy = coord->compute_cluster_energy();
 
+    struct timeval start, end;
+    gettimeofday(&start , NULL);
+
     for (unsigned start = 1; start < nstart; start++) {
+#ifndef BIND
+        printf("start: %u ...\n", start);
+#endif
         coord->reinit();
         coord->tally_assignment_counts();
         auto energy = coord->compute_cluster_energy();
@@ -87,6 +93,11 @@ std::pair<std::pair<unsigned, double>, cluster_t> kmeansPP(
             best_start = start + 1;
         }
     }
+
+    gettimeofday(&end, NULL);
+    printf("\n\nAlgorithmic time taken = %.6f sec\n",
+        base::time_diff(start, end));
+    printf("\n******************************************\n");
 
     auto _ = std::pair<unsigned, double>(best_start, best_energy);
     return std::pair<std::pair<unsigned, double>, cluster_t>(_, best_cluster_t);
