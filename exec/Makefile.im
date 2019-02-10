@@ -26,7 +26,7 @@ else
 	CXXFLAGS += -I.. -I../libauto -I../libman -I../libkcommon
 endif
 
-FILES := knori mb_knori medoids skmeans gmm fcm hclust xmeans gmeans kmeanspp
+FILES := knori mb_knori medoids skmeans gmm fcm hmeans xmeans gmeans kmeanspp
 
 all: $(FILES)
 
@@ -48,8 +48,8 @@ gmm: gmm.o
 fcm: fcm.o
 	$(CXX) -o fcm fcm.o $(LDFLAGS)
 
-hclust: hclust.o
-	$(CXX) -o hclust hclust.o $(LDFLAGS)
+hmeans: hmeans.o
+	$(CXX) -o hmeans hmeans.o $(LDFLAGS)
 
 xmeans: xmeans.o
 	$(CXX) -o xmeans xmeans.o $(LDFLAGS)

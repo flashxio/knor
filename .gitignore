@@ -28,9 +28,10 @@ exec/skmeans
 exec/mb_knori
 exec/gmm
 exec/fcm
-exec/hclust
+exec/hmeans
 exec/xmeans
 exec/gmeans
+exec/kmeanspp
 scratch/
 release-test/test_auto
 release-test/test_man

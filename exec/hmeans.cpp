@@ -46,7 +46,7 @@ int main(int argc, char* argv[]) {
     unsigned min_clust_size = 2;
 
     cxxopts::Options options(argv[0],
-            "hclust data-file nsamples dim k [alg-options]\n");
+            "hmeans data-file nsamples dim k [alg-options]\n");
     options.positional_help("[optional args]");
 
     options.add_options()
