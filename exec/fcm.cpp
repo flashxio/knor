@@ -125,12 +125,14 @@ int main(int argc, char* argv[]) {
         printf("No centers to read ..\n");
     }
 
-    knor::coordinator::ptr kc =
-        knor::fcm_coordinator::create(datafn, nrow, ncol, k,
+    auto ret = knor::fcm_coordinator::create(datafn, nrow, ncol, k,
                 max_iters, nnodes, nthread, &centers[0],
-                init, tolerance, dist_type, fuzzindex);
+                init, tolerance, dist_type, fuzzindex)->run();
 
-    std::static_pointer_cast<knor::fcm_coordinator>(kc)->soft_run();
+    if (!outdir.empty()) {
+        printf("\nWriting output to '%s'\n", outdir.c_str());
+        ret.write(outdir);
+    }
 
   } catch (const cxxopts::OptionException& e) {
     std::cout << "error parsing options: " << e.what() << std::endl;

@@ -125,7 +125,8 @@ void fcm_coordinator::update_centers() {
 /**
  * Main driver
  */
-base::cluster_t fcm_coordinator::soft_run(double* allocd_data) {
+base::cluster_t fcm_coordinator::run(double* allocd_data,
+        const bool numa_opt) {
 #ifdef PROFILER
     ProfilerStart("fcm_coordinator.perf");
 #endif

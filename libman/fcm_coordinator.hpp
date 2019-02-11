@@ -60,11 +60,8 @@ class fcm_coordinator : public coordinator {
 
         // Pass file handle to threads to read & numa alloc
         base::cluster_t run(double* allocd_data,
-                const bool numa_opt) override {
-            throw base::not_implemented_exception();
-        }
+                const bool numa_opt) override;
 
-        base::cluster_t soft_run(double* allocd_data=NULL);
         void update_contribution_matrix();
         void update_centers();
         void forgy_init() override;
