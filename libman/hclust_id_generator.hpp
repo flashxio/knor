@@ -22,6 +22,7 @@
 #include <unordered_map>
 #include <memory>
 #include <stdexcept>
+#include "io.hpp"
 
 namespace knor {
 
@@ -38,30 +39,22 @@ struct split_id {
 class hclust_id_generator {
 private:
     unsigned max_id;
-    std::unordered_map<unsigned, split_id> id_split_map;
+    std::vector<unsigned> recycler;
 
-    hclust_id_generator() {
-        max_id = 2;
-        id_split_map[0] = split_id(1, 2);
-    }
-
-    // Method is only called with exclusive lock taken
-    void generate_next(unsigned id) {
-        // Increments max_id
-        auto l = ++max_id;
-        auto r = ++max_id;
-        id_split_map[id] = split_id(l, r);
+    hclust_id_generator() : max_id(0) {
     }
 
 public:
     typedef std::shared_ptr<hclust_id_generator> ptr;
 
+    // Reclaim single IDs
+    void reclaim_id(const unsigned id) {
+        recycler.push_back(id);
+    }
+
     const void print() const {
-        printf("Printing hclust_id_generator:\n");
-        for (auto const& kv : id_split_map) {
-            printf("%u -> (%u, %u)\n", kv.first,
-                    kv.second.first, kv.second.second);
-        }
+        printf("Printing hclust_id_generator: Max ID: %u\n", max_id);
+        printf("recycler: \n"); base::print(recycler);
     }
 
     static ptr create() {
@@ -69,16 +62,23 @@ public:
     };
 
     // Given a cluster id to which a node is assigned, get the split IDs
-    split_id& get_split_ids(unsigned id) {
-        auto entry = id_split_map.find(id);
-        if (entry != id_split_map.end()) {
-            return entry->second; // i.e. the split_id struct
+    split_id get_split_ids() {
+        // Increments max_id
+        unsigned l, r;
+        if (recycler.size()) {
+            l = recycler.back();
+            recycler.pop_back();
         } else {
-            generate_next(id);
-            return id_split_map[id]; // i.e. the split_id struct
+            l = ++max_id;
         }
 
-        throw std::runtime_error("Undefined state in get_split_ids!\n");
+        if (recycler.size()) {
+            r = recycler.back();
+            recycler.pop_back();
+        } else {
+            r = ++max_id;
+        }
+        return split_id(l, r);
     }
 };
 }

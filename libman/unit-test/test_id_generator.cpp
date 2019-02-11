@@ -17,76 +17,47 @@
  * limitations under the License.
  */
 
-#include <omp.h>
-
-#include <iostream>
 #include <cassert>
-#include <vector>
-
 #include "hclust_id_generator.hpp"
 
 using namespace knor;
 
-void check_insert(unsigned parent,
-        std::unordered_map<unsigned, unsigned>& map, split_id& lr) {
-
-    if (map.find(lr.first) != map.end()) {
-        printf("Invalid re-entry for parent: %u, child: %u, exists with "
-                "parent: %u\n", parent, lr.first, map[lr.first]);
-        assert(0);
-    }
-    map[lr.first] = parent;
-    printf("Inserting child: %u, parent: %u\n", lr.first, parent);
-
-    if (map.find(lr.second) != map.end()) {
-        printf("Invalid re-entry for parent: %u, child: %u, exists with "
-                "parent: %u\n", parent, lr.second, map[lr.second]);
-        assert(0);
-    }
-    map[lr.second] = parent;
-    printf("Inserting child: %u, parent: %u\n", lr.second, parent);
-}
-
 int main(int argc, char* argv []) {
-
     auto geny = hclust_id_generator::create(); // Smart pointer type
-    geny->print(); // Expecting 0 -> (1,2)
 
-    // <child, parent>
-    std::unordered_map<unsigned, unsigned> used;
+    constexpr unsigned TESTSIZE = 5;
+    const unsigned MAXID = (TESTSIZE*2) + 1;
 
-    auto lr = geny->get_split_ids(0);
-    check_insert(0, used, lr);
+    std::vector<split_id> gend_ids;
+    for (size_t i = 0; i < TESTSIZE; i++)
+        gend_ids.push_back(geny->get_split_ids());
 
-    assert(lr.first == 1);
-    assert(lr.second == 2);
-    geny->print(); // Expecting 0 -> (1,2)
+    for (auto p : gend_ids)
+        assert(p.first < MAXID && p.second < MAXID);
 
-    // Test for 1
-    lr = geny->get_split_ids(1);
-    check_insert(1, used, lr);
-    assert(lr.first == 3);
-    assert(lr.second == 4);
-    geny->print(); // Expecting 0 -> (1,2)  1 -> (3,4)
+    printf("before reclaim:\n");
+    geny->print();
 
-    // Test for 2
-    lr = geny->get_split_ids(2);
-    check_insert(2, used, lr);
-    assert(lr.first == 5);
-    assert(lr.second == 6);
-    geny->print(); // Expecting 0 -> (1,2) 1 -> (3,4) 2 -> (5, 6)
-
-    // Test for 2 again
-    lr = geny->get_split_ids(2);
-    assert(lr.first == 5);
-    assert(lr.second == 6);
-
-    std::vector<unsigned> new_ids {3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
-        14, 15, 16, 17, 18};
-    for (auto const& entry : new_ids) {
-        lr = geny->get_split_ids(entry);
-        check_insert(entry, used, lr);
+    // Reclaim all
+    for (auto pair : gend_ids) {
+        geny->reclaim_id(pair.first);
+        geny->reclaim_id(pair.second);
     }
+
+    printf("after reclaim:\n");
+    geny->print();
+
+    // Clear all
+    gend_ids.clear();
+    // Repopulate
+    for (size_t i = 0; i < TESTSIZE; i++)
+        gend_ids.push_back(geny->get_split_ids());
+
+    printf("after repop:\n");
+    geny->print();
+
+    for (auto p : gend_ids)
+        assert(p.first < MAXID && p.second < MAXID);
 
     std::cout << "Sucessful ID generator test!\n";
     return EXIT_SUCCESS;
