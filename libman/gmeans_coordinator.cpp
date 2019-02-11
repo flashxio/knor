@@ -210,8 +210,6 @@ base::cluster_t gmeans_coordinator::run(
     struct timeval start, end;
     gettimeofday(&start , NULL);
 
-    if (_init_t == kbase::init_t::NONE)
-        _init_t = kbase::init_t::FORGY;
     run_hinit(); // Initialize clusters
 
     // Run loop

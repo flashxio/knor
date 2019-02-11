@@ -124,6 +124,7 @@ class hclust_coordinator : public coordinator {
             const bool numa_opt=false) override;
         virtual void update_clusters();
         virtual void forgy_init() override;
+        void none_init();
         virtual void preprocess_data() {
             throw knor::base::abstract_exception();
         }

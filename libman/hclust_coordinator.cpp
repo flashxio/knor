@@ -140,20 +140,31 @@ unsigned hclust_coordinator::forgy_select(const unsigned cid) {
 }
 
 void hclust_coordinator::forgy_init() {
-        auto splits = ider->get_split_ids();
-        auto cluster_ptr = hcltrs[0];
+    auto splits = ider->get_split_ids();
+    auto cluster_ptr = hcltrs[0];
 
-        auto rand_idx = ui_distribution(ui_generator);
-        cluster_ptr->set_mean(get_thd_data(
-                    rand_idx), 0);
-        cluster_ptr->set_zeroid(splits.first);
-        activate(splits.first);
+    auto rand_idx = ui_distribution(ui_generator);
+    cluster_ptr->set_mean(get_thd_data(
+                rand_idx), 0);
+    cluster_ptr->set_zeroid(splits.first);
+    activate(splits.first);
 
-        rand_idx = ui_distribution(ui_generator);
-        cluster_ptr->set_mean(get_thd_data(
-                    rand_idx), 1);
-        cluster_ptr->set_oneid(splits.second);
-        activate(splits.second);
+    rand_idx = ui_distribution(ui_generator);
+    cluster_ptr->set_mean(get_thd_data(
+                rand_idx), 1);
+    cluster_ptr->set_oneid(splits.second);
+    activate(splits.second);
+}
+
+void hclust_coordinator::none_init() {
+    auto splits = ider->get_split_ids();
+    auto cluster_ptr = hcltrs[0];
+
+    cluster_ptr->set_zeroid(splits.first);
+    activate(splits.first);
+
+    cluster_ptr->set_oneid(splits.second);
+    activate(splits.second);
 }
 
 void hclust_coordinator::run_hinit() {
@@ -162,9 +173,9 @@ void hclust_coordinator::run_hinit() {
             forgy_init();
             break;
         case kbase::init_t::NONE:
-            break;
+            none_init();
         default:
-            throw std::runtime_error("Unknown initialization type");
+            throw std::runtime_error("Unsupported initialization type");
     }
 }
 
@@ -426,8 +437,6 @@ base::cluster_t hclust_coordinator::run(
     struct timeval start, end;
     gettimeofday(&start , NULL);
 
-    if (_init_t == kbase::init_t::NONE)
-        _init_t = kbase::init_t::FORGY;
     run_hinit(); // Initialize clusters
 
     // Run loop
