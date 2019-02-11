@@ -19,6 +19,7 @@
 
 #include <random>
 #include <stdexcept>
+#include <math.h>
 
 #include "xmeans_coordinator.hpp"
 
@@ -45,7 +46,7 @@ namespace knor {
             nearest_cdist.resize(nrow);
             // TODO: k can be non 2^n
             cltrs = kbase::clusters::create(
-                    base::get_max_hnodes(this->k), ncol);
+                    base::get_max_hnodes(this->k*2), ncol);
     }
 
 void xmeans_coordinator::build_thread_state() {
@@ -116,7 +117,7 @@ void xmeans_coordinator::bic(split_score_t& score,
 
         /* splitting criterion */
         double L = N * std::log(N) - N * std::log(N) - N *
-            std::log(2.0 * PI) * .5 - N * ncol *
+            std::log(2.0 * M_PI) * .5 - N * ncol *
             std::log(psigma) * .5 - (N - pK) * .5;
 
         score.pscore = L - p * 0.5 * std::log(N);
@@ -130,14 +131,14 @@ void xmeans_coordinator::bic(split_score_t& score,
         /* splitting criterion */
         double nl = cluster_assignment_counts[score.lid];
         double L = N * std::log(N) - nl * std::log(N) - N *
-            std::log(2.0 * PI) * .5 - N * ncol *
+            std::log(2.0 * M_PI) * .5 - N * ncol *
             std::log(csigma) * .5 - (N - cK) * .5;
 
         score.cscore = L - p * 0.5 * std::log(N);
 
         double nr = cluster_assignment_counts[score.lid];
         L = N * std::log(N) - nr * std::log(N) - N *
-            std::log(2.0 * PI) * .5- N * ncol *
+            std::log(2.0 * M_PI) * .5- N * ncol *
             std::log(csigma) * .5 - (N - cK) * .5;
         score.cscore += L - p * .5 * std::log(N);
     }
@@ -199,6 +200,11 @@ void xmeans_coordinator::partition_decision() {
 
             // Deactivate both lid and rid
             deactivate(score.lid); deactivate(score.rid);
+#pragma omp critical
+            {
+                ider->reclaim_id(score.lid);
+                ider->reclaim_id(score.rid);
+            }
 
             // Deactivate pid
             deactivate(score.pid);
@@ -246,9 +252,9 @@ base::cluster_t xmeans_coordinator::run(
     // Run loop
     size_t iter = 0;
 
-    unsigned curr_nclust = 2;
     while (true) {
         // TODO: Do this simultaneously with H_EM step
+        printf("\n\nNCLUST: %lu, Iteration: ", curr_nclust);
         wake4run(MEAN);
         wait4complete();
         combine_partition_means();
@@ -256,7 +262,7 @@ base::cluster_t xmeans_coordinator::run(
 
         for (iter = 0; iter < max_iters; iter++) {
 #ifndef BIND
-            printf("\nNCLUST: %u, Iteration: %lu\n", curr_nclust, iter);
+            printf("%lu ", iter);
 #endif
             // Now pick between the cluster splits
             wake4run(H_EM);
@@ -274,9 +280,9 @@ base::cluster_t xmeans_coordinator::run(
         // Decide on split or not here
         partition_decision();
 
-        if (curr_nclust >= k*2) {
+        if (at_cluster_cap()) {
 #ifndef BIND
-            printf("\n\nCLUSTER SIZE EXIT @ %u!\n", curr_nclust);
+            printf("\n\nCLUSTER SIZE EXIT @ %lu!\n", curr_nclust);
 #endif
             break;
         }
@@ -292,8 +298,9 @@ base::cluster_t xmeans_coordinator::run(
 #endif
             break;
         }
-        curr_nclust = hcltrs.keycount()*2 + final_centroids.size();
     }
+
+    complete_final_centroids();
 #ifdef PROFILER
     ProfilerStop();
 #endif
@@ -303,6 +310,7 @@ base::cluster_t xmeans_coordinator::run(
     printf("\n\nAlgorithmic time taken = %.6f sec\n",
         base::time_diff(start, end));
     printf("\n******************************************\n");
+    verify_consistency();
 #endif
 
 #ifndef BIND

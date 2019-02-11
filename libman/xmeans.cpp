@@ -44,7 +44,7 @@ namespace knor {
                 nearest_cdist(nearest_cdist), compute_pdist(compute_pdist) {
 
             local_clusters = kbase::clusters::create(
-                                base::get_max_hnodes(k), ncol);
+                                base::get_max_hnodes(k*2), ncol);
             // Use this for the mean of the full partition calculation
         }
 

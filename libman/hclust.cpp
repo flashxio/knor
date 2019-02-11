@@ -40,7 +40,7 @@ hclust::hclust(const int node_id, const unsigned thd_id,
             k(k), nprocrows(nprocrows) {
 
             set_data_size(sizeof(double)*nprocrows*ncol);
-            local_hcltrs.set_max_capacity(base::get_max_hnodes(k*2));
+            local_hcltrs.set_capacity(base::get_max_hnodes(k*2));
         }
 
 void hclust::run() {

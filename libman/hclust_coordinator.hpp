@@ -82,6 +82,7 @@ class hclust_coordinator : public coordinator {
         std::shared_ptr<hclust_id_generator> ider;
         unsigned min_clust_size;
         std::unordered_map<unsigned, std::vector<double>> final_centroids;
+        size_t curr_nclust;
     public:
         hclust_coordinator(const std::string fn, const size_t nrow,
                 const size_t ncol, const unsigned k, const unsigned max_iters,
@@ -140,6 +141,9 @@ class hclust_coordinator : public coordinator {
         virtual const bool is_active(const unsigned i) const ;
         virtual const bool steady_state() const;
         virtual void accumulate_cluster_counts();
+        virtual void complete_final_centroids();
+        virtual bool at_cluster_cap() { return curr_nclust > k*4; }
+        void verify_consistency();
 };
 }
 #endif

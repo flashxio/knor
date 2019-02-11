@@ -131,7 +131,11 @@ void gmeans_coordinator::partition_decision() {
 
 #pragma omp critical
             {
-            remove_cache[pid] = true;
+                remove_cache[pid] = true;
+                // We can reuse these children ids
+                ider->reclaim_id(lid);
+                ider->reclaim_id(rid);
+                curr_nclust -= 2;
             }
 
             final_centroids[pid] = std::vector<double>(
@@ -143,7 +147,7 @@ void gmeans_coordinator::partition_decision() {
         } else {
 #pragma omp critical
             {
-            remove_cache[pid] = false;
+                remove_cache[pid] = false;
             }
 #if VERBOSE
             printf("\nPart: %u will split! score: %.4f > crit val: %.4f\n",
@@ -163,8 +167,9 @@ void gmeans_coordinator::partition_decision() {
     }
 
     for (auto const& kv : remove_cache) {
-        if (kv.second)
+        if (kv.second) {
             hcltrs.erase(kv.first);
+        }
     }
 }
 
@@ -212,7 +217,6 @@ base::cluster_t gmeans_coordinator::run(
     // Run loop
     size_t iter = 0;
 
-    unsigned curr_nclust = 2;
     while (true) {
         // TODO: Do this simultaneously with H_EM step
         wake4run(MEAN);
@@ -222,7 +226,7 @@ base::cluster_t gmeans_coordinator::run(
 
         for (iter = 0; iter < max_iters; iter++) {
 #ifndef BIND
-            printf("\nNCLUST: %u, Iteration: %lu\n", curr_nclust, iter);
+            printf("\nNCLUST: %lu, Iteration: %lu\n", curr_nclust, iter);
 #endif
             // Now pick between the cluster splits
             wake4run(H_EM);
@@ -245,9 +249,9 @@ base::cluster_t gmeans_coordinator::run(
         // Decide on split or not here
         partition_decision();
 
-        if (curr_nclust >= k*2) {
+        if (at_cluster_cap()) {
 #ifndef BIND
-            printf("\n\nCLUSTER SIZE EXIT @ %u!\n", curr_nclust);
+            printf("\n\nCLUSTER SIZE EXIT @ %lu!\n", curr_nclust);
 #endif
             break;
         }
@@ -263,8 +267,9 @@ base::cluster_t gmeans_coordinator::run(
 #endif
             break;
         }
-        curr_nclust = hcltrs.keycount()*2 + final_centroids.size();
     }
+    complete_final_centroids();
+
 #ifdef PROFILER
     ProfilerStop();
 #endif
@@ -274,6 +279,7 @@ base::cluster_t gmeans_coordinator::run(
     printf("\n\nAlgorithmic time taken = %.6f sec\n",
         base::time_diff(start, end));
     printf("\n******************************************\n");
+    verify_consistency();
 #endif
 
 #ifndef BIND
