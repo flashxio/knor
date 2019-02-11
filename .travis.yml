@@ -13,7 +13,6 @@ script:
 - make clean; make -j4
 - cd libkcommon/unit-test && make test && cd -
 - cd libman/unit-test && make test && cd -
-- cd binding/unit-test && make test && cd -
 - cd libsem/FlashX/flash-graph/utils/test/ && make test ; cd -
 - cd exec && make test && cd -
 - cd release-test && make test && cd -
