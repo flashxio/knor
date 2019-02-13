@@ -128,7 +128,11 @@ void medoid_coordinator::choose_global_medoids(double* gdata) {
             // Update new medoid id
             cltrs->get_num_members_v()[cid] = agg_candidate_medoids[cid];
             // Update new (centroid) medoid
-            cltrs->set_mean(&(gdata[agg_candidate_medoids[cid]]), cid);
+
+            if (NULL == gdata)
+                cltrs->set_mean(get_thd_data(agg_candidate_medoids[cid]), cid);
+            else
+                cltrs->set_mean(&(gdata[agg_candidate_medoids[cid]*ncol]), cid);
         }
     }
 }
@@ -196,9 +200,14 @@ kbase::cluster_t medoid_coordinator::run(
 #endif
 
     if (numa_opt)
-        throw knor::base::not_implemented_exception();
+        throw kbase::not_implemented_exception();
 
-    set_thread_data_ptr(allocd_data); // Offset taken for each thread
+    if (!numa_opt && NULL == allocd_data) {
+        wake4run(ALLOC_DATA);
+        wait4complete();
+    } else if (allocd_data) { // No NUMA opt
+        set_thread_data_ptr(allocd_data); // Offset taken for each thread
+    } // Do nothing for numa_opt .. done in binding/knori.hpp
 
     struct timeval start, end;
     gettimeofday(&start , NULL);

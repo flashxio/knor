@@ -116,15 +116,22 @@ int main(int argc, char* argv[]) {
     double* p_centers = NULL;
     kbase::cluster_t ret;
 
+#if 0
+    knor::medoid_coordinator::ptr kc =
+        knor::medoid_coordinator::create(datafn,
+                nrow, ncol, k, max_iters, nnodes, nthread, p_centers,
+                init, tolerance, dist_type, sample_rate);
+    ret = kc->run();
+#else
     knor::medoid_coordinator::ptr kc =
         knor::medoid_coordinator::create("",
                 nrow, ncol, k, max_iters, nnodes, nthread, p_centers,
                 init, tolerance, dist_type, sample_rate);
-
     std::vector<double> data(nrow*ncol);
     kbase::bin_io<double> br(datafn, nrow, ncol);
     br.read(&data);
     ret = kc->run(&data[0]);
+#endif
 
     if (!outdir.empty()) {
         printf("\nWriting output to '%s'\n", outdir.c_str());

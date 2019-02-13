@@ -100,7 +100,7 @@ class medoid_coordinator : public coordinator {
         void populate_membership();
         void compute_globals();
         void sanity_check(); // Always call compute_globals before this
-        void choose_global_medoids(double* gdata);
+        void choose_global_medoids(double* gdata=NULL);
 };
 }
 #endif
