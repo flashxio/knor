@@ -22,16 +22,53 @@
 #include "types.hpp"
 #include "io.hpp"
 #include "util.hpp"
+#include "hclust_compactor.hpp"
+
+namespace kutil = knor::util;
 
 namespace knor { namespace base {
 
 cluster_t::cluster_t(const size_t nrow, const size_t ncol, const size_t iters,
          const size_t k, const unsigned* assignments_buf,
          const llong_t* assignment_count_buf,
-         const std::vector<double>& centroids) {
+         const std::vector<double>& centroids) : nrow(nrow), ncol(ncol),
+    iters(iters), k(k) {
 
-    set_params(nrow, ncol, iters, k);
-    set_computed(assignments_buf, assignment_count_buf, centroids);
+    assignment_count.resize(k);
+    assignments.resize(nrow);
+
+    std::copy(assignments_buf, assignments_buf + nrow, assignments.begin());
+    std::copy(assignment_count_buf, assignment_count_buf + k,
+            assignment_count.begin());
+    this->centroids = centroids; // copy
+}
+
+cluster_t::cluster_t(const size_t nrow, const size_t ncol, const size_t iters,
+             const std::vector<unsigned>& assignments_buf,
+     std::vector<llong_t>& assignment_count_buf,
+     const std::unordered_map<unsigned, std::vector<double>>& centroids)
+    : nrow(nrow), ncol(ncol), iters(iters) {
+
+    assignments.resize(nrow);
+
+    std::unordered_map<unsigned, unsigned> id_map;
+    // Populates assignment_count
+    kutil::compactor::remap<llong_t>(assignment_count_buf,
+            assignment_count, id_map);
+
+    // Reassign elements
+    for (size_t i = 0; i < assignments_buf.size(); i++)
+        assignments[i] = id_map[assignments_buf[i]];
+
+    this->centroids.resize(centroids.size()*ncol);
+
+    for (auto const& kv : centroids) {
+        auto const& k = kv.first;
+        auto const& v = kv.second;
+        std::copy(v.cbegin(), v.cend(), &(this->centroids[id_map[k]*ncol]));
+    }
+
+    k = centroids.size();
 }
 
 void cluster_t::set_computed(const unsigned* assignments_buf,
@@ -51,10 +88,15 @@ void cluster_t::set_computed(const unsigned* assignments_buf,
 
 const void cluster_t::print() const {
 #ifndef BIND
-    std::cout << "Iterations: " <<  iters << std::endl;
-    std::cout << "Cluster count: ";
+    std::cout << "nrow: " << nrow << ", ncol: " << ncol <<
+    ", iters: " <<  iters << ", k: " << k << std::endl;
 #endif
+    std::cout << "Assignment count:\n";
     knor::base::print(assignment_count);
+    std::cout << "Assignment: \n";
+    knor::base::print(assignments);
+    std::cout << "Centroids: \n";
+    knor::base::print(&centroids[0], k, ncol);;
 }
 
 /**

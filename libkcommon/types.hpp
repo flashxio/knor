@@ -50,21 +50,27 @@ public:
              const size_t k, const unsigned* assignments_buf,
              const llong_t* assignment_count_buf,
              const std::vector<double>& centroids);
-    const void print() const;
-    const void write(const std::string dirname) const;
-    bool operator==(const cluster_t& other);
+
+    cluster_t(const size_t nrow, const size_t ncol, const size_t iters,
+             const std::vector<unsigned>& assignments_buf,
+             std::vector<llong_t>& assignment_count_buf,
+             const std::unordered_map<unsigned, std::vector<double>>& centroids);
 
     void set_params(const size_t nrow, const size_t ncol, const size_t iters,
-             const size_t k) {
+            const size_t k) {
         this->nrow = nrow;
         this->ncol = ncol;
         this->iters = iters;
         this->k = k;
-    };
+    }
 
     void set_computed(const unsigned* assignments_buf,
-             const llong_t* assignment_count_buf,
-             const std::vector<double> centroids);
+            const llong_t* assignment_count_buf,
+            const std::vector<double> centroids);
+
+    const void print() const;
+    const void write(const std::string dirname) const;
+    bool operator==(const cluster_t& other);
 
     ~cluster_t() { }
 };
