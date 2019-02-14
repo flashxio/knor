@@ -31,7 +31,7 @@ int main(int argc, char* argv[]) {
   try {
     // positional args
     std::string datafn = "";
-    unsigned k = 0;
+    unsigned kmax = 0;
 
     // optional args
     unsigned nthread = kbase::get_num_omp_threads();
@@ -46,7 +46,7 @@ int main(int argc, char* argv[]) {
     unsigned min_clust_size = 2;
 
     cxxopts::Options options(argv[0],
-            "xmeans data-file nsamples dim k [alg-options]\n");
+            "xmeans data-file nsamples dim kmax [alg-options]\n");
     options.positional_help("[optional args]");
 
     options.add_options()
@@ -56,8 +56,8 @@ int main(int argc, char* argv[]) {
             cxxopts::value<std::string>())
       ("m,dim", "Number of features in the dataset (columns)",
             cxxopts::value<std::string>())
-      ("k,nclust", "Number of clusters desired",
-            cxxopts::value<unsigned>(k))
+      ("k,kmax", "The max number of clusters desired",
+            cxxopts::value<unsigned>(kmax))
       ("T,num_thread", "The number of threads to run",
             cxxopts::value<unsigned>(nthread))
       ("i,iters", "maximum number of iterations",
@@ -77,7 +77,7 @@ int main(int argc, char* argv[]) {
       ("h,help", "Print help");
 
     options.parse_positional({"datafn", "nsamples", "dim",
-            "nclust"});
+            "kmax"});
     int nargs = argc;
     options.parse(argc, argv);
 
@@ -117,16 +117,16 @@ int main(int argc, char* argv[]) {
     std::vector<double> centers;
 
     if (kbase::is_file_exist(centersfn.c_str())) {
-        centers.resize(k*ncol);
-        kbase::bin_io<double> br2(centersfn, k, ncol);
-        br2.read(&centers[0]);
+        centers.resize(2*ncol);
+        kbase::bin_io<double> br(centersfn, 2, ncol);
+        br.read(&centers[0]);
         printf("Read centers!\n");
     } else {
         printf("No centers to read ..\n");
     }
 
     auto coord =
-        knor::xmeans_coordinator::create(datafn, nrow, ncol, k,
+        knor::xmeans_coordinator::create(datafn, nrow, ncol, kmax,
                 max_iters, nnodes, nthread,(centers.size() ? &centers[0] : NULL),
                 init, tolerance, dist_type, min_clust_size);
 
