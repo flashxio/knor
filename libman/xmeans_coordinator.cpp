@@ -317,12 +317,8 @@ base::cluster_t xmeans_coordinator::run(
     printf("\n******************************************\n");
 #endif
 
-#if 0
-    return base::cluster_t(this->nrow, this->ncol, iter, this->k,
-            &cluster_assignments[0], &cluster_assignment_counts[0],
-            hcltrs->get_means());
-#else
-    return base::cluster_t(); // TODO
-#endif
+    return base::cluster_t(this->nrow, this->ncol, iter,
+            cluster_assignments, cluster_assignment_counts,
+            final_centroids);
 }
-}
+} // End namespace knor

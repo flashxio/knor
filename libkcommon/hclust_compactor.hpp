@@ -44,5 +44,5 @@ namespace knor {
                 }
             }
         };
-} } // End namespace knor::base
+} } // End namespace knor::util
 #endif
