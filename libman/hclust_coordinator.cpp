@@ -400,7 +400,6 @@ void hclust_coordinator::verify_consistency() {
         if (tmp > 0)
             cnt++;
 
-    printf("final centroids: %lu vs cnt: %lu\n", final_centroids.size(), cnt);
     assert(final_centroids.size() == cnt);
     assert((size_t)std::accumulate(cluster_assignment_counts.begin(),
                 cluster_assignment_counts.end(), 0) == nrow);

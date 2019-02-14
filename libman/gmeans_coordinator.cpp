@@ -117,9 +117,11 @@ void gmeans_coordinator::partition_decision() {
         auto score = ad_vecs[pid].back();
 
         if (score <= critical_values[strictness]) {
+#ifndef BIND
 #if VERBOSE
             printf("\nPart: %u will NOT split! score: %.4f <= crit val: %.4f\n",
                     pid, score, critical_values[strictness]);
+#endif
 #endif
             unsigned lid = hcltrs[pid]->get_zeroid();
             unsigned rid = hcltrs[pid]->get_oneid();
@@ -149,9 +151,11 @@ void gmeans_coordinator::partition_decision() {
             {
                 remove_cache[pid] = false;
             }
+#ifndef BIND
 #if VERBOSE
             printf("\nPart: %u will split! score: %.4f > crit val: %.4f\n",
                     pid, score, critical_values[strictness]);
+#endif
 #endif
         }
     }
@@ -259,7 +263,7 @@ base::cluster_t gmeans_coordinator::run(
 
         // Break when clusters are inactive due to size
         if (hcltrs.keyless()) {
-            //assert(steady_state()); // NOTE: Comment when benchmarking
+            assert(steady_state()); // NOTE: Comment when benchmarking
 #ifndef BIND
             printf("\n\nSTEADY STATE EXIT!\n");
 #endif
