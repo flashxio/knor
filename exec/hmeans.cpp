@@ -130,7 +130,11 @@ int main(int argc, char* argv[]) {
                 max_iters, nnodes, nthread,(centers.size() ? &centers[0] : NULL),
                 init, tolerance, dist_type, min_clust_size);
 
-    auto clt = coord->run();
+    auto ret = coord->run();
+    if (!outdir.empty()) {
+        printf("\nWriting output to '%s'\n", outdir.c_str());
+        ret.write(outdir);
+    }
 
   } catch (const cxxopts::OptionException& e) {
     std::cout << "error parsing options: " << e.what() << std::endl;
