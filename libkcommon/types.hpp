@@ -172,11 +172,13 @@ class vmap {
         }
 
         const void print() const {
+#ifndef BIND
             for (size_t i = 0; i < size(); i++) {
                 if (nullptr != data[i]) {
                     printf("k: %lu\nv: ", i); data[i]->print_means();
                 }
             }
+#endif
         }
 };
 

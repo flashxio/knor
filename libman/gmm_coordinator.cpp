@@ -243,6 +243,7 @@ base::gmm_t gmm_coordinator::soft_run(double* allocd_data) {
     run_init(); // Initialize clusters
 
     ////////////////////////////////////////////////////////////////////////////
+#ifndef BIND
     std::cout << "\nAFTER INIT:\nPk:\n";
     base::print(Pk);
     std::cout << "mu_k:\n"; mu_k->print();
@@ -257,6 +258,7 @@ base::gmm_t gmm_coordinator::soft_run(double* allocd_data) {
     std::cout << "DATA:\n";
     print_thread_data();
     exit(911);
+#endif
     ////////////////////////////////////////////////////////////////////////////
 
     // Run kmeans loop

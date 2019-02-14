@@ -111,7 +111,9 @@ void gmeans_coordinator::partition_decision() {
     // NOTE: We use ad_vecs.back() to store the score
     std::unordered_map<unsigned, bool> remove_cache;
 
+#ifdef _OPENMP
 #pragma omp parallel for default(shared)
+#endif
     for (size_t i = 0; i < keys.size(); i++) {
         unsigned pid = keys[i];
         auto score = ad_vecs[pid].back();
@@ -131,7 +133,9 @@ void gmeans_coordinator::partition_decision() {
             // Deactivate pid
             deactivate(pid);
 
+#ifdef _OPENMP
 #pragma omp critical
+#endif
             {
                 remove_cache[pid] = true;
                 // We can reuse these children ids
@@ -147,7 +151,9 @@ void gmeans_coordinator::partition_decision() {
                 cluster_assignment_counts[lid] + cluster_assignment_counts[rid];
             cluster_assignment_counts[lid] = cluster_assignment_counts[rid] = 0;
         } else {
+#ifdef _OPENMP
 #pragma omp critical
+#endif
             {
                 remove_cache[pid] = false;
             }
@@ -161,7 +167,9 @@ void gmeans_coordinator::partition_decision() {
     }
 
     // Assemble cluster membership
+#ifdef _OPENMP
 #pragma omp parallel for default(shared) firstprivate(remove_cache)
+#endifji
     for (size_t rid = 0; rid < nrow; rid++) {
         auto pid = part_id[rid];
         if (remove_cache[pid]) {

@@ -53,8 +53,10 @@ public:
     }
 
     const void print() const {
+#ifndef BIND
         printf("Printing hclust_id_generator: Max ID: %u\n", max_id);
         printf("recycler: \n"); base::print(recycler);
+#endif
     }
 
     static ptr create() {

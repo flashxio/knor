@@ -168,7 +168,9 @@ void xmeans_coordinator::compute_bic_scores(
     accumulate(cluster_assignments, memb_cltrs);
 
     // Computes the bic scores for each parent, child combo
+#ifdef _OPENMP
 #pragma omp parallel for shared (bic_scores) schedule (dynamic)
+#endif
     for (size_t idx = 0; idx < bic_scores.size(); idx++) {
         bic(bic_scores[idx], memb_cltrs);
     }
@@ -183,7 +185,9 @@ void xmeans_coordinator::partition_decision() {
     base::thd_safe_bool_vector::ptr remove_cache =
         base::thd_safe_bool_vector::create(bic_scores.size(), false);
 
+#ifdef _OPENMP
 #pragma omp parallel for shared (bic_scores)
+#endif
     for (size_t i = 0; i < bic_scores.size(); i++) {
         auto score = bic_scores[i];
         if (score.pscore > score.cscore) {
@@ -215,7 +219,9 @@ void xmeans_coordinator::partition_decision() {
             // Deactivate pid
             deactivate(score.pid);
             remove_cache->set(i, true);
+#ifdef _OPENMP
 #pragma omp critical
+#endif
             {
                 ider->reclaim_id(score.lid);
                 ider->reclaim_id(score.rid);
