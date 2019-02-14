@@ -322,7 +322,8 @@ void hclust_coordinator::deactivate(const unsigned id) {
 
 void hclust_coordinator::activate(const unsigned id) {
     cltr_active_vec->set(id, true);
-    curr_nclust++;
+    if (id > 0)
+        curr_nclust++;
 }
 
 const bool hclust_coordinator::is_active(const unsigned id) const {
@@ -398,6 +399,8 @@ void hclust_coordinator::verify_consistency() {
     for (auto const& tmp : cluster_assignment_counts)
         if (tmp > 0)
             cnt++;
+
+    printf("final centroids: %lu vs cnt: %lu\n", final_centroids.size(), cnt);
     assert(final_centroids.size() == cnt);
     assert((size_t)std::accumulate(cluster_assignment_counts.begin(),
                 cluster_assignment_counts.end(), 0) == nrow);

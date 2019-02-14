@@ -136,7 +136,7 @@ void xmeans_coordinator::bic(split_score_t& score,
 
         score.cscore = L - p * 0.5 * std::log(N);
 
-        double nr = cluster_assignment_counts[score.lid];
+        double nr = cluster_assignment_counts[score.rid];
         L = N * std::log(N) - nr * std::log(N) - N *
             std::log(2.0 * M_PI) * .5- N * ncol *
             std::log(csigma) * .5 - (N - cK) * .5;
@@ -153,9 +153,11 @@ void xmeans_coordinator::compute_bic_scores(
     while (itr.has_next()) {
         auto kv = itr.next();
         assert(kv.first == kv.second->get_id());
+#ifndef BIND
 #if VERBOSE
         printf("BIC evaluation for pid: %lu, lid: %u, rid: %u\n",
                 kv.first, kv.second->get_zeroid(), kv.second->get_oneid());
+#endif
 #endif
         bic_scores.push_back(split_score_t(kv.second->get_id(),
                     kv.second->get_zeroid(), kv.second->get_oneid()));
@@ -185,44 +187,56 @@ void xmeans_coordinator::partition_decision() {
     for (size_t i = 0; i < bic_scores.size(); i++) {
         auto score = bic_scores[i];
         if (score.pscore > score.cscore) {
+#ifndef BIND
 #if VERBOSE
             printf("\nPart: %u will NOT split! pscore: %.4f > cscore: %.4f\n",
                     score.pid, score.pscore, score.cscore);
+#endif
 #endif
             // Move all in children clusters to (parent) partition
             auto const& lmembers = memb_cltrs[score.lid];
             for (size_t i = 0; i < memb_cltrs[score.lid].size(); i++)
                cluster_assignments[lmembers[i]] = score.pid;
 
-            auto const& rmembers = memb_cltrs[score.lid];
+            auto const& rmembers = memb_cltrs[score.rid];
             for (size_t i = 0; i < memb_cltrs[score.rid].size(); i++)
                cluster_assignments[rmembers[i]] = score.pid;
 
+            // Revert the counts
+            cluster_assignment_counts[score.pid] =
+                cluster_assignment_counts[score.lid] +
+                        cluster_assignment_counts[score.rid];
+
+             cluster_assignment_counts[score.lid] =
+                        cluster_assignment_counts[score.rid] = 0;
+
             // Deactivate both lid and rid
             deactivate(score.lid); deactivate(score.rid);
+            // Deactivate pid
+            deactivate(score.pid);
+            remove_cache->set(i, true);
 #pragma omp critical
             {
                 ider->reclaim_id(score.lid);
                 ider->reclaim_id(score.rid);
+                final_centroids[score.pid] = std::vector<double>(
+                        cltrs->get_mean_rawptr(score.pid),
+                        cltrs->get_mean_rawptr(score.pid) + ncol);
             }
-
-            // Deactivate pid
-            deactivate(score.pid);
-            remove_cache->set(i, true);
-            final_centroids[score.pid] = std::vector<double>(
-                    cltrs->get_mean_rawptr(score.pid),
-                    cltrs->get_mean_rawptr(score.pid) + ncol);
         } else {
+#ifndef BIND
 #if VERBOSE
             printf("\nPart: %u will split! pscore: %.4f <= cscore: %.4f\n",
                     score.pid, score.pscore, score.cscore);
+#endif
 #endif
         }
     }
 
     for (size_t i = 0; i < remove_cache->size(); i++) {
-        if (remove_cache->get(i))
+        if (remove_cache->get(i)) {
             hcltrs.erase(bic_scores[i].pid);
+        }
     }
 }
 
@@ -252,7 +266,9 @@ base::cluster_t xmeans_coordinator::run(
 
     while (true) {
         // TODO: Do this simultaneously with H_EM step
-        printf("\n\nNCLUST: %lu, Iteration: ", curr_nclust);
+#ifndef BIND
+        printf("\n\nNCLUST: %lu\n ", curr_nclust);
+#endif
         wake4run(MEAN);
         wait4complete();
         combine_partition_means();
@@ -260,7 +276,7 @@ base::cluster_t xmeans_coordinator::run(
 
         for (iter = 0; iter < max_iters; iter++) {
 #ifndef BIND
-            printf("%lu ", iter);
+            printf("Iteration: %lu ", iter);
 #endif
             // Now pick between the cluster splits
             wake4run(H_EM);
