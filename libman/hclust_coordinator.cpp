@@ -174,6 +174,7 @@ void hclust_coordinator::run_hinit() {
             break;
         case kbase::init_t::NONE:
             none_init();
+            break;
         default:
             throw std::runtime_error("Unsupported initialization type");
     }
@@ -443,9 +444,13 @@ base::cluster_t hclust_coordinator::run(
     size_t iter = 0;
 
     while (true) {
+#ifndef BIND
             printf("\n\nNCLUST: %lu, Iteration: ", curr_nclust);
+#endif
         for (iter = 0; iter < max_iters; iter++) {
+#ifndef BIND
             printf("%lu ", iter);
+#endif
             // Now pick between the cluster splits
             wake4run(H_EM);
             wait4complete();
