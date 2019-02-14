@@ -169,7 +169,7 @@ void gmeans_coordinator::partition_decision() {
     // Assemble cluster membership
 #ifdef _OPENMP
 #pragma omp parallel for default(shared) firstprivate(remove_cache)
-#endifji
+#endif
     for (size_t rid = 0; rid < nrow; rid++) {
         auto pid = part_id[rid];
         if (remove_cache[pid]) {

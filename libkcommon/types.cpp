@@ -90,13 +90,13 @@ const void cluster_t::print() const {
 #ifndef BIND
     std::cout << "nrow: " << nrow << ", ncol: " << ncol <<
     ", iters: " <<  iters << ", k: " << k << std::endl;
-#endif
     std::cout << "Assignment count:\n";
     knor::base::print(assignment_count);
     std::cout << "Assignment: \n";
     knor::base::print(assignments);
     std::cout << "Centroids: \n";
     knor::base::print(&centroids[0], k, ncol);;
+#endif
 }
 
 /**

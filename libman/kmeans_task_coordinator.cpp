@@ -325,8 +325,7 @@ kbase::cluster_t kmeans_task_coordinator::mb_run(double* allocd_data) {
 #endif
 
     if ((double)mb_size / nthreads < 1)
-        throw kbase::parameter_exception("Mini batch size / nthreads must be >="
-                " 1");
+        mb_size = 1;
 
     // First set the thread mini-batch size
     double mb_perctg = (double)mb_size / nrow;

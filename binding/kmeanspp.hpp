@@ -95,9 +95,11 @@ std::pair<std::pair<unsigned, double>, cluster_t> kmeansPP(
     }
 
     gettimeofday(&end, NULL);
+#ifndef BIND
     printf("\n\nAlgorithmic time taken = %.6f sec\n",
         base::time_diff(start, end));
     printf("\n******************************************\n");
+#endif
 
     auto _ = std::pair<unsigned, double>(best_start, best_energy);
     return std::pair<std::pair<unsigned, double>, cluster_t>(_, best_cluster_t);
