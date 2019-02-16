@@ -32,11 +32,9 @@ medoid::medoid(const int node_id, const unsigned thd_id,
         const unsigned start_rid,
         const unsigned nprocrows, const unsigned ncol,
         kbase::clusters::ptr g_clusters, unsigned* cluster_assignments,
-        const std::string fn,
-        double* global_medoid_energy, const double sample_rate):
+        const std::string fn, const double sample_rate):
             thread(node_id, thd_id, ncol, cluster_assignments, start_rid, fn),
             g_clusters(g_clusters), nprocrows(nprocrows),
-            global_medoid_energy(global_medoid_energy),
             sample_rate(sample_rate) {
 
             local_clusters =
@@ -135,7 +133,6 @@ void medoid::medoid_step() {
         unsigned true_rid = get_global_data_id(row);
         // What cluster the row is in
         unsigned cid = cluster_assignments[true_rid];
-        double cluster_energy = global_medoid_energy[cid]; // Current energy
         double energy = 0;
 
         // member_id is a global identifier

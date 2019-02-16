@@ -40,7 +40,6 @@ class medoid : public thread {
 
         // Medoid specific
         std::vector<double> local_medoid_energy;
-        double* global_medoid_energy;
         std::vector<unsigned> candidate_medoids;
         std::vector<double> candidate_medoid_energy;
         double sample_rate;
@@ -55,8 +54,7 @@ class medoid : public thread {
                 const unsigned ncol,
                 std::shared_ptr<kbase::clusters> g_clusters,
                 unsigned* cluster_assignments,
-                const std::string fn,
-                double* global_medoid_energy, const double sample_rate);
+                const std::string fn, const double sample_rate);
     public:
         static thread::ptr create(
                 const int node_id, const unsigned thd_id,
@@ -64,12 +62,11 @@ class medoid : public thread {
                 const unsigned ncol,
                 std::shared_ptr<kbase::clusters> g_clusters,
                 unsigned* cluster_assignments, const std::string fn,
-                double* global_medoid_energy, const double sample_rate) {
+                const double sample_rate) {
             return thread::ptr(
                     new medoid(node_id, thd_id, start_rid,
                         nprocrows, ncol, g_clusters,
-                        cluster_assignments, fn,
-                        global_medoid_energy, sample_rate));
+                        cluster_assignments, fn, sample_rate));
         }
 
         void start(const thread_state_t state) override;

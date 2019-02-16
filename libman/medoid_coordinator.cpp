@@ -79,7 +79,7 @@ void medoid_coordinator::build_thread_state() {
         threads.push_back(medoid::create((thd_id % nnodes),
                     thd_id, tup.first, tup.second,
                     ncol, cltrs, &cluster_assignments[0],
-                    fn, &medoid_energy[0], sample_rate));
+                    fn, sample_rate));
         threads[thd_id]->set_parent_cond(&cond);
         threads[thd_id]->set_parent_pending_threads(&pending_threads);
         threads[thd_id]->start(WAIT); // Thread puts itself to sleep
