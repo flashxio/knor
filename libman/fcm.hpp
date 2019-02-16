@@ -64,7 +64,7 @@ class fcm : public thread {
         void Estep();
         void Mstep();
 
-        virtual void run() override;
+        void run() override;
         base::dense_matrix<double>* get_innerprod() {
             return innerprod;
         }

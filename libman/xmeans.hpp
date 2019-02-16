@@ -62,11 +62,12 @@ class xmeans : public hclust {
 
         virtual void start(const thread_state_t state) override;
         // Given the current ID split it into two (or not)
-        virtual void H_EM_step(); // Similar to EM step
+        virtual void H_EM_step() override; // Similar to EM step
         void set_g_clusters(std::shared_ptr<kbase::clusters> g_clusters) {
             this->g_clusters = g_clusters;
         }
         virtual void partition_mean() override;
+        virtual ~xmeans() {}
 };
 } // End namespace knor
 #endif

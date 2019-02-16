@@ -22,13 +22,14 @@ UNAME_S := $(shell uname -s)
 CFLAGS = -g -O3 -fno-inline-functions -DSTATISTICS $(LIB_PATHS)
 CLANG_FLAGS = -Wno-attributes -Wno-unused-variable
 OMP_FLAG = -fopenmp
+DARWIN_OMP_FLAGS=-Xpreprocessor -fopenmp -lomp
 
 ifeq ($(UNAME_S), Darwin)
 	CC = clang
 	CXX = clang++
 	LDFLAGS = -lpthread
-	CXXFLAGS = -g -std=c++11 -O3 -I. -Wall -fPIC $(CLANG_FLAGS) \
-			   -DSTATISTICS
+	CXXFLAGS = -g -std=c++11 -O3 -I. \
+			   -Wall -fPIC $(CLANG_FLAGS) -DSTATISTICS
 else
 	CC = gcc
 	CXX = g++

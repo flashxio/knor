@@ -20,10 +20,9 @@
 #ifndef __KNOR_LINALG_HPP__
 #define __KNOR_LINALG_HPP__
 
-#include<bits/stdc++.h>
-
 // Adapted from: https://www.geeksforgeeks.org/adjoint-inverse-matrix/
 
+#include <numeric>
 #include "dense_matrix.hpp"
 
 namespace knor { namespace base {

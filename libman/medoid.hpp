@@ -72,7 +72,7 @@ class medoid : public thread {
                         global_medoid_energy, sample_rate));
         }
 
-        void start(const thread_state_t state);
+        void start(const thread_state_t state) override;
         // Allocate and move data using this thread
         void EM_step();
         void medoid_step();

@@ -243,6 +243,8 @@ public:
     virtual const bool has_converged() const {
         throw abstract_exception();
     }
+
+    virtual ~clusters() {}
 };
 
 class prune_clusters : public clusters {

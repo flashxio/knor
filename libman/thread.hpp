@@ -254,7 +254,7 @@ public:
     void numa_alloc_mem();
     void set_local_data_ptr(double* data, bool offset=true);
     void bind2node_id();
-    ~thread();
+    virtual ~thread();
 };
 }
 #endif

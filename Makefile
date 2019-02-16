@@ -17,7 +17,7 @@
 
 include Makefile.common
 
-all: build_common build_libs exec release-test binding
+all: build_common build_libs exec release-test
 
 build_common:
 	$(MAKE) -C libkcommon
@@ -25,7 +25,6 @@ build_common:
 ifeq ($(UNAME_S), Darwin)
 build_libs: build_common
 	$(MAKE) -C libman # pthreads
-	$(MAKE) -C binding
 else
 build_libs: build_common
 	$(MAKE) -C libauto # OMP

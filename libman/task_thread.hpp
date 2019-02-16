@@ -81,12 +81,12 @@ public:
         const override;
     virtual void run() override { throw kbase::abstract_exception(); }
     virtual void wait() override;
-    virtual void wake(knor::thread_state_t state) = 0;
+    virtual void wake(knor::thread_state_t state) override = 0;
     virtual void sleep() override;
 
     virtual void request_task();
     virtual void lock_sleep();
-    virtual bool try_steal_task() = 0;
+    virtual bool try_steal_task() override = 0;
 
     ~task_thread();
 
@@ -104,7 +104,7 @@ public:
         parent_pending_threads = ppt;
     }
 
-    void set_prune_init(const bool prune_init) {
+    void set_prune_init(const bool prune_init) override {
         this->prune_init = prune_init;
     }
 
@@ -113,15 +113,15 @@ public:
     }
 
     void set_recalc_v_ptr(std::shared_ptr<kbase::thd_safe_bool_vector>
-            recalculated_v) {
+            recalculated_v) override {
         this->recalculated_v = recalculated_v;
     }
 
-    void set_dist_mat_ptr(std::shared_ptr<dist_matrix> dm) {
+    void set_dist_mat_ptr(std::shared_ptr<dist_matrix> dm) override {
         this->dm = dm;
     }
 
-    knor::task_queue* get_task_queue() {
+    knor::task_queue* get_task_queue() override {
       return tasks;
     }
 

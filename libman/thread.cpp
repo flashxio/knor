@@ -133,22 +133,6 @@ void thread::set_local_data_ptr(double* data, bool offset) {
         local_data = data;
 }
 
-thread::~thread() {
-    pthread_cond_destroy(&cond);
-    pthread_mutex_destroy(&mutex);
-    pthread_mutexattr_destroy(&mutex_attr);
-
-    if (f)
-        close_file_handle();
-#if VERBOSE
-#ifndef BIND
-    printf("Thread %u being destroyed\n", thd_id);
-#endif
-#endif
-    if (thd_id != INVALID_THD_ID)
-        join();
-}
-
 void thread::bind2node_id() {
 #ifdef USE_NUMA
     struct bitmask *bmp = numa_allocate_nodemask();
@@ -169,4 +153,19 @@ const unsigned thread::get_global_data_id(
     return start_rid+row_id;
 }
 
+thread::~thread() {
+    pthread_cond_destroy(&cond);
+    pthread_mutex_destroy(&mutex);
+    pthread_mutexattr_destroy(&mutex_attr);
+
+    if (f)
+        close_file_handle();
+#if VERBOSE
+#ifndef BIND
+    printf("Thread %u being destroyed\n", thd_id);
+#endif
+#endif
+    if (thd_id != INVALID_THD_ID)
+        join();
+}
 } // End namespace knor

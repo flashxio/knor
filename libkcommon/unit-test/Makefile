@@ -21,8 +21,8 @@ LDFLAGS := -L.. -lkcommon $(LDFLAGS)
 CXXFLAGS := -I.. $(CXXFLAGS)
 
 TESTFILES := test_thd_safe_bool_vector test_clusters test_reader\
-	test_dist_matrix test_dense_matrix test_linalg testeigen test_util\
-	test_types test_AD
+	test_dist_matrix test_dense_matrix test_linalg test_util\
+	test_types test_AD #testeigen
 
 all: $(TESTFILES)
 

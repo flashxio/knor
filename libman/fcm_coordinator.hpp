@@ -65,9 +65,9 @@ class fcm_coordinator : public coordinator {
         void update_contribution_matrix();
         void update_centers();
         void forgy_init() override;
-        ~fcm_coordinator();
+        void build_thread_state() override;
 
-        virtual void build_thread_state() override;
+        ~fcm_coordinator();
 };
 }
 #endif

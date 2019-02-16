@@ -31,6 +31,7 @@
 #include <sstream>
 #include <unordered_map>
 #include <map>
+#include "exception.hpp"
 
 namespace knor { namespace base {
 // Unordered Map
@@ -322,6 +323,8 @@ class bin_io {
         void read(std::vector<T>* v) {
 #ifdef NDEBUG
             size_t nbytes = fread(&((*v)[0]), sizeof(T)*ncol*nrow, 1, f);
+            if (nbytes != 1)
+                throw io_exception("nbytes of input incorrect!");
 #else
             assert(fread(&((*v)[0]), sizeof(T)*ncol*nrow, 1, f) == 1);
 #endif
