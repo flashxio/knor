@@ -68,15 +68,15 @@ namespace knor { namespace base {
             if (n == 1)
                 return A[0];
 
-            double temp[N*N]; // To store cofactors
+            std::vector<double> temp(N*N); // To store cofactors
 
             double sign = 1; // To store sign multiplier
 
             // Iterate for each element of first row
             for (size_t f = 0; f < n; f++) {
                 // Getting Cofactor of A[0][f]
-                getCofactor(A, temp, 0, f, n, N);
-                D += sign * A[f] * determinant(temp, n - 1, N);
+                getCofactor(A, &temp[0], 0, f, n, N);
+                D += sign * A[f] * determinant(&temp[0], n - 1, N);
 
                 // terms are to be added with alternate sign
                 sign = -sign;
@@ -101,7 +101,8 @@ namespace knor { namespace base {
             }
 
             // temp is used to store cofactors of A[][]
-            double sign = 1, temp[N*N];
+            std::vector<double> temp(N*N);
+            double sign = 1;
 
             for (size_t i=0; i<N; i++) {
                 for (size_t j=0; j<N; j++) {
@@ -112,7 +113,7 @@ namespace knor { namespace base {
                     // and column indexes is even.
                     // Interchanging rows and columns to get the
                     // transpose of the cofactor matrix
-                    adj[j*N+i] = (sign)*(determinant(temp, N-1, N));
+                    adj[j*N+i] = (sign)*(determinant(&temp[0], N-1, N));
                 }
             }
         }
@@ -128,8 +129,8 @@ namespace knor { namespace base {
             }
 
             // Find adjoint
-            double adj[N*N];
-            adjoint(A, adj, N);
+            std::vector<double> adj(N*N);
+            adjoint(A, &adj[0], N);
 
             // Find Inverse using formula "inverse(A) = adj(A)/det(A)"
             for (size_t i=0; i<N; i++)

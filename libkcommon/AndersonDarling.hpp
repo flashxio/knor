@@ -60,7 +60,7 @@ public:
 
 
 		// The values X_i are standardized to create new values Y_i
-		double Y[n];
+        std::vector<double> Y(n);
 		for (int i = 0; i < n; i++) {
 			Y[i] = (X[i] - X_avg)/(std::sqrt(X_sig));
 		}

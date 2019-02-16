@@ -73,7 +73,7 @@ class medoid : public thread {
         // Allocate and move data using this thread
         void EM_step();
         void medoid_step();
-        void run() override;;
+        void run() override;
         void set_coordinator(medoid_coordinator* coord) {
             this->coord = coord;
         }
