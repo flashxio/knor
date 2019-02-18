@@ -40,12 +40,13 @@ public:
 		}
 	}
 
-	static double compute_statistic(const int n, double X[]) {
+	static double compute_statistic(const size_t n, double* X) {
+
 		std::sort(X, X + n);
 		// Find the mean of X
 		double X_avg = 0.0;
 		double sum = 0.0;
-		for (int i = 0; i < n; i++) {
+		for (size_t i = 0; i < n; i++) {
 			sum += X[i];
 		}
 		X_avg = sum/static_cast<double>(n);
@@ -53,7 +54,7 @@ public:
 
 		// Find the variance of X
 		double X_sig = 0.0;
-		for (int i = 0; i < n; i++) {
+		for (size_t i = 0; i < n; i++) {
 			X_sig += (X[i] - X_avg)*(X[i] - X_avg);
 		}
 		X_sig /= (n-1);
@@ -61,13 +62,13 @@ public:
 
 		// The values X_i are standardized to create new values Y_i
         std::vector<double> Y(n);
-		for (int i = 0; i < n; i++) {
+		for (size_t i = 0; i < n; i++) {
 			Y[i] = (X[i] - X_avg)/(std::sqrt(X_sig));
 		}
 
 		// With a standard normal CDF, we calculate the Anderson_Darling Statistic
 		double A = -n;
-		for(int i = 0; i < n; i++) {
+		for(size_t i = 0; i < n; i++) {
 			A +=  -1.0 / static_cast<double>(n) *(2*(i + 1) - 1) *
 				(std::log(phi(Y[i])) + std::log(1 - phi(Y[n - 1 - i])));
 		}
