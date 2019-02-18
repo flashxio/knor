@@ -43,7 +43,7 @@ void gmeans::H_split_step() {
         unsigned true_row_id = get_global_data_id(row);
 
         // Not active
-        if (!((*cltr_active_vec)[cluster_assignments[true_row_id]]))
+        if (!(cltr_active_vec->get(cluster_assignments[true_row_id])))
             continue; // Skip it
 
         const size_t offset = row*ncol;

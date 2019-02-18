@@ -73,6 +73,8 @@ class gmeans_coordinator : public xmeans_coordinator {
                 std::vector<double>>& ad_vecs);
         void compute_ad_stats(
                 std::unordered_map<unsigned, std::vector<double>>& ad_vecs);
+        void deactivate(const unsigned id) override;
+        void activate(const unsigned id) override;
 };
 }
 #endif

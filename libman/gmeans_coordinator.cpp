@@ -28,21 +28,31 @@
 #include "linalg.hpp"
 #include "AndersonDarling.hpp"
 #include "hclust_id_generator.hpp"
+#include "thd_safe_bool_vector.hpp"
 
 namespace knor {
 
-    gmeans_coordinator::gmeans_coordinator(const std::string fn,
-            const size_t nrow,
-            const size_t ncol, const unsigned k, const unsigned max_iters,
-            const unsigned nnodes, const unsigned nthreads,
-            const double* centers, const base::init_t it,
-            const double tolerance, const base::dist_t dt,
-            const unsigned min_clust_size, const short strictness) :
-        xmeans_coordinator(fn, nrow, ncol, k, max_iters, nnodes, nthreads,
-                centers, it, tolerance, dt, min_clust_size),
-                strictness(strictness) {
+gmeans_coordinator::gmeans_coordinator(const std::string fn,
+        const size_t nrow,
+        const size_t ncol, const unsigned k, const unsigned max_iters,
+        const unsigned nnodes, const unsigned nthreads,
+        const double* centers, const base::init_t it,
+        const double tolerance, const base::dist_t dt,
+        const unsigned min_clust_size, const short strictness) :
+    xmeans_coordinator(fn, nrow, ncol, k, max_iters, nnodes, nthreads,
+            centers, it, tolerance, dt, min_clust_size),
+            strictness(strictness) {
+}
 
-    }
+void gmeans_coordinator::deactivate(const unsigned id) {
+    cltr_active_vec->check_set(id, false);
+}
+
+void gmeans_coordinator::activate(const unsigned id) {
+    cltr_active_vec->check_set(id, true);
+    if (id > 0)
+        curr_nclust++;
+}
 
 void gmeans_coordinator::build_thread_state() {
     // NUMA node affinity binding policy is round-robin
@@ -68,8 +78,6 @@ void gmeans_coordinator::build_thread_state() {
 
 void gmeans_coordinator::assemble_ad_vecs(std::unordered_map<unsigned,
         std::vector<double>>& ad_vecs) {
-    //assert(nearest_cdist.size() == part_id.size() && part_id.size() == nrow);
-
     for (size_t i = 0; i < nearest_cdist.size(); i++) {
         ad_vecs[part_id[i]].push_back(nearest_cdist[i]);
     }
@@ -77,10 +85,11 @@ void gmeans_coordinator::assemble_ad_vecs(std::unordered_map<unsigned,
 
 void gmeans_coordinator::compute_ad_stats(
         std::unordered_map<unsigned, std::vector<double>>& ad_vecs) {
+
     for (auto& kv : ad_vecs) {
-         double score = base::AndersonDarling::compute_statistic(ncol,
-                 &kv.second[0]);
-         kv.second.push_back(score); // NOTE: We push the score onto the back
+        double score = base::AndersonDarling::compute_statistic(kv.second.size(),
+                &kv.second[0]);
+        kv.second.push_back(score); // NOTE: We push the score onto the back
     }
 }
 
@@ -116,6 +125,7 @@ void gmeans_coordinator::partition_decision() {
 #endif
     for (size_t i = 0; i < keys.size(); i++) {
         unsigned pid = keys[i];
+        auto const& v = ad_vecs[pid];
         auto score = ad_vecs[pid].back();
 
         if (score <= critical_values[strictness]) {
