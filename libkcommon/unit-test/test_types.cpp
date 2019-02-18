@@ -49,7 +49,9 @@ class Test {
 
 void test_vector_map() {
     unsigned cap = 8;
-    base::vmap<Test::ptr> vm(cap);
+    //base::vmap<Test::ptr> vm(cap, nullptr);
+    base::vmap<Test::ptr> vm;
+    vm.set_capacity(cap);
 
     for (size_t i = 0; i < vm.size(); i++)
         vm[i] = Test::create(i);
@@ -89,10 +91,10 @@ void test_vector_map() {
     assert(!vm.has_key(3));
     assert(!vm.has_key(5));
     assert(!vm.has_key(8));
+    printf("Successful 'test_v_map' test ...\n");
 }
 
 int main() {
     test_vector_map();
-    printf("Successful 'test_vector_map' test ...\n");
     return EXIT_SUCCESS;
 }

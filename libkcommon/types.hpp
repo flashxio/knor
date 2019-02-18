@@ -102,15 +102,19 @@ class vmap {
     private:
         std::vector<T> data;
     public:
-        vmap() { }
-        vmap(unsigned capacity) { data.assign(capacity, nullptr); }
+        T emptyval;
+        vmap() { emptyval = 0; }
+        vmap(const unsigned capacity, const T emptyval) :
+                emptyval(emptyval) {
+            data.assign(capacity, emptyval);
+        }
 
         void set_capacity(const unsigned capacity) {
-            data.assign(capacity, nullptr);
+            data.assign(capacity, emptyval);
         }
 
         const size_t size() const { return data.size(); }
-        void erase(size_t idx) { data[idx] = nullptr; }
+        void erase(size_t idx) { data[idx] = emptyval; }
 
         T& operator[] (const size_t idx) {
             if (idx >= size())
@@ -119,7 +123,8 @@ class vmap {
         }
 
         const T& operator[] (const size_t idx) const {
-            assert(idx < size()); // TODO: Efficiency
+            if (idx >= size())
+                throw oob_exception("const vmap::operator[]");
             return data[idx];
         }
 
@@ -134,7 +139,7 @@ class vmap {
         }
 
         void clear() {
-            data.assign(size(), nullptr);
+            data.assign(size(), emptyval);
         }
 
         const bool empty() const { return !static_cast<bool>(size()); }
@@ -142,12 +147,12 @@ class vmap {
         const bool has_key(const size_t idx) const {
             if (idx > size()-1)
                 return false;
-            return (nullptr != data[idx]);
+            return (emptyval != data[idx]);
         }
 
         void get_keys(std::vector<size_t>& ids) {
             for (size_t id = 0; id < size(); id++) {
-                if (nullptr != data[id]) {
+                if (emptyval != data[id]) {
                     ids.push_back(id);
                 }
             }
@@ -157,7 +162,7 @@ class vmap {
             // TODO: Wasteful, O(capacity)
             size_t count = 0;
             for (size_t i = 0; i < size(); i++) {
-                if (nullptr != data[i])
+                if (emptyval != data[i])
                     count++;
             }
             return count;
@@ -166,7 +171,7 @@ class vmap {
         const bool keyless() const {
             // TODO: Wasteful, O(capacity)
             for (auto const& key : data)
-                if (nullptr != key)
+                if (emptyval != key)
                     return false;
             return true;
         }
@@ -174,7 +179,7 @@ class vmap {
         const void print() const {
 #ifndef BIND
             for (size_t i = 0; i < size(); i++) {
-                if (nullptr != data[i]) {
+                if (emptyval != data[i]) {
                     printf("k: %lu\nv: ", i); data[i]->print_means();
                 }
             }
@@ -192,7 +197,7 @@ class vmap_iterator {
         vmap_iterator(const vmap<T>& _vm) : vm(_vm) {
             offset = 0;
             for (; offset < vm.size(); offset++) {
-                if (nullptr != vm[offset])
+                if (vm.emptyval != vm[offset])
                     return;
             }
         }
@@ -202,7 +207,6 @@ class vmap_iterator {
             std::pair<size_t, T> ret(offset, vm[offset]);
             offset++;
             return ret;
-            //return (std::pair<size_t, T>(offset, vm[offset++]));
         }
 
         bool has_next() {
@@ -210,7 +214,7 @@ class vmap_iterator {
                 return false;
 
             for (; offset < vm.size(); offset++)
-                if (nullptr != vm[offset])
+                if (vm.emptyval != vm[offset])
                     return true;
 
             return false;
