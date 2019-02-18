@@ -117,24 +117,17 @@ void gmeans_coordinator::partition_decision() {
     std::vector<size_t> keys;
     hcltrs.get_keys(keys);
 
-    // NOTE: We use ad_vecs.back() to store the score
-    std::unordered_map<unsigned, bool> remove_cache;
+    size_t maxkey = *std::max_element(keys.begin(), keys.end());
+    std::vector<bool> revert_cache;
+    revert_cache.assign(maxkey+1, false);
 
-#ifdef _OPENMP
-#pragma omp parallel for default(shared)
-#endif
+    // NOTE: We use ad_vecs.back() to store the score
     for (size_t i = 0; i < keys.size(); i++) {
         unsigned pid = keys[i];
         auto const& v = ad_vecs[pid];
         auto score = ad_vecs[pid].back();
 
         if (score <= critical_values[strictness]) {
-#ifndef BIND
-#if VERBOSE
-            printf("\nPart: %u will NOT split! score: %.4f <= crit val: %.4f\n",
-                    pid, score, critical_values[strictness]);
-#endif
-#endif
             unsigned lid = hcltrs[pid]->get_zeroid();
             unsigned rid = hcltrs[pid]->get_oneid();
 
@@ -143,16 +136,12 @@ void gmeans_coordinator::partition_decision() {
             // Deactivate pid
             deactivate(pid);
 
-#ifdef _OPENMP
-#pragma omp critical
-#endif
-            {
-                remove_cache[pid] = true;
-                // We can reuse these children ids
-                ider->reclaim_id(lid);
-                ider->reclaim_id(rid);
-                curr_nclust -= 2;
-            }
+            revert_cache[pid] = true;
+            hcltrs.erase(pid);
+            // We can reuse these children ids
+            ider->reclaim_id(lid);
+            ider->reclaim_id(rid);
+            curr_nclust -= 2;
 
             final_centroids[pid] = std::vector<double>(
                     cltrs->get_mean_rawptr(pid),
@@ -161,36 +150,19 @@ void gmeans_coordinator::partition_decision() {
                 cluster_assignment_counts[lid] + cluster_assignment_counts[rid];
             cluster_assignment_counts[lid] = cluster_assignment_counts[rid] = 0;
         } else {
-#ifdef _OPENMP
-#pragma omp critical
-#endif
-            {
-                remove_cache[pid] = false;
-            }
-#ifndef BIND
-#if VERBOSE
-            printf("\nPart: %u will split! score: %.4f > crit val: %.4f\n",
-                    pid, score, critical_values[strictness]);
-#endif
-#endif
+                revert_cache[pid] = false;
         }
     }
 
     // Assemble cluster membership
 #ifdef _OPENMP
-#pragma omp parallel for default(shared) firstprivate(remove_cache)
+#pragma omp parallel for default(shared) firstprivate(revert_cache)
 #endif
     for (size_t rid = 0; rid < nrow; rid++) {
         auto pid = part_id[rid];
-        if (remove_cache[pid]) {
+        if (revert_cache[pid]) {
             // Means that row assignments needs to be reverted to part_id
             cluster_assignments[rid] = pid;
-        }
-    }
-
-    for (auto const& kv : remove_cache) {
-        if (kv.second) {
-            hcltrs.erase(kv.first);
         }
     }
 }
