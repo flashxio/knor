@@ -58,7 +58,7 @@ hclust_coordinator::hclust_coordinator(const std::string fn, const size_t nrow,
         std::fill(cluster_assignments.begin(), cluster_assignments.end(), 0);
         part_id.assign(nrow, 0);
 
-        nchanged.assign(max_nodes, 0);
+        nchanged.set_capacity(max_nodes);
         cluster_assignment_counts.assign(max_nodes, 0);
         ider = hclust_id_generator::create();
     }
@@ -301,6 +301,7 @@ void hclust_coordinator::init_splits() {
         hcltrs.erase(id); // Delete
         deactivate(id);
         ider->reclaim_id(id);
+        curr_nclust--;
     }
 
     // Update partition ID
@@ -341,7 +342,7 @@ const bool hclust_coordinator::steady_state() const {
 
 void hclust_coordinator::update_clusters() {
     // clear nchanged & means
-    nchanged.assign(max_nodes, 0);
+    nchanged.clear();
 
     auto itr = hcltrs.get_iterator();
     while (itr.has_next()) {

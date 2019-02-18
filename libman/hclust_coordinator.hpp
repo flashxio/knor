@@ -70,7 +70,7 @@ class hclust_coordinator : public coordinator {
         base::vmap<std::shared_ptr<base::clusters>> hcltrs;
         size_t max_nodes;
 
-        std::vector<unsigned> nchanged;
+        base::vmap<unsigned> nchanged;
         // Whether a particular cluster is cluster is still actively splitting
         //  Multithreaded write
         std::shared_ptr<base::thd_safe_bool_vector> cltr_active_vec;

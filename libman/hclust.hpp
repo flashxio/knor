@@ -37,7 +37,7 @@ class hclust : public thread {
          // Pointer to global cluster data
         hclust_map& g_hcltrs;
         hclust_map local_hcltrs;
-        std::vector<unsigned> nchanged; // How many change in each partition
+        base::vmap<unsigned> nchanged; // How many change in each partition
         const std::shared_ptr<base::thd_safe_bool_vector> cltr_active_vec; // Clusters still active
 
         unsigned k;
@@ -71,7 +71,7 @@ class hclust : public thread {
             this->part_id = part_id;
         }
 
-        const std::vector<unsigned>& get_nchanged() const {
+        const base::vmap<unsigned>& get_nchanged() const {
             return this->nchanged;
         }
 

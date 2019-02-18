@@ -41,6 +41,7 @@ hclust::hclust(const int node_id, const unsigned thd_id,
 
             set_data_size(sizeof(double)*nprocrows*ncol);
             local_hcltrs.set_capacity(base::get_max_hnodes(k*2));
+            nchanged.set_capacity(base::get_max_hnodes(k*2));
         }
 
 void hclust::run() {
@@ -79,8 +80,7 @@ void hclust::start(const thread_state_t state=WAIT) {
 
 void hclust::H_EM_step() {
     local_hcltrs.clear();
-
-    nchanged.assign(base::get_max_hnodes(k*2), 0);
+    nchanged.clear();
 
     auto itr = g_hcltrs.get_iterator();
     while (itr.has_next()) {
@@ -99,7 +99,7 @@ void hclust::H_EM_step() {
         auto rpart_id = part_id[true_row_id];
 
         // Not active or has converged
-        if (!((*cltr_active_vec)[cluster_assignments[true_row_id]]) ||
+        if (!(cltr_active_vec->get(cluster_assignments[true_row_id])) ||
                 g_hcltrs[rpart_id]->has_converged())
             continue; // Skip it
 
