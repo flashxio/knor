@@ -143,7 +143,7 @@ class hclust_coordinator : public coordinator {
         virtual const bool steady_state() const;
         virtual void accumulate_cluster_counts();
         virtual void complete_final_centroids();
-        virtual bool at_cluster_cap() { return curr_nclust > k*4; }
+        virtual bool at_cluster_cap() { return curr_nclust > k*2; }
         void verify_consistency();
 };
 }

@@ -469,8 +469,8 @@ base::cluster_t hclust_coordinator::run(
         if (at_cluster_cap()) {
 #ifndef BIND
             printf("\n\nCLUSTER SIZE EXIT @ %lu!\n", curr_nclust);
-            break;
 #endif
+            break;
         }
 
         // Update global state
