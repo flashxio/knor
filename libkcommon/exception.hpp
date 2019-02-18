@@ -42,9 +42,9 @@ public:
 
 class oob_exception : public std::runtime_error {
 public:
-    oob_exception() :
-        runtime_error("[ERROR]: Out of Bounds!\n") {
-        }
+    oob_exception(const std::string msg) :
+        runtime_error(std::string("[ERROR]: Out of Bounds! ") +
+                msg + std::string("\n")) { }
 };
 
 class io_exception : public std::runtime_error {
