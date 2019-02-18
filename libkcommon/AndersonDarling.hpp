@@ -41,7 +41,6 @@ public:
 	}
 
 	static double compute_statistic(const size_t n, double* X) {
-
 		std::sort(X, X + n);
 		// Find the mean of X
 		double X_avg = 0.0;
@@ -67,8 +66,8 @@ public:
 		}
 
 		// With a standard normal CDF, we calculate the Anderson_Darling Statistic
-		double A = -n;
-		for(size_t i = 0; i < n; i++) {
+		double A = -((long)n);
+		for (size_t i = 0; i < n; i++) {
 			A +=  -1.0 / static_cast<double>(n) *(2*(i + 1) - 1) *
 				(std::log(phi(Y[i])) + std::log(1 - phi(Y[n - 1 - i])));
 		}
