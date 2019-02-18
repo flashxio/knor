@@ -20,7 +20,9 @@
 #ifndef __KNOR_DENSE_MATRIX_HPP__
 #define __KNOR_DENSE_MATRIX_HPP__
 
+#ifdef _OPENMP
 #include <omp.h>
+#endif
 
 #include <cmath>
 #include <vector>

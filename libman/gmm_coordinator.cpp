@@ -198,7 +198,9 @@ void gmm_coordinator::random_prob_fill(std::vector<double>& v,
 
 void gmm_coordinator::compute_cov_mat() {
     throw base::not_implemented_exception(); // TODO
+#ifdef _OPENMP
 #pragma omp parallel for
+#endif
     for (size_t i = 0; i < mu_k->get_nrow(); i++) {
     }
 }
