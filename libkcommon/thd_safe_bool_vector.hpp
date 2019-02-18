@@ -59,6 +59,8 @@ private:
                     data[i] = _bool('0');
             }
         }
+
+    void resize(const size_t tosize, const bool init=false);
 public:
     typedef std::shared_ptr<thd_safe_bool_vector> ptr;
     static ptr create(const size_t len) {
@@ -77,6 +79,7 @@ public:
     size_t size() const;
     void print() const;
     const std::vector<_bool>& raw() const { return data; }
+    void check_set(const size_t idx, const bool val);
 };
 } } // End namespace knor, base
 #endif
