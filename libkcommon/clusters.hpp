@@ -34,8 +34,12 @@ typedef std::vector<double> kmsvector;
 typedef std::vector<double>::iterator kmsiterator;
 
 class clusters {
-friend class prune_clusters;
 private:
+    double& operator[](const unsigned index) {
+        return means[index];
+    }
+
+protected:
     // Together are nXd matrix
     unsigned ncol;
     unsigned nclust;
@@ -43,10 +47,6 @@ private:
     std::vector<bool> complete_v; // Have we already divided by num_members
 
     kmsvector means; // Cluster means
-
-    double& operator[](const unsigned index) {
-        return means[index];
-    }
 
 public:
     typedef typename std::shared_ptr<clusters> ptr;
@@ -75,7 +75,10 @@ public:
         return means;
     }
 
-    const double* get_mean_rawptr(const size_t idx) const {
+    // Get actual index into mean vector (NOT the cluster ID)
+    double get(const unsigned index) { return means[index]; }
+
+    virtual const double* get_mean_rawptr(const size_t idx) const {
         return &means[idx*ncol];
     }
 
@@ -87,16 +90,16 @@ public:
         return num_members_v;
     }
 
-    const bool is_complete(const unsigned idx) const {
+    virtual const bool is_complete(const unsigned idx) {
         return complete_v[idx];
     }
 
     // NOTE: Thread unsafe
-    void set_complete(const unsigned idx, const bool complete=true) {
+    virtual void set_complete(const unsigned idx, const bool complete=true) {
         complete_v[idx] = complete;
     }
 
-    void set_complete_all(const bool complete=true) {
+    virtual void set_complete_all(const bool complete=true) {
         for (unsigned c = 0; c < get_nclust(); c++)
             complete_v[c] = complete;
     }
@@ -105,12 +108,8 @@ public:
         return means.size();
     }
 
-    void num_members_peq(const llong_t val, const unsigned idx) {
+    virtual void num_members_peq(const llong_t val, const unsigned idx) {
         num_members_v[idx] += val;
-    }
-
-    double get(const unsigned index) {
-        return means[index];
     }
 
     // Get an index (based on the entire chunck)
@@ -126,8 +125,7 @@ public:
         return complete_v;
     }
 
-    template <typename T>
-    void add_member(const T* arr, const unsigned idx) {
+    virtual void add_member(const double* arr, const unsigned idx) {
         unsigned offset = idx * ncol;
         for (unsigned i=0; i < ncol; i++) {
             means[offset+i] += arr[i];
@@ -199,22 +197,22 @@ public:
     clusters& operator+=(clusters& rhs);
     clusters& operator=(clusters& other);
     bool operator==(clusters& other);
-    void peq(ptr rhs);
+    virtual void peq(ptr rhs);
     virtual const void print_means() const;
-    void clear();
+    virtual void clear();
     /** \param idx the cluster index.
       */
-    void set_mean(const kmsvector& mean, const int idx=-1);
-    void set_mean(const double* mean, const int idx=-1);
-    void finalize(const unsigned idx);
-    void unfinalize(const unsigned idx);
-    void finalize_all();
-    void unfinalize_all();
-    void set_num_members_v(const size_t* arg);
+    virtual void set_mean(const kmsvector& mean, const int idx=-1);
+    virtual void set_mean(const double* mean, const int idx=-1);
+    virtual void finalize(const unsigned idx);
+    virtual void unfinalize(const unsigned idx);
+    virtual void finalize_all();
+    virtual void unfinalize_all();
+    virtual void set_num_members_v(const size_t* arg);
 
     const void print_membership_count() const;
     void means_peq(const double* other);
-    void num_members_v_peq(const size_t* other);
+    virtual void num_members_v_peq(const size_t* other);
 
     // Used for mini-batch
     void scale_centroid(const double factor,
@@ -376,6 +374,66 @@ public:
     }
 
     const void print_means() const override;
+};
+
+// Begin sparse_clusters
+class sparse_clusters : public clusters {
+    private:
+        //std::vector<size_t> index; // TODO: Actually sparsify Data index
+        void resize(const size_t idx);
+
+    public:
+
+    typedef typename std::shared_ptr<clusters> ptr;
+    sparse_clusters(const unsigned nclust, const unsigned ncol);
+
+    static ptr create(const unsigned nclust, const unsigned ncol) {
+        return ptr(new sparse_clusters(nclust, ncol));
+    }
+
+    void num_members_peq(const llong_t val, const unsigned idx) override {
+        if (idx >= nclust)
+            throw oob_exception("sparse_clusters::num_members_peq");
+        clusters::num_members_peq(val, idx);
+    }
+
+    const bool is_complete(const unsigned idx) override {
+        if (idx >= nclust)
+            throw oob_exception("sparse_clusters::is_complete");
+        return clusters::is_complete(idx);
+    }
+
+    void set_complete(const unsigned idx, const bool complete=true) override {
+        if (idx >= nclust)
+            resize(idx);
+        clusters::set_complete(idx, complete);
+    }
+
+    const double* get_mean_rawptr(const size_t idx) const override {
+        if (idx >= nclust)
+            throw oob_exception("get_mean_rawptr::get_mean_rawptr");
+
+        return clusters::get_mean_rawptr(idx);
+    }
+
+
+    void add_member(const double* arr, const unsigned idx) override {
+        if (idx >= nclust)
+            resize(idx); // +1 for 0-based indexing
+
+        clusters::add_member(arr, idx);
+    }
+
+    const void print_means() const override;
+
+    void set_mean(const kmsvector& mean, const int idx=-1) override {
+        throw abstract_exception();
+    }
+    void set_mean(const double* mean, const int idx=-1) override {
+        throw abstract_exception();
+    }
+
+    void peq(ptr rhs) override;
 };
 
 } } // End namespace knor, base

@@ -24,6 +24,7 @@
 #include "clusters.hpp"
 
 namespace knor { namespace base {
+
 void clusters::clear() {
     std::fill(means.begin(), means.end(), 0);
     std::fill(num_members_v.begin(), num_members_v.end(), 0);
@@ -137,12 +138,13 @@ void clusters::num_members_v_peq(const size_t* other) {
 
 // Begin Helpers //
 const void clusters::print_means() const {
-    for (unsigned cl_idx = 0; cl_idx < get_nclust(); cl_idx++) {
 #ifndef BIND
+    printf("nclust: %u\n", get_nclust());
+    for (unsigned cl_idx = 0; cl_idx < get_nclust(); cl_idx++) {
         std::cout << "#memb = " << get_num_members(cl_idx) << " ";
-#endif
         print<double>(&(means[cl_idx*ncol]), ncol);
     }
+#endif
 }
 
 const void h_clusters::print_means() const {
@@ -210,4 +212,60 @@ const void prune_clusters::print_prev_means_v() const {
     std::cout << "\n";
 #endif
 }
+
+// Sparse clusters
+sparse_clusters::sparse_clusters(const unsigned nclust, const unsigned ncol) :
+    clusters(nclust, ncol) {
+}
+
+/**
+  * @param idx: resize to accomodate an index at location idx
+  */
+void sparse_clusters::resize(const size_t idx) {
+    // Quick sanity checks
+    assert(nclust == num_members_v.size());
+    assert(num_members_v.size() == complete_v.size());
+    assert(means.size() == nclust*ncol);
+
+
+    // These have nclust elements
+    auto nelem = (idx+1) - nclust;
+    num_members_v.resize(idx+1);
+    std::fill_n(&num_members_v[nclust], nelem, 0);
+
+    complete_v.resize(idx+1);
+    std::fill_n(complete_v.begin()+nclust, nelem, false);
+
+    auto old_size = means.size();
+    nelem = ((idx+1)*ncol) - old_size;
+
+    means.resize((idx+1)*ncol);
+    std::fill_n(&means[old_size], nelem, 0); // Zero it out
+
+    nclust = idx + 1;
+}
+
+const void sparse_clusters::print_means() const  {
+#ifndef BIND
+    printf("nclust: %u\n", get_nclust());
+    for (size_t i = 0; i < nclust; i++) {
+        if (num_members_v[i]) {
+            printf("id: %lu\nmean: ", i);
+            print(&means[i*ncol], ncol);
+        }
+    }
+#endif
+}
+
+void sparse_clusters::peq(ptr rhs) {
+    if (rhs->size() > size())
+        resize(rhs->size()); // NOTE: should be -1., but ok
+
+    for (unsigned i = 0; i < rhs->size(); i++) // NOTE: rhs could be smaller
+        this->means[i] += rhs->get(i);
+
+    for (unsigned idx = 0; idx < rhs->get_nclust(); idx++)
+        num_members_peq(rhs->get_num_members(idx), idx);
+}
+
 } } // End namespace knor, base
