@@ -43,7 +43,7 @@ namespace knor {
                 cltr_active_vec), partition_dist(partition_dist),
                 nearest_cdist(nearest_cdist), compute_pdist(compute_pdist) {
 
-            local_clusters = kbase::clusters::create(
+            local_clusters = kbase::sparse_clusters::create(
                                 base::get_max_hnodes(k*2), ncol);
             // Use this for the mean of the full partition calculation
         }
@@ -63,12 +63,10 @@ void xmeans::partition_mean() {
         unsigned true_row_id = get_global_data_id(row);
 
         // Not active
-        if (!((*cltr_active_vec)[cluster_assignments[true_row_id]]))
+        if (!cltr_active_vec->get(cluster_assignments[true_row_id]))
             continue; // Skip it
 
         auto rpart_id = part_id[true_row_id];
-        assert(rpart_id < local_clusters->get_nclust());
-
         local_clusters->add_member(&local_data[row*ncol], rpart_id);
     }
 }
@@ -77,7 +75,7 @@ void xmeans::partition_mean() {
 void xmeans::H_EM_step() {
     local_hcltrs.clear();
 
-    nchanged.assign(base::get_max_hnodes(k*2), 0);
+    nchanged.clear();
 
     auto itr = g_hcltrs.get_iterator();
     while (itr.has_next()) {
@@ -87,7 +85,6 @@ void xmeans::H_EM_step() {
         }
 
         // No need to set id, zeroid, oneid because global hcltrs knows them
-        assert(local_hcltrs.size() > kv.first);
         local_hcltrs[kv.first] = base::h_clusters::create(2, ncol);
         local_hcltrs[kv.first]->clear(); // NOTE: Could be combined into ctor
     }
@@ -106,7 +103,7 @@ void xmeans::H_EM_step() {
         }
 
         // Not active
-        if (!((*cltr_active_vec)[cluster_assignments[true_row_id]]) ||
+        if (!cltr_active_vec->get(cluster_assignments[true_row_id]) ||
                 g_hcltrs[rpart_id]->has_converged())
             continue; // Skip it
 

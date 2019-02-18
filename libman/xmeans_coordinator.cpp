@@ -45,8 +45,9 @@ namespace knor {
             partition_dist.resize(nrow);
             nearest_cdist.resize(nrow);
             // TODO: k can be non 2^n
-            cltrs = kbase::clusters::create(
+            cltrs = kbase::sparse_clusters::create(
                     base::get_max_hnodes(this->k*2), ncol);
+            cltrs->clear();
     }
 
 void xmeans_coordinator::build_thread_state() {
