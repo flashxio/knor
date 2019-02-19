@@ -103,13 +103,13 @@ class vmap {
         std::vector<T> data;
     public:
         T emptyval;
-        vmap() { emptyval = 0; }
-        vmap(const unsigned capacity, const T emptyval) :
+        vmap() : emptyval(0) { }
+        vmap(const size_t capacity, const T emptyval) :
                 emptyval(emptyval) {
             data.assign(capacity, emptyval);
         }
 
-        void set_capacity(const unsigned capacity) {
+        void set_capacity(const size_t capacity) {
             data.assign(capacity, emptyval);
         }
 

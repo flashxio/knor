@@ -86,11 +86,22 @@ void gmeans_coordinator::assemble_ad_vecs(std::unordered_map<unsigned,
 void gmeans_coordinator::compute_ad_stats(
         std::unordered_map<unsigned, std::vector<double>>& ad_vecs) {
 
-    for (auto& kv : ad_vecs) {
-        double score = base::AndersonDarling::compute_statistic(kv.second.size(),
-                &kv.second[0]);
-        kv.second.push_back(score); // NOTE: We push the score onto the back
+    std::vector<unsigned> keys;
+    for (auto const& kv : ad_vecs)
+        keys.push_back(kv.first);
+
+    std::vector<double> scores(keys.size());
+
+#pragma omp parallel for
+    for (size_t idx = 0; idx < keys.size(); idx++) {
+        double score = base::AndersonDarling::compute_statistic(
+                ad_vecs[keys[idx]].size(), &(ad_vecs[keys[idx]][0]));
+        scores[idx] = score;
     }
+
+    // NOTE: We push the score onto the back
+    for (size_t idx = 0; idx < keys.size(); idx++)
+        ad_vecs[keys[idx]].push_back(scores[idx]);
 }
 
 // NOTE: This modifies hcltrs
@@ -115,11 +126,11 @@ void gmeans_coordinator::partition_decision() {
     compute_ad_stats(ad_vecs);
 
     std::vector<size_t> keys;
-    hcltrs.get_keys(keys);
 
-    size_t maxkey = *std::max_element(keys.begin(), keys.end());
+    hcltrs.get_keys(keys);
     std::vector<bool> revert_cache;
-    revert_cache.assign(maxkey+1, false);
+    auto max_pid = (*std::max_element(keys.begin(), keys.end()));
+    revert_cache.assign(max_pid+1, false);
 
     // NOTE: We use ad_vecs.back() to store the score
     for (size_t i = 0; i < keys.size(); i++) {
@@ -149,20 +160,20 @@ void gmeans_coordinator::partition_decision() {
             cluster_assignment_counts[pid] =
                 cluster_assignment_counts[lid] + cluster_assignment_counts[rid];
             cluster_assignment_counts[lid] = cluster_assignment_counts[rid] = 0;
-        } else {
-                revert_cache[pid] = false;
         }
     }
 
     // Assemble cluster membership
+    // TODO: Use dynamic or guided scheduler
 #ifdef _OPENMP
 #pragma omp parallel for default(shared) firstprivate(revert_cache)
 #endif
     for (size_t rid = 0; rid < nrow; rid++) {
         auto pid = part_id[rid];
-        if (revert_cache[pid]) {
-            // Means that row assignments needs to be reverted to part_id
-            cluster_assignments[rid] = pid;
+        // Ignore keys outside in hcltrs
+        if (pid < revert_cache.size() && revert_cache[pid]) {
+                // Means that row assignments needs to be reverted to part_id
+                cluster_assignments[rid] = pid;
         }
     }
 }
