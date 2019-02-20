@@ -22,6 +22,7 @@
 
 #include <cmath>
 #include <algorithm>
+#include <numeric>
 
 namespace knor { namespace base {
 
@@ -41,28 +42,24 @@ public:
 	}
 
 	static double compute_statistic(const size_t n, double* X) {
-		std::sort(X, X + n);
-		// Find the mean of X
-		double X_avg = 0.0;
-		double sum = 0.0;
-		for (size_t i = 0; i < n; i++) {
-			sum += X[i];
-		}
-		X_avg = sum/static_cast<double>(n);
-
+        std::sort(X, X + n);
+        double X_avg = std::accumulate(X, X + n, 0.0)
+            / static_cast<double>(n);
 
 		// Find the variance of X
 		double X_sig = 0.0;
 		for (size_t i = 0; i < n; i++) {
-			X_sig += (X[i] - X_avg)*(X[i] - X_avg);
+            auto diff = (X[i] - X_avg);
+			X_sig += diff * diff;
 		}
-		X_sig /= (n-1);
 
+		X_sig /= (n-1);
+        X_sig = std::sqrt(X_sig);
 
 		// The values X_i are standardized to create new values Y_i
         std::vector<double> Y(n);
 		for (size_t i = 0; i < n; i++) {
-			Y[i] = (X[i] - X_avg)/(std::sqrt(X_sig));
+			Y[i] = (X[i] - X_avg)/(X_sig);
 		}
 
 		// With a standard normal CDF, we calculate the Anderson_Darling Statistic
