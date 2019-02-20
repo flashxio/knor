@@ -80,3 +80,4 @@ inline double dist_matrix::pw_get(const unsigned row,
 }
 } } // End namespace knor, prune
 #endif
+
