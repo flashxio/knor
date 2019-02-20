@@ -135,7 +135,6 @@ void gmeans_coordinator::partition_decision() {
     // NOTE: We use ad_vecs.back() to store the score
     for (size_t i = 0; i < keys.size(); i++) {
         unsigned pid = keys[i];
-        auto const& v = ad_vecs[pid];
         auto score = ad_vecs[pid].back();
 
         if (score <= critical_values[strictness]) {
