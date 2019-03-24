@@ -42,7 +42,7 @@ class thread;
 class coordinator {
 protected:
     std::string fn; // file on disk
-    size_t nrow, ncol;
+    const size_t nrow, ncol;
     unsigned k, max_iters;
     unsigned nnodes, nthreads;
     base::init_t _init_t;

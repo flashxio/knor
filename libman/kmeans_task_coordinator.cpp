@@ -188,11 +188,12 @@ void kmeans_task_coordinator::kmeanspp_init() {
 
     cltrs->set_mean(get_thd_data(selected_idx), 0);
     dist_v[selected_idx] = 0.0;
+    assert(cluster_assignments.size() == nrow);
     cluster_assignments[selected_idx] = 0;
 
 #if KM_TEST
 #ifndef BIND
-    printf("Choosing %lu as center k = 0\n", selected_idx);
+    printf("Choosing %u as center k = 0\n", selected_idx);
 #endif
 #endif
     unsigned clust_idx = 0; // The number of clusters assigned
@@ -294,23 +295,32 @@ void kmeans_task_coordinator::set_task_data_ptrs() {
 }
 
 double kmeans_task_coordinator::compute_cluster_energy() {
-    double cluster_energy = 0;
-    for (size_t row = 0; row < nrow; row++)
-        cluster_energy += dist_v[row];
+    assert(dist_v.size() == nrow);
+    double cluster_energy = std::accumulate(dist_v.begin(),
+            dist_v.end(), 0.0);
+    assert(cluster_energy < std::numeric_limits<double>::max());
     return cluster_energy;
 }
 
 void kmeans_task_coordinator::reinit() {
     std::fill(&dist_v[0], &dist_v[nrow], std::numeric_limits<double>::max());
-    cluster_assignments.clear();
+    cluster_assignments.assign(nrow, base::INVALID_CLUSTER_ID);
     cluster_assignment_counts.assign(k, 0);
     cltrs->clear();
     run_init();
 }
 
 void kmeans_task_coordinator::tally_assignment_counts() {
-    for (size_t row = 0; row < nrow; row++)
+    cluster_assignment_counts.assign(k, 0);
+    for (size_t row = 0; row < nrow; row++) {
+        assert(cluster_assignments[row] != base::INVALID_CLUSTER_ID
+                && cluster_assignments[row] >= 0
+                && cluster_assignments[row] < k);
         cluster_assignment_counts[cluster_assignments[row]]++;
+    }
+
+    assert((size_t)std::accumulate(cluster_assignment_counts.begin(),
+                cluster_assignment_counts.end(), 0) == nrow);
 }
 
 kbase::cluster_t kmeans_task_coordinator::dump_state() {

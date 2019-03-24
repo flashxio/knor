@@ -36,13 +36,13 @@ class medoid : public thread {
     private:
          // Pointer to global cluster data
         std::shared_ptr<kbase::clusters> g_clusters;
-        unsigned nprocrows; // How many rows to process
+        const unsigned nprocrows; // How many rows to process
 
         // Medoid specific
         std::vector<double> local_medoid_energy;
         std::vector<unsigned> candidate_medoids;
         std::vector<double> candidate_medoid_energy;
-        double sample_rate;
+        const double sample_rate;
         std::default_random_engine generator;
         std::uniform_real_distribution<double> ur_distribution;
         medoid_coordinator* coord;
