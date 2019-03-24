@@ -189,6 +189,10 @@ void kmeans_task_coordinator::kmeanspp_init() {
     cltrs->set_mean(get_thd_data(selected_idx), 0);
     dist_v[selected_idx] = 0.0;
     assert(cluster_assignments.size() == nrow);
+
+    if (cluster_assignments.size() != nrow)
+        cluster_assignments.assign(nrow, base::INVALID_CLUSTER_ID);
+
     cluster_assignments[selected_idx] = 0;
 
 #if KM_TEST
