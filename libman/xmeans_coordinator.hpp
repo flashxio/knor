@@ -67,7 +67,7 @@ class xmeans_coordinator : public hclust_coordinator {
                 const size_t nrow,
                 const size_t ncol, const unsigned k, const unsigned max_iters,
                 const unsigned nnodes, const unsigned nthreads,
-                const double* centers=NULL, const std::string init="kmeanspp",
+                const double* centers=NULL, const std::string init="forgy",
                 const double tolerance=-1, const std::string dist_type="eucl",
                 const unsigned min_clust_size=2) {
 
