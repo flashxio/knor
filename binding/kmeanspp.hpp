@@ -26,7 +26,9 @@ namespace kprune = knor::prune;
 
 namespace knor { namespace base {
 
-std::pair<std::pair<unsigned, double>, cluster_t> kmeansPP(
+typedef std::pair<std::pair<unsigned, double>, cluster_t> pp_pair;
+
+pp_pair kmeansPP(
         double* data, const size_t nrow,
         const size_t ncol, const unsigned k, const unsigned nstart=1,
         unsigned nthread=get_num_omp_threads(), std::string dist_type="eucl") {
@@ -57,10 +59,10 @@ std::pair<std::pair<unsigned, double>, cluster_t> kmeansPP(
     }
 
     auto _ = std::pair<unsigned, double>(best_start, best_energy);
-    return std::pair<std::pair<unsigned, double>, cluster_t>(_, best_cluster_t);
+    return pp_pair(_, best_cluster_t);
 }
 
-std::pair<std::pair<unsigned, double>, cluster_t> kmeansPP(
+pp_pair kmeansPP(
         std::string datafn, const size_t nrow,
         const size_t ncol, const unsigned k, const unsigned nstart=1,
         unsigned nthread=get_num_omp_threads(), std::string dist_type="eucl") {
@@ -102,7 +104,7 @@ std::pair<std::pair<unsigned, double>, cluster_t> kmeansPP(
 #endif
 
     auto _ = std::pair<unsigned, double>(best_start, best_energy);
-    return std::pair<std::pair<unsigned, double>, cluster_t>(_, best_cluster_t);
+    return pp_pair(_, best_cluster_t);
 }
 } } // End namespace knor::base
 #endif

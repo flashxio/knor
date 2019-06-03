@@ -172,7 +172,26 @@ bool cluster_t::operator==(const cluster_t& other) {
     return (v_eq(this->assignments, other.assignments) &&
             v_eq(this->assignment_count, other.assignment_count) &&
             v_eq(this->centroids, other.centroids));
+}
 
+const std::string cluster_t::to_str() {
+    std::string s = "Iterations: ";
+    s += std::to_string(iters);
+    s += "\nk: ";
+    s += std::to_string(k);
+    s += "\nnrow: ";
+    s += std::to_string(nrow);
+    s += "\nncol: ";
+    s += std::to_string(ncol);
+    s += "\nCluster count: \n[ ";
+
+    for (const auto& v : assignment_count) {
+        s += std::to_string(v);
+        s += " ";
+    }
+
+    s += "]\n";
+    return s;
 }
 
 gmm_t::gmm_t(const size_t nrow, const size_t ncol, const size_t iters,
