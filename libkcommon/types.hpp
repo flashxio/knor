@@ -70,7 +70,7 @@ public:
 
     const void print() const;
     const void write(const std::string dirname) const;
-    bool operator==(const cluster_t& other);
+    const bool operator==(const cluster_t& other) const;
     const std::string to_str();
 
     ~cluster_t() { }

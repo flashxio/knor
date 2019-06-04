@@ -168,7 +168,7 @@ const void cluster_t::write(const std::string dirname) const {
     f.close();
 }
 
-bool cluster_t::operator==(const cluster_t& other) {
+const bool cluster_t::operator==(const cluster_t& other) const {
     return (v_eq(this->assignments, other.assignments) &&
             v_eq(this->assignment_count, other.assignment_count) &&
             v_eq(this->centroids, other.centroids));
