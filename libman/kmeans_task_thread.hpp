@@ -73,6 +73,9 @@ public:
                     cluster_assignments, fn));
     }
 
+    virtual bool try_steal_task();
+    virtual ~kmeans_task_thread();
+
     void start(const kpmeans::thread_state_t state);
     // Allocate and move data using this thread
     void EM_step();
@@ -84,10 +87,7 @@ public:
     void request_task();
     void lock_sleep();
     void sleep();
-    virtual bool try_steal_task();
-
     const void print_local_data() const;
-    ~kmeans_task_thread();
 
     // Override
     void set_driver(void* driver) {

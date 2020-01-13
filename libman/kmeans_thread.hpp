@@ -54,6 +54,8 @@ class kmeans_thread : public base_kmeans_thread {
                         cluster_assignments, fn));
         }
 
+        virtual ~kmeans_thread() {};
+
         void start(const thread_state_t state);
         // Allocate and move data using this thread
         void EM_step();

@@ -35,7 +35,7 @@ class kmeans_task_thread;
 class dist_matrix;
 
 class kmeans_task_coordinator : public kpmeans::base_kmeans_coordinator {
-protected: // So lazy ..
+protected:
     // Metadata
     // max index stored within each threads partition
     std::vector<unsigned> thd_max_row_idx;
@@ -81,6 +81,14 @@ public:
     std::shared_ptr<dist_matrix> get_dm() {
         return dm;
     }
+    virtual void kmeanspp_init() override;
+    virtual void random_partition_init() override;
+    virtual void forgy_init() override;
+    virtual base::kmeans_t run_kmeans(double* allocd_data,
+            const bool numa_opt) override;
+    virtual ~kmeans_task_coordinator();
+    virtual const void print_thread_data() override;
+    virtual void build_thread_state() override;
 
     std::pair<size_t, size_t> get_rid_len_tup(const unsigned thd_id);
     // Pass file handle to threads to read & numa alloc
@@ -93,19 +101,9 @@ public:
     void run_init() override;
     void set_global_ptrs() override;
     void set_thread_data_ptr(double* allocd_data) override;
-    virtual void kmeanspp_init() override;
-    virtual void random_partition_init() override;
-    virtual void forgy_init() override;
-    virtual base::kmeans_t run_kmeans(double* allocd_data,
-            const bool numa_opt) override;
-
     const double* get_thd_data(const unsigned row_id) const override;
     void set_task_data_ptrs();
-
-    ~kmeans_task_coordinator();
     void set_prune_init(const bool prune_init);
-    virtual const void print_thread_data() override;
-    virtual void build_thread_state() override;
 };
 } } // End namespace kpmeans, prune
 #endif
