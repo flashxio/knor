@@ -94,10 +94,10 @@ void kmeans_task_thread::run() {
             request_task();
             break;
         case EXIT:
-            throw kbase::thread_exception(
+            throw clustercore::thread_exception(
                     "Thread state is EXIT but running!\n");
         default:
-            throw kbase::thread_exception("Unknown thread state\n");
+            throw clustercore::thread_exception("Unknown thread state\n");
     }
 }
 
@@ -139,7 +139,7 @@ void kmeans_task_thread::start(const thread_state_t state=WAIT) {
     this->state = state;
     int rc = pthread_create(&hw_thd, NULL, callback<kmeans_task_thread>, this);
     if (rc)
-        throw kbase::thread_exception(
+        throw clustercore::thread_exception(
                 "Thread creation (pthread_create) failed!", rc);
 }
 
@@ -168,7 +168,7 @@ void kmeans_task_thread::mb_EM_step() {
 
         for (unsigned clust_idx = 0;
                 clust_idx < g_clusters->get_nclust(); clust_idx++) {
-            double dist = kbase::dist_comp_raw<double>(
+            double dist = clustercore::dist_comp_raw<double>(
                     &curr_task->get_data_ptr()[row*ncol],
                     &(g_clusters->get_means()[clust_idx*ncol]), ncol,
                     dist_metric);
@@ -191,7 +191,7 @@ void kmeans_task_thread::EM_step() {
 
             for (unsigned clust_idx = 0;
                     clust_idx < g_clusters->get_nclust(); clust_idx++) {
-                dist = kbase::dist_comp_raw<double>(
+                dist = clustercore::dist_comp_raw<double>(
                         &curr_task->get_data_ptr()[row*ncol],
                         &(g_clusters->get_means()[clust_idx*ncol]), ncol,
                         dist_metric);
@@ -221,7 +221,7 @@ void kmeans_task_thread::EM_step() {
                     }
 
                     if (!recalculated_v->get(true_row_id)) {
-                        dist_v[true_row_id] = kbase::dist_comp_raw<double>(
+                        dist_v[true_row_id] = clustercore::dist_comp_raw<double>(
                                 &curr_task->get_data_ptr()[row*ncol],
                                 &(g_clusters->get_means()[cluster_assignments
                                     [true_row_id]*ncol]), ncol,
@@ -236,7 +236,7 @@ void kmeans_task_thread::EM_step() {
                     }
 
                     // Track 5
-                    double jdist = kbase::dist_comp_raw(
+                    double jdist = clustercore::dist_comp_raw(
                             &curr_task->get_data_ptr()[row*ncol],
                             &(g_clusters->get_means()[clust_idx*ncol]), ncol,
                             dist_metric);
@@ -273,7 +273,7 @@ void kmeans_task_thread::kmspp_dist() {
     for (unsigned row = 0; row < curr_task->get_nrow(); row++) {
         unsigned true_row_id = get_global_data_id(row);
 
-        double dist = kbase::dist_comp_raw<double>(
+        double dist = clustercore::dist_comp_raw<double>(
                 &(curr_task->get_data_ptr()[row*ncol]),
                 &((g_clusters->get_means())[clust_idx*ncol]), ncol,
                 dist_metric);

@@ -27,7 +27,7 @@ namespace knor { namespace core {
     class clusters;
 } }
 
-namespace kbase = knor::core;
+namespace clustercore = knor::core;
 
 namespace knor {
 class skmeans : public kmeans_thread  {
@@ -40,17 +40,17 @@ class skmeans : public kmeans_thread  {
         skmeans(const int node_id, const unsigned thd_id,
                 const unsigned start_rid, const unsigned nprocrows,
                 const unsigned ncol,
-                std::shared_ptr<kbase::clusters> g_clusters,
+                std::shared_ptr<clustercore::clusters> g_clusters,
                 unsigned* cluster_assignments,
-                const std::string fn, kbase::dist_t dist_metric);
+                const std::string fn, clustercore::dist_t dist_metric);
     public:
         static thread::ptr create(
                 const int node_id, const unsigned thd_id,
                 const unsigned start_rid, const unsigned nprocrows,
                 const unsigned ncol,
-                std::shared_ptr<kbase::clusters> g_clusters,
+                std::shared_ptr<clustercore::clusters> g_clusters,
                 unsigned* cluster_assignments, const std::string fn,
-                const kbase::dist_t dist_metric) {
+                const clustercore::dist_t dist_metric) {
             return thread::ptr(
                     new skmeans(node_id, thd_id, start_rid,
                         nprocrows, ncol, g_clusters,

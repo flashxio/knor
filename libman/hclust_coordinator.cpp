@@ -169,10 +169,10 @@ void hclust_coordinator::none_init() {
 
 void hclust_coordinator::run_hinit() {
     switch(_init_t) {
-        case kbase::init_t::FORGY:
+        case clustercore::init_t::FORGY:
             forgy_init();
             break;
-        case kbase::init_t::NONE:
+        case clustercore::init_t::NONE:
             none_init();
             break;
         default:

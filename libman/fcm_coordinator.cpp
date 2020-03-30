@@ -33,8 +33,8 @@ namespace knor {
 fcm_coordinator::fcm_coordinator(const std::string fn, const size_t nrow,
         const size_t ncol, const unsigned k, const unsigned max_iters,
         const unsigned nnodes, const unsigned nthreads,
-        const double* centers, const kbase::init_t it,
-        const double tolerance, const kbase::dist_t dt,
+        const double* centers, const clustercore::init_t it,
+        const double tolerance, const clustercore::dist_t dt,
         const unsigned fuzzindex) :
     coordinator(fn, nrow, ncol, k, max_iters,
             nnodes, nthreads, centers, it, tolerance, dt),
@@ -201,7 +201,7 @@ core::cluster_t fcm_coordinator::run(double* allocd_data,
     gettimeofday(&end, NULL);
 #ifndef BIND
     printf("\n\nAlgorithmic time taken = %.6f sec\n",
-        kbase::time_diff(start, end));
+        clustercore::time_diff(start, end));
     printf("\n******************************************\n");
 #endif
     if (converged) {
@@ -222,11 +222,11 @@ core::cluster_t fcm_coordinator::run(double* allocd_data,
 
 #ifndef BIND
     printf("Final cluster assignment count:\n");
-    kbase::print(cluster_assignment_counts);
+    clustercore::print(cluster_assignment_counts);
     printf("\n******************************************\n");
 #endif
 
-    return kbase::cluster_t(this->nrow, this->ncol, iter, this->k,
+    return clustercore::cluster_t(this->nrow, this->ncol, iter, this->k,
             &cluster_assignments[0], &cluster_assignment_counts[0],
             centers->as_vector());
 }

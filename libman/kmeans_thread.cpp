@@ -30,14 +30,14 @@ namespace knor {
 kmeans_thread::kmeans_thread(const int node_id, const unsigned thd_id,
         const unsigned start_rid,
         const unsigned nprocrows, const unsigned ncol,
-        kbase::clusters::ptr g_clusters, unsigned* cluster_assignments,
-        const std::string fn, kbase::dist_t dist_metric) :
+        clustercore::clusters::ptr g_clusters, unsigned* cluster_assignments,
+        const std::string fn, clustercore::dist_t dist_metric) :
             thread(node_id, thd_id, ncol,
             cluster_assignments, start_rid, fn, dist_metric),
         g_clusters(g_clusters), nprocrows(nprocrows){
 
             local_clusters =
-                kbase::clusters::create(g_clusters->get_nclust(), ncol);
+                clustercore::clusters::create(g_clusters->get_nclust(), ncol);
             set_data_size(sizeof(double)*nprocrows*ncol);
         }
 
@@ -56,10 +56,10 @@ void kmeans_thread::run() {
             EM_step();
             break;
         case EXIT:
-            throw kbase::thread_exception(
+            throw clustercore::thread_exception(
                     "Thread state is EXIT but running!\n");
         default:
-            throw kbase::thread_exception("Unknown thread state\n");
+            throw clustercore::thread_exception("Unknown thread state\n");
     }
     sleep();
 }
@@ -68,7 +68,7 @@ void kmeans_thread::start(const thread_state_t state=WAIT) {
     this->state = state;
     int rc = pthread_create(&hw_thd, NULL, callback<kmeans_thread>, this);
     if (rc)
-        throw kbase::thread_exception(
+        throw clustercore::thread_exception(
                 "Thread creation (pthread_create) failed!", rc);
 }
 
@@ -77,13 +77,13 @@ void kmeans_thread::EM_step() {
     local_clusters->clear();
 
     for (unsigned row = 0; row < nprocrows; row++) {
-        unsigned asgnd_clust = kbase::INVALID_CLUSTER_ID;
+        unsigned asgnd_clust = clustercore::INVALID_CLUSTER_ID;
         double best, dist;
         dist = best = std::numeric_limits<double>::max();
 
         for (unsigned clust_idx = 0;
                 clust_idx < g_clusters->get_nclust(); clust_idx++) {
-            dist = kbase::dist_comp_raw<double>(&local_data[row*ncol],
+            dist = clustercore::dist_comp_raw<double>(&local_data[row*ncol],
                     &(g_clusters->get_means()[clust_idx*ncol]), ncol,
                     dist_metric);
 
@@ -93,7 +93,7 @@ void kmeans_thread::EM_step() {
             }
         }
 
-        assert(asgnd_clust != kbase::INVALID_CLUSTER_ID);
+        assert(asgnd_clust != clustercore::INVALID_CLUSTER_ID);
         unsigned true_row_id = get_global_data_id(row);
 
         if (asgnd_clust != cluster_assignments[true_row_id])
@@ -112,7 +112,7 @@ void kmeans_thread::kmspp_dist() {
     for (unsigned row = 0; row < nprocrows; row++) {
         unsigned true_row_id = get_global_data_id(row);
 
-        double dist = kbase::dist_comp_raw<double>(&local_data[row*ncol],
+        double dist = clustercore::dist_comp_raw<double>(&local_data[row*ncol],
                 &((g_clusters->get_means())[clust_idx*ncol]), ncol,
                 dist_metric);
 

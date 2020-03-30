@@ -26,7 +26,7 @@ namespace knor { namespace core {
     template <typename T> class dense_matrix;
 } }
 
-namespace kbase = knor::core;
+namespace clustercore = knor::core;
 
 namespace knor {
 class gmm : public thread {
@@ -47,7 +47,7 @@ class gmm : public thread {
         gmm(const int node_id, const unsigned thd_id,
                 const unsigned start_rid, const unsigned nprocrows,
                 const unsigned ncol,
-                const std::string fn, kbase::dist_t dist_metric);
+                const std::string fn, clustercore::dist_t dist_metric);
     public:
         static thread::ptr create(
                 const int node_id, const unsigned thd_id,
@@ -55,7 +55,7 @@ class gmm : public thread {
                 const unsigned ncol,
                 const std::string fn,
 
-                kbase::dist_t dist_metric) {
+                clustercore::dist_t dist_metric) {
             return thread::ptr(
                     new gmm(node_id, thd_id, start_rid,
                         nprocrows, ncol, fn, dist_metric));

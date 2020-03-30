@@ -28,23 +28,23 @@
 
 #include "task_queue.hpp"
 
-namespace kbase = knor::core;
+namespace clustercore = knor::core;
 
 namespace knor { namespace prune {
 kmeans_task_coordinator::kmeans_task_coordinator(const std::string fn,
         const size_t nrow,
         const size_t ncol, const unsigned k, const unsigned max_iters,
         const unsigned nnodes, const unsigned nthreads,
-        const double* centers, const kbase::init_t it,
-        const double tolerance, const kbase::dist_t dt) :
+        const double* centers, const clustercore::init_t it,
+        const double tolerance, const clustercore::dist_t dt) :
     coordinator(fn, nrow, ncol, k, max_iters,
             nnodes, nthreads, centers, it, tolerance, dt) {
 
-        cltrs = kbase::prune_clusters::create(k, ncol);
+        cltrs = clustercore::prune_clusters::create(k, ncol);
 
         inited = false;
         if (centers) {
-            if (it == kbase::init_t::NONE) {
+            if (it == clustercore::init_t::NONE) {
                 cltrs->set_mean(centers);
             } else {
 #ifndef BIND
@@ -55,7 +55,7 @@ kmeans_task_coordinator::kmeans_task_coordinator(const std::string fn,
         }
 
         // For pruning
-        recalculated_v = kbase::thd_safe_bool_vector::create(nrow, false);
+        recalculated_v = clustercore::thd_safe_bool_vector::create(nrow, false);
         dist_v.resize(nrow);
         std::fill(&dist_v[0], &dist_v[nrow], std::numeric_limits<double>::max());
         dm = prune::dist_matrix::create(k);
@@ -149,7 +149,7 @@ void kmeans_task_coordinator::update_clusters(const bool prune_init) {
     for (unsigned clust_idx = 0; clust_idx < k; clust_idx++) {
         cltrs->finalize(clust_idx);
         cltrs->set_prev_dist(
-                kbase::eucl_dist(&(cltrs->get_means()[clust_idx*ncol]),
+                clustercore::eucl_dist(&(cltrs->get_means()[clust_idx*ncol]),
                 &(cltrs->get_prev_means()[clust_idx*ncol]), ncol), clust_idx);
 #if VERBOSE
 #ifndef BIND
@@ -244,7 +244,7 @@ void kmeans_task_coordinator::kmeanspp_init() {
     gettimeofday(&end, NULL);
 #ifndef BIND
     printf("Initialization time: %.6f sec\n",
-        kbase::time_diff(start, end));
+        clustercore::time_diff(start, end));
 #endif
 }
 
@@ -327,13 +327,13 @@ void kmeans_task_coordinator::tally_assignment_counts() {
                 cluster_assignment_counts.end(), 0) == nrow);
 }
 
-kbase::cluster_t kmeans_task_coordinator::dump_state() {
-    return kbase::cluster_t(this->nrow, this->ncol, 0, this->k,
+clustercore::cluster_t kmeans_task_coordinator::dump_state() {
+    return clustercore::cluster_t(this->nrow, this->ncol, 0, this->k,
             &cluster_assignments[0], &cluster_assignment_counts[0],
             cltrs->get_means());
 }
 
-kbase::cluster_t kmeans_task_coordinator::mb_run(double* allocd_data) {
+clustercore::cluster_t kmeans_task_coordinator::mb_run(double* allocd_data) {
 #ifdef PROFILER
     ProfilerStart("mb_kmeans_task_coordinator.perf");
 #endif
@@ -379,10 +379,10 @@ kbase::cluster_t kmeans_task_coordinator::mb_run(double* allocd_data) {
         std::vector<double> diff;
         assert(k*ncol == cltrs->get_means().size());
 
-        kbase::linalg::vdiff(&cltrs->get_means()[0],
+        clustercore::linalg::vdiff(&cltrs->get_means()[0],
                 &cltrs->get_prev_means()[0], cltrs->get_means().size(), diff);
 
-        double frob_norm = kbase::linalg::frobenius_norm<double>(
+        double frob_norm = clustercore::linalg::frobenius_norm<double>(
                 &diff[0], diff.size());
 
         if (frob_norm < tolerance) {
@@ -420,17 +420,17 @@ kbase::cluster_t kmeans_task_coordinator::mb_run(double* allocd_data) {
     gettimeofday(&end, NULL);
 #ifndef BIND
     printf("\n\nAlgorithmic time taken = %.6f sec\n",
-        kbase::time_diff(start, end));
+        clustercore::time_diff(start, end));
     printf("\n******************************************\n");
 #endif
 
 #ifndef BIND
     printf("Final cluster counts: \n");
-    kbase::print(cluster_assignment_counts);
+    clustercore::print(cluster_assignment_counts);
     printf("\n******************************************\n");
 #endif
 
-    return kbase::cluster_t(this->nrow, this->ncol, iter, this->k,
+    return clustercore::cluster_t(this->nrow, this->ncol, iter, this->k,
             &cluster_assignments[0], &cluster_assignment_counts[0],
             cltrs->get_means());
 }
@@ -438,7 +438,7 @@ kbase::cluster_t kmeans_task_coordinator::mb_run(double* allocd_data) {
 /**
  * Main driver for kmeans
  */
-kbase::cluster_t kmeans_task_coordinator::run(
+clustercore::cluster_t kmeans_task_coordinator::run(
         double* allocd_data, const bool numa_opt) {
 #ifdef PROFILER
     ProfilerStart("kmeans_task_coordinator.perf");
@@ -494,7 +494,7 @@ kbase::cluster_t kmeans_task_coordinator::run(
 #if VERBOSE
 #ifndef BIND
         printf("Cluster assignment counts: \n");
-        kbase::print(cluster_assignment_counts);
+        clustercore::print(cluster_assignment_counts);
 #endif
 #endif
 
@@ -508,7 +508,7 @@ kbase::cluster_t kmeans_task_coordinator::run(
         iter++;
     }
 
-    if (iter == 0 && _init_t == kbase::init_t::PLUSPLUS)
+    if (iter == 0 && _init_t == clustercore::init_t::PLUSPLUS)
         tally_assignment_counts();
 
 #ifdef PROFILER
@@ -518,7 +518,7 @@ kbase::cluster_t kmeans_task_coordinator::run(
 
 #ifndef BIND
     printf("\n\nAlgorithmic time taken = %.6f sec\n",
-        kbase::time_diff(start, end));
+        clustercore::time_diff(start, end));
     printf("\n******************************************\n");
 #endif
 
@@ -535,11 +535,11 @@ kbase::cluster_t kmeans_task_coordinator::run(
 
 #ifndef BIND
     printf("Final cluster counts: \n");
-    kbase::print(cluster_assignment_counts);
+    clustercore::print(cluster_assignment_counts);
     printf("\n******************************************\n");
 #endif
 
-    return kbase::cluster_t(this->nrow, this->ncol, iter, this->k,
+    return clustercore::cluster_t(this->nrow, this->ncol, iter, this->k,
             &cluster_assignments[0], &cluster_assignment_counts[0],
             cltrs->get_means());
 }

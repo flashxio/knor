@@ -35,7 +35,7 @@ class medoid_coordinator;
 class medoid : public thread {
     private:
          // Pointer to global cluster data
-        std::shared_ptr<kbase::clusters> g_clusters;
+        std::shared_ptr<clustercore::clusters> g_clusters;
         const unsigned nprocrows; // How many rows to process
 
         // Medoid specific
@@ -52,7 +52,7 @@ class medoid : public thread {
         medoid(const int node_id, const unsigned thd_id,
                 const unsigned start_rid, const unsigned nprocrows,
                 const unsigned ncol,
-                std::shared_ptr<kbase::clusters> g_clusters,
+                std::shared_ptr<clustercore::clusters> g_clusters,
                 unsigned* cluster_assignments,
                 const std::string fn, const double sample_rate);
     public:
@@ -60,7 +60,7 @@ class medoid : public thread {
                 const int node_id, const unsigned thd_id,
                 const unsigned start_rid, const unsigned nprocrows,
                 const unsigned ncol,
-                std::shared_ptr<kbase::clusters> g_clusters,
+                std::shared_ptr<clustercore::clusters> g_clusters,
                 unsigned* cluster_assignments, const std::string fn,
                 const double sample_rate) {
             return thread::ptr(

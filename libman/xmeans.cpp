@@ -43,7 +43,7 @@ namespace knor {
                 cltr_active_vec), partition_dist(partition_dist),
                 nearest_cdist(nearest_cdist), compute_pdist(compute_pdist) {
 
-            local_clusters = kbase::sparse_clusters::create(
+            local_clusters = clustercore::sparse_clusters::create(
                                 core::get_max_hnodes(k*2), ncol);
             // Use this for the mean of the full partition calculation
         }

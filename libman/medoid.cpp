@@ -31,14 +31,14 @@ namespace knor {
 medoid::medoid(const int node_id, const unsigned thd_id,
         const unsigned start_rid,
         const unsigned nprocrows, const unsigned ncol,
-        kbase::clusters::ptr g_clusters, unsigned* cluster_assignments,
+        clustercore::clusters::ptr g_clusters, unsigned* cluster_assignments,
         const std::string fn, const double sample_rate):
             thread(node_id, thd_id, ncol, cluster_assignments, start_rid, fn),
             g_clusters(g_clusters), nprocrows(nprocrows),
             sample_rate(sample_rate) {
 
             local_clusters =
-                kbase::clusters::create(g_clusters->get_nclust(), ncol);
+                clustercore::clusters::create(g_clusters->get_nclust(), ncol);
             set_data_size(sizeof(double)*nprocrows*ncol);
             local_medoid_energy.assign(g_clusters->get_nclust(),0);
 
@@ -61,10 +61,10 @@ void medoid::run() {
             medoid_step();
             break;
         case EXIT:
-            throw kbase::thread_exception(
+            throw clustercore::thread_exception(
                     "Thread state is EXIT but running!\n");
         default:
-            throw kbase::thread_exception("Unknown thread state\n");
+            throw clustercore::thread_exception("Unknown thread state\n");
     }
     sleep();
 }
@@ -73,7 +73,7 @@ void medoid::start(const thread_state_t state=WAIT) {
     this->state = state;
     int rc = pthread_create(&hw_thd, NULL, callback<medoid>, this);
     if (rc)
-        throw kbase::thread_exception(
+        throw clustercore::thread_exception(
                 "Thread creation (pthread_create) failed!", rc);
 }
 
@@ -84,7 +84,7 @@ void medoid::EM_step() {
 
     for (unsigned row = 0; row < nprocrows; row++) {
         // Choose row as new cluster center
-        unsigned asgnd_clust = kbase::INVALID_CLUSTER_ID;
+        unsigned asgnd_clust = clustercore::INVALID_CLUSTER_ID;
         double best, dist;
         dist = best = std::numeric_limits<double>::max();
         unsigned true_rid = get_global_data_id(row);
@@ -92,7 +92,7 @@ void medoid::EM_step() {
         for (unsigned clust_idx = 0;
                 clust_idx < g_clusters->get_nclust(); clust_idx++) {
 
-            dist = kbase::dist_comp_raw<double>(&local_data[row*ncol],
+            dist = clustercore::dist_comp_raw<double>(&local_data[row*ncol],
                     &(g_clusters->get_means()[clust_idx*ncol]), ncol,
                     dist_metric);
 
@@ -102,7 +102,7 @@ void medoid::EM_step() {
             }
         }
 
-        assert(asgnd_clust != kbase::INVALID_CLUSTER_ID);
+        assert(asgnd_clust != clustercore::INVALID_CLUSTER_ID);
 
         if (asgnd_clust != cluster_assignments[true_rid])
             meta.num_changed++;
@@ -138,7 +138,7 @@ void medoid::medoid_step() {
         // member_id is a global identifier
         for (auto const& member_id : coord->get_membership()[cid]) {
             if (member_id != true_rid) {
-                energy += kbase::dist_comp_raw<double>(&local_data[row*ncol],
+                energy += clustercore::dist_comp_raw<double>(&local_data[row*ncol],
                     coord->get_thd_data(member_id), ncol, dist_metric);
             }
         }

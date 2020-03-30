@@ -34,8 +34,8 @@ dist_coordinator::dist_coordinator(
         const std::string fn, const size_t nrow,
         const size_t ncol, const unsigned k, const unsigned max_iters,
         const unsigned nnodes, const unsigned nthreads,
-        const double* centers, const kbase::init_t it,
-        const double tolerance, const kbase::dist_t dt) :
+        const double* centers, const clustercore::init_t it,
+        const double tolerance, const clustercore::dist_t dt) :
     kmeans_coordinator(fn, this->init(argc, argv, nrow), ncol, k, max_iters, nnodes,
             nthreads, centers, it, tolerance, dt) {
 
@@ -68,7 +68,7 @@ const size_t dist_coordinator::init(int argc, char* argv[],
 }
 
 void dist_coordinator::random_partition_init() {
-    kbase::rand123emulator<unsigned> gen(0, k-1,
+    clustercore::rand123emulator<unsigned> gen(0, k-1,
             ((g_nrow / nprocs) * mpi_rank));
     for (size_t row = 0; row < nrow; row++) {
         unsigned asgnd_clust = gen.next();
@@ -82,7 +82,7 @@ void dist_coordinator::random_partition_init() {
 #ifndef BIND
     printf("After rand paritions cluster_asgns: \n");
 #endif
-    kbase::print<unsigned>(cluster_assignments, nrow);
+    clustercore::print<unsigned>(cluster_assignments, nrow);
 #endif
 }
 
@@ -111,7 +111,7 @@ const size_t dist_coordinator::global_rid(const size_t local_rid) const {
 const size_t dist_coordinator::local_rid(const size_t global_rid) const {
     size_t rid = global_rid - (mpi_rank * (g_nrow / nprocs));
     if (rid > this->nrow)
-        throw kbase::thread_exception("Row: " + std::to_string(rid) +
+        throw clustercore::thread_exception("Row: " + std::to_string(rid) +
                 " out of bounds for Proc: " + std::to_string( mpi_rank));
     return rid;
 }
@@ -234,7 +234,7 @@ void dist_coordinator::kmeanspp_init() {
     if (mpi_rank == 0)
 #ifndef BIND
         printf("Initialization time: %.6f sec\n",
-                kbase::time_diff(start, end));
+                clustercore::time_diff(start, end));
 #endif
 }
 
@@ -249,7 +249,7 @@ void dist_coordinator::forgy_init() {
     }
 }
 
-void dist_coordinator::run(kbase::cluster_t& ret,
+void dist_coordinator::run(clustercore::cluster_t& ret,
         const std::string outdir) {
     if (mpi_rank == root) {
         if (outdir.empty())
@@ -276,7 +276,7 @@ void dist_coordinator::run(kbase::cluster_t& ret,
     size_t iters = 0;
     size_t nchanged = 0;
 
-    kbase::clusters::ptr cltrs_ptr = get_gcltrs();
+    clustercore::clusters::ptr cltrs_ptr = get_gcltrs();
 
     // Init
     run_init();
@@ -284,14 +284,14 @@ void dist_coordinator::run(kbase::cluster_t& ret,
     double* clstr_buff = new double[k*ncol];
     size_t* nmemb_buff = new size_t[k];
 
-    if (_init_t == kbase::init_t::RANDOM ||
-            _init_t == kbase::init_t::FORGY) {
+    if (_init_t == clustercore::init_t::RANDOM ||
+            _init_t == clustercore::init_t::FORGY) {
         // MPI Update clusters
         kmpi::mpi::reduce_double(&(cltrs_ptr->get_means()[0]),
                 clstr_buff, cltrs_ptr->size());
         cltrs_ptr->set_mean(clstr_buff);
 
-        if (_init_t == kbase::init_t::RANDOM) {
+        if (_init_t == clustercore::init_t::RANDOM) {
             kmpi::mpi::reduce_llong_t(&(cltrs_ptr->get_num_members_v()[0]),
                     nmemb_buff, cltrs_ptr->get_num_members_v().size());
             cltrs_ptr->set_num_members_v(nmemb_buff); // Set new counts
@@ -379,7 +379,7 @@ void dist_coordinator::run(kbase::cluster_t& ret,
     if (mpi_rank == root)
 #ifndef BIND
         printf("\nAlgorithmic time taken = %.5f sec\n",
-                kbase::time_diff(start, end));
+                clustercore::time_diff(start, end));
 #endif
 
     if (!outdir.empty()) {
@@ -389,7 +389,7 @@ void dist_coordinator::run(kbase::cluster_t& ret,
         if (mpi_rank != root) {
             int rc = MPI_Ssend(local_assignments, get_nrow(),
                     MPI::UNSIGNED, root, 0, MPI_COMM_WORLD);
-            kbase::assert_msg(!rc,
+            clustercore::assert_msg(!rc,
                     "Failure to send local assignments to root");
         } else {
             std::vector<unsigned> assignments(g_nrow);
@@ -407,11 +407,11 @@ void dist_coordinator::run(kbase::cluster_t& ret,
                 int rc = MPI_Recv(&assignments[pid*(g_nrow/nprocs)],
                         count, MPI::UNSIGNED, pid,
                         0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-                kbase::assert_msg(!rc,
+                clustercore::assert_msg(!rc,
                         "Root Failure receive local assignments");
             }
 
-            ret = kbase::cluster_t(g_nrow, ncol, iters, k, &assignments[0],
+            ret = clustercore::cluster_t(g_nrow, ncol, iters, k, &assignments[0],
                     &(cltrs_ptr->get_num_members_v()[0]),
                     cltrs_ptr->get_means());
 

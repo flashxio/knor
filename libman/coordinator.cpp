@@ -24,22 +24,22 @@
 #include "thread.hpp"
 #include "util.hpp"
 
-namespace kbase = knor::core;
+namespace clustercore = knor::core;
 
 namespace knor {
 coordinator::coordinator(const std::string fn,
         const size_t nrow,
         const size_t ncol, const unsigned k, const unsigned max_iters,
         const unsigned nnodes, const unsigned nthreads,
-        const double* centers, const kbase::init_t it,
-        const double tolerance, const kbase::dist_t dt) : fn(fn), nrow(nrow),
+        const double* centers, const clustercore::init_t it,
+        const double tolerance, const clustercore::dist_t dt) : fn(fn), nrow(nrow),
     ncol(ncol), k(k), max_iters(max_iters), nnodes(nnodes),
     nthreads(static_cast<unsigned>(std::min(
                     static_cast<size_t>(nthreads), this->nrow))),
     _init_t(it), tolerance(tolerance), _dist_t(dt), num_changed(0),
     pending_threads(0) {
 
-    kbase::assert_msg(k >= 1, "[FATAL]: 'k' must be >= 1");
+    clustercore::assert_msg(k >= 1, "[FATAL]: 'k' must be >= 1");
     cluster_assignments.resize(nrow);
     clear_cluster_assignments();
 
@@ -143,16 +143,16 @@ double coordinator::reduction_on_cuml_sum() {
 
 void coordinator::run_init() {
     switch(_init_t) {
-        case kbase::init_t::RANDOM:
+        case clustercore::init_t::RANDOM:
             random_partition_init();
             break;
-        case kbase::init_t::FORGY:
+        case clustercore::init_t::FORGY:
             forgy_init();
             break;
-        case kbase::init_t::PLUSPLUS:
+        case clustercore::init_t::PLUSPLUS:
             kmeanspp_init();
             break;
-        case kbase::init_t::NONE:
+        case clustercore::init_t::NONE:
             break;
         default:
             throw std::runtime_error("Unknown initialization type");

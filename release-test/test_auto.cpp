@@ -25,21 +25,21 @@
 namespace ktest = knor::test;
 
 namespace knor { namespace test {
-kbase::cluster_t run_test(double* p_centers, double* p_data,
+clustercore::cluster_t run_test(double* p_centers, double* p_data,
         llong_t* p_clust_asgn_cnt, unsigned* p_clust_asgns, const bool prune,
         const std::string init, const unsigned max_iter) {
     constexpr unsigned NTHREADS = 2;
 
     if (init == "none") {
         {
-            kbase::bin_io<double> br(TEST_INIT_CLUSTERS, TEST_K, TEST_NCOL);
+            clustercore::bin_io<double> br(TEST_INIT_CLUSTERS, TEST_K, TEST_NCOL);
             br.read(p_centers); } {
-                kbase::bin_io<double> br(TESTDATA_FN, TEST_NROW, TEST_NCOL);
+                clustercore::bin_io<double> br(TESTDATA_FN, TEST_NROW, TEST_NCOL);
                 br.read(p_data);
             }
     }
 
-    kbase::cluster_t ret;
+    clustercore::cluster_t ret;
     if (prune) {
         ret = knor::omp::compute_min_kmeans(
                 p_data, p_centers, p_clust_asgns,
@@ -69,7 +69,7 @@ int main(int argc, char* argv[]) {
 
         /////////////////////////// Auto only ///////////////////////////
         {
-            kbase::cluster_t ret = knor::test::run_test(&p_centers[0],
+            clustercore::cluster_t ret = knor::test::run_test(&p_centers[0],
                     &p_data[0], &p_clust_asgn_cnt[0], &p_clust_asgns[0], false,
                     "none", 10);
             assert(ktest::check_collection_equal(
@@ -81,7 +81,7 @@ int main(int argc, char* argv[]) {
 
         /////////////////////////// Min auto ///////////////////////////
         {
-            kbase::cluster_t ret = knor::test::run_test(&p_centers[0],
+            clustercore::cluster_t ret = knor::test::run_test(&p_centers[0],
                     &p_data[0], &p_clust_asgn_cnt[0], &p_clust_asgns[0], true,
                     "none", 10);
             assert(ktest::check_collection_equal(
@@ -103,12 +103,12 @@ int main(int argc, char* argv[]) {
         for (std::vector<std::string>::iterator it = inits.begin();
                 it != inits.end(); ++it) {
             srand(1);
-            kbase::cluster_t ret_auto =
+            clustercore::cluster_t ret_auto =
                 knor::test::run_test(&p_centers[0],
                 &p_data[0], &p_clust_asgn_cnt[0], &p_clust_asgns[0], false,
                 *it, 4);
             srand(1);
-            kbase::cluster_t ret_min_auto =
+            clustercore::cluster_t ret_min_auto =
                 knor::test::run_test(&p_centers[0],
                 &p_data[0], &p_clust_asgn_cnt[0], &p_clust_asgns[0], true,
                 *it, 4);

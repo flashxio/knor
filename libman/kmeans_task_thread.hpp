@@ -25,7 +25,7 @@
 
 #include "task_thread.hpp"
 
-namespace kbase = knor::core;
+namespace clustercore = knor::core;
 
 namespace knor {
 
@@ -49,9 +49,9 @@ public:
             const unsigned thd_id,
             const unsigned start_rid, const unsigned nlocal_rows,
             const unsigned ncol,
-            std::shared_ptr<kbase::prune_clusters> g_clusters,
+            std::shared_ptr<clustercore::prune_clusters> g_clusters,
             unsigned* cluster_assignments, const std::string fn,
-            kbase::dist_t dist_metric) {
+            clustercore::dist_t dist_metric) {
         return task_thread::ptr(
                 new kmeans_task_thread(node_id, thd_id, start_rid,
                     nlocal_rows, ncol, g_clusters,

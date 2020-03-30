@@ -34,7 +34,7 @@
 #endif
 
 namespace kprune = knor::prune;
-namespace kbase = knor::core;
+namespace clustercore = knor::core;
 
 static std::atomic<unsigned> pending_threads;
 //static unsigned pending_threads;
@@ -63,10 +63,10 @@ static void test_thread_creation(const unsigned NTHREADS, const unsigned nnodes)
 
     // Always: Build state alone
     for (unsigned i = 0; i < NTHREADS; i++) {
-        kbase::prune_clusters::ptr cl = kbase::prune_clusters::create(2,2);
+        clustercore::prune_clusters::ptr cl = clustercore::prune_clusters::create(2,2);
         threads.push_back(kprune::kmeans_task_thread::create
                 (i%nnodes, i, 69, 200, 1, cl, NULL, "/dev/null",
-                 kbase::dist_t::EUCL));
+                 clustercore::dist_t::EUCL));
         threads[i]->set_parent_cond(&cond);
         threads[i]->set_parent_pending_threads(&pending_threads);
         threads[i]->start(knor::thread_state_t::WAIT); // Thread puts itself to sleep
@@ -94,16 +94,16 @@ void test_numa_populate_data(const unsigned NTHREADS, const unsigned nnodes,
 
     // Always: Build state alone
     for (unsigned i = 0; i < NTHREADS; i++) {
-        kbase::prune_clusters::ptr cl = kbase::prune_clusters::create(2,2);
+        clustercore::prune_clusters::ptr cl = clustercore::prune_clusters::create(2,2);
         threads.push_back(kprune::kmeans_task_thread::create
                 (i%nnodes, i, i*nprocrows, nprocrows, ncol,
-                 cl, NULL, fn, kbase::dist_t::EUCL));
+                 cl, NULL, fn, clustercore::dist_t::EUCL));
         threads[i]->set_parent_cond(&cond);
         threads[i]->set_parent_pending_threads(&pending_threads);
         threads[i]->start(knor::thread_state_t::WAIT); // Thread puts itself to sleep
     }
 
-    kbase::bin_io<double> br(fn, nrow, ncol);
+    clustercore::bin_io<double> br(fn, nrow, ncol);
     double* data = new double [nrow*ncol];
     printf("Bin read data\n");
     br.read(data);
@@ -115,7 +115,7 @@ void test_numa_populate_data(const unsigned NTHREADS, const unsigned nnodes,
     // Print it back
     for (it = threads.begin(); it != threads.end(); ++it) {
         double *dp = &data[(*it)->get_thd_id()*ncol*nprocrows];
-        assert(kbase::eq_all(dp, (*it)->get_local_data(), nprocrows*ncol));
+        assert(clustercore::eq_all(dp, (*it)->get_local_data(), nprocrows*ncol));
         printf("Thread %u PASSED numa_mem_alloc()\n", (*it)->get_thd_id());
     }
 
@@ -130,7 +130,7 @@ int main(int argc, char* argv[]) {
     pthread_mutexattr_settype(&mutex_attr, PTHREAD_MUTEX_ERRORCHECK);
     pthread_mutex_init(&mutex, &mutex_attr);
     pthread_cond_init(&cond, NULL);
-    unsigned nnodes = kbase::get_num_nodes();
+    unsigned nnodes = clustercore::get_num_nodes();
 
     if (argc < 2) {
         fprintf(stderr, "usage: ./test_kmeans_task_thread nthreads [nnodes]\n");

@@ -37,13 +37,13 @@ class task;
     }
 }
 
-namespace kbase = knor::core;
+namespace clustercore = knor::core;
 
 namespace knor { namespace prune {
 
 class task_thread : public knor::thread {
 protected: // Lazy
-    std::shared_ptr<kbase::prune_clusters> g_clusters; // Ptr to global cluster data
+    std::shared_ptr<clustercore::prune_clusters> g_clusters; // Ptr to global cluster data
 
     void* driver; // Hacky, but no time ...
     knor::task_queue* tasks;
@@ -51,7 +51,7 @@ protected: // Lazy
 
     bool prune_init;
     std::shared_ptr<dist_matrix> dm; // global
-    std::shared_ptr<kbase::thd_safe_bool_vector> recalculated_v; // global
+    std::shared_ptr<clustercore::thd_safe_bool_vector> recalculated_v; // global
     bool _is_numa;
 
     // Mini-batch
@@ -63,9 +63,9 @@ protected: // Lazy
     task_thread(const int node_id, const unsigned thd_id,
             const unsigned start_rid, const unsigned nlocal_rows,
             const unsigned ncol,
-            std::shared_ptr<kbase::prune_clusters> g_clusters,
+            std::shared_ptr<clustercore::prune_clusters> g_clusters,
             unsigned* cluster_assignments,
-            const std::string fn, kbase::dist_t dist_metric);
+            const std::string fn, clustercore::dist_t dist_metric);
 public:
     typedef std::shared_ptr<task_thread> ptr;
 
@@ -75,11 +75,11 @@ public:
     // End Mini-batch
 
     virtual void start(const knor::thread_state_t state) override
-        { throw kbase::abstract_exception(); }
+        { throw clustercore::abstract_exception(); }
     // Allocate and move data using this thread
     virtual const unsigned get_global_data_id(const unsigned row_id)
         const override;
-    virtual void run() override { throw kbase::abstract_exception(); }
+    virtual void run() override { throw clustercore::abstract_exception(); }
     virtual void wait() override;
     virtual void wake(knor::thread_state_t state) override = 0;
     virtual void sleep() override;
@@ -112,7 +112,7 @@ public:
         return prune_init;
     }
 
-    void set_recalc_v_ptr(std::shared_ptr<kbase::thd_safe_bool_vector>
+    void set_recalc_v_ptr(std::shared_ptr<clustercore::thd_safe_bool_vector>
             recalculated_v) override {
         this->recalculated_v = recalculated_v;
     }

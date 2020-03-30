@@ -109,7 +109,7 @@ void thread::close_file_handle() {
 
 // Move data ~equally to all nodes
 void thread::numa_alloc_mem() {
-    kbase::assert_msg(f, "File handle invalid, can only alloc once!");
+    clustercore::assert_msg(f, "File handle invalid, can only alloc once!");
     size_t blob_size = get_data_size();
 #ifdef USE_NUMA
     local_data = static_cast<double*>(numa_alloc_onnode(blob_size, node_id));
@@ -144,7 +144,7 @@ void thread::bind2node_id() {
 }
 
 const void thread::print_local_data() {
-    kbase::print(local_data,
+    clustercore::print(local_data,
             (get_data_size()/(sizeof(double)*ncol)), ncol);
 }
 

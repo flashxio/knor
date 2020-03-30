@@ -25,7 +25,7 @@
 
 #include "io.hpp"
 
-namespace kbase = knor::core;
+namespace clustercore = knor::core;
 
 namespace knor { namespace test {
     const std::string TESTDATA_FN = "../test-data/matrix_r50_c5_rrw.bin";
@@ -39,7 +39,7 @@ namespace knor { namespace test {
     constexpr double TEST_TOL = 1E-6;
 
     static void load_result(double* buff) {
-        kbase::bin_io<double> br(TEST_CONVERGED_INIT_RES, TEST_K, TEST_NCOL);
+        clustercore::bin_io<double> br(TEST_CONVERGED_INIT_RES, TEST_K, TEST_NCOL);
         br.read(buff);
     }
 } }

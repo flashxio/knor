@@ -24,28 +24,28 @@
 
 #include "clusters.hpp"
 
-namespace kbase = knor::core;
+namespace clustercore = knor::core;
 
 constexpr unsigned NCOL = 4;
 constexpr unsigned NCLUST = 5;
-static const kbase::kmsvector zero {1,2,3,4};
-static const kbase::kmsvector one {4,5,6,7,8};
-static const kbase::kmsvector two {9,10,11,12};
-static const kbase::kmsvector three {13,14,15,16};
-static const kbase::kmsvector four {17,18,19,20};
-static const kbase::clusters::ptr empty =
-        kbase::clusters::create(NCLUST, NCOL);
-static const std::vector<kbase::kmsvector> data {zero, one, two, three, four};
+static const clustercore::kmsvector zero {1,2,3,4};
+static const clustercore::kmsvector one {4,5,6,7,8};
+static const clustercore::kmsvector two {9,10,11,12};
+static const clustercore::kmsvector three {13,14,15,16};
+static const clustercore::kmsvector four {17,18,19,20};
+static const clustercore::clusters::ptr empty =
+        clustercore::clusters::create(NCLUST, NCOL);
+static const std::vector<clustercore::kmsvector> data {zero, one, two, three, four};
 static const double arr [] =
     {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20};
-static const kbase::kmsvector kv(std::begin(arr), std::end(arr));
+static const clustercore::kmsvector kv(std::begin(arr), std::end(arr));
 
 void test_clusters() {
     printf("Testing clusters ...\n");
     printf("Print no init:\n");
     empty->print_means();
 
-    kbase::clusters::ptr cls = kbase::clusters::create(NCLUST, NCOL, kv);
+    clustercore::clusters::ptr cls = clustercore::clusters::create(NCLUST, NCOL, kv);
     printf("Print after init:\n");
     cls->print_means();
 
@@ -71,7 +71,7 @@ void test_clusters() {
         for (unsigned i = 0; i < data.size(); i++)
             cls->add_member(&(data[i][0]), cl);
     printf("Before finalize all should be equal:\n");
-    kbase::clusters::ptr old = kbase::clusters::create(NCLUST, NCOL);
+    clustercore::clusters::ptr old = clustercore::clusters::create(NCLUST, NCOL);
     *old = *cls;
 
     cls->print_means();
@@ -100,31 +100,31 @@ void test_clusters() {
 }
 
 void test_scaling() {
-    kbase::clusters::ptr cls = kbase::clusters::create(NCLUST, NCOL, kv);
+    clustercore::clusters::ptr cls = clustercore::clusters::create(NCLUST, NCOL, kv);
     cls->print_means();
 
     for (unsigned i = 0; i < NCLUST; i++) {
         cls->scale_centroid(2, i, &kv[NCOL*i]);
     }
 
-    kbase::clusters::ptr cls2 = kbase::clusters::create(NCLUST, NCOL, kv);
+    clustercore::clusters::ptr cls2 = clustercore::clusters::create(NCLUST, NCOL, kv);
     assert(*cls2 == *cls);
 }
 
 void test_prune_clusters() {
     printf("Testing prune_clusters ...\n");
-    kbase::prune_clusters::ptr pcl =
-        kbase::prune_clusters::create(NCLUST, NCOL);
+    clustercore::prune_clusters::ptr pcl =
+        clustercore::prune_clusters::create(NCLUST, NCOL);
     pcl->set_mean(arr);
 
     printf("Testing set_mean == create(nclust, ncol, kv)");
-    assert(*pcl == *(kbase::prune_clusters::create(NCLUST, NCOL, kv)));
+    assert(*pcl == *(clustercore::prune_clusters::create(NCLUST, NCOL, kv)));
     printf("Success ...\n");
 
-    kbase::clusters::ptr cl = kbase::clusters::create(NCLUST, NCOL, kv);
+    clustercore::clusters::ptr cl = clustercore::clusters::create(NCLUST, NCOL, kv);
     printf("Test *cl == *pcl after cast...\n");
-    assert(*cl == *(std::static_pointer_cast<kbase::clusters,
-                kbase::prune_clusters>(pcl)));
+    assert(*cl == *(std::static_pointer_cast<clustercore::clusters,
+                clustercore::prune_clusters>(pcl)));
     pcl->clear();
 
     printf("Setting test cl to values == pcl ...\n");
@@ -140,8 +140,8 @@ void test_prune_clusters() {
     printf("Testing prev_mean ..\n");
 
     for (unsigned i = 0; i < NCLUST; i++) {
-        kbase::kmsvector v = pcl->get_prev_means();
-        kbase::kmsiterator it = v.begin() + (i*NCOL);
+        clustercore::kmsvector v = pcl->get_prev_means();
+        clustercore::kmsiterator it = v.begin() + (i*NCOL);
         for (unsigned col = 0; col < NCOL; col++) {
             assert(*(it++) == data[i][col]);
         }
@@ -151,15 +151,15 @@ void test_prune_clusters() {
 
 void test_hclusters() {
     printf("Testing hcluster ...\n");
-    auto hclust0 = kbase::h_clusters::create(2, NCOL);
+    auto hclust0 = clustercore::h_clusters::create(2, NCOL);
     hclust0->set_mean(zero, 0);
     hclust0->set_mean(one, 1);
     hclust0->print_means();
 
-    kbase::h_clusters::cast2(hclust0)->set_zeroid(0);
-    kbase::h_clusters::cast2(hclust0)->set_oneid(1);
+    clustercore::h_clusters::cast2(hclust0)->set_zeroid(0);
+    clustercore::h_clusters::cast2(hclust0)->set_oneid(1);
 
-    auto hclust1 = kbase::h_clusters::create(2, NCOL, arr);
+    auto hclust1 = clustercore::h_clusters::create(2, NCOL, arr);
     hclust1->print_means();
     printf("Success ...\n");
 }

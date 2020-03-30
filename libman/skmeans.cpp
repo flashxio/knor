@@ -26,9 +26,9 @@ namespace knor {
     skmeans::skmeans(const int node_id, const unsigned thd_id,
             const unsigned start_rid, const unsigned nprocrows,
             const unsigned ncol,
-            std::shared_ptr<kbase::clusters> g_clusters,
+            std::shared_ptr<clustercore::clusters> g_clusters,
             unsigned* cluster_assignments,
-            const std::string fn, kbase::dist_t dist_metric) :
+            const std::string fn, clustercore::dist_t dist_metric) :
         kmeans_thread(node_id, thd_id, start_rid,
                 nprocrows, ncol, g_clusters,
                 cluster_assignments, fn, dist_metric) {
@@ -79,10 +79,10 @@ namespace knor {
                 feature_normalize();
                 break;
             case EXIT:
-                throw kbase::thread_exception(
+                throw clustercore::thread_exception(
                         "Thread state is EXIT but running!\n");
             default:
-                throw kbase::thread_exception("Unknown thread state\n");
+                throw clustercore::thread_exception("Unknown thread state\n");
         }
         sleep();
     }

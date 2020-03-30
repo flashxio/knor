@@ -25,7 +25,7 @@
 #include "dist_matrix.hpp"
 #include "io.hpp"
 
-namespace kbase = knor::core;
+namespace clustercore = knor::core;
 namespace kprune = knor::prune;
 
 constexpr unsigned NROW = 16;
@@ -33,14 +33,14 @@ constexpr unsigned NCOL = 4;
 
 void test_dist_matrix() {
     std::vector<double> data(NROW*NCOL); // It's dense
-    kbase::bin_rm_reader<double> bm0("data_dm.bin");
+    clustercore::bin_rm_reader<double> bm0("data_dm.bin");
     bm0.read(data);
 
     auto dm = kprune::dist_matrix::create(NROW);
-    dm->compute_pairwise_dist(&data[0], NCOL, kbase::dist_t::TAXI);
+    dm->compute_pairwise_dist(&data[0], NCOL, clustercore::dist_t::TAXI);
 
     std::vector<double> dense_dm(NROW*NROW); // It's dense
-    kbase::bin_rm_reader<double> bm1("pw_dm.bin");
+    clustercore::bin_rm_reader<double> bm1("pw_dm.bin");
     bm1.read(dense_dm);
 
     for (unsigned row = 0; row < NROW; row++) {

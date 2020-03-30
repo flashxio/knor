@@ -31,9 +31,9 @@ namespace knor { namespace prune {
 task_thread::task_thread(const int node_id, const unsigned thd_id,
         const unsigned start_rid, const unsigned nlocal_rows,
         const unsigned ncol,
-        std::shared_ptr<kbase::prune_clusters> g_clusters,
+        std::shared_ptr<clustercore::prune_clusters> g_clusters,
         unsigned* cluster_assignments,
-        const std::string fn, kbase::dist_t dist_metric):
+        const std::string fn, clustercore::dist_t dist_metric):
             thread(node_id, thd_id, ncol,
             cluster_assignments, start_rid, fn, dist_metric),
         g_clusters(g_clusters), prune_init(true), _is_numa(false) {
@@ -47,7 +47,7 @@ task_thread::task_thread(const int node_id, const unsigned thd_id,
                 tasks->set_nrow(nlocal_rows);
                 tasks->set_ncol(ncol);
                 local_clusters =
-                    kbase::clusters::create(g_clusters->get_nclust(), ncol);
+                    clustercore::clusters::create(g_clusters->get_nclust(), ncol);
 
                 set_data_size(sizeof(double)*nlocal_rows*ncol);
 #if VERBOSE
@@ -78,7 +78,7 @@ void task_thread::request_task() {
 
         // FIXME: someone got the last task
         //printf("request_task: Thd: %u, Task ==> ", get_thd_id()); curr_task.print();
-        kbase::assert_msg(curr_task->get_nrow(), "FIXME: Empty task");
+        clustercore::assert_msg(curr_task->get_nrow(), "FIXME: Empty task");
         pthread_mutex_unlock(&mutex);
     }
 #if 0

@@ -26,7 +26,7 @@
 
 #include "cxxopts/cxxopts.hpp"
 
-namespace kbase = knor::core;
+namespace clustercore = knor::core;
 
 int main(int argc, char* argv[]) {
     try {
@@ -35,13 +35,13 @@ int main(int argc, char* argv[]) {
         unsigned k = 0;
 
         // optional args
-        unsigned nthread = kbase::get_num_omp_threads();
+        unsigned nthread = clustercore::get_num_omp_threads();
         std::string dist_type = "eucl";
         std::string centersfn = "";
         unsigned max_iters=std::numeric_limits<unsigned>::max();
         std::string init = "random";
         double tolerance = -1;
-        unsigned nnodes = kbase::get_num_nodes();
+        unsigned nnodes = clustercore::get_num_nodes();
         double cov_regularizer = 1E-6;
         std::string outdir = "";
 
@@ -93,7 +93,7 @@ int main(int argc, char* argv[]) {
             exit(EXIT_SUCCESS);
         }
 
-        kbase::assert_msg(kbase::is_file_exist(datafn.c_str()),
+        clustercore::assert_msg(clustercore::is_file_exist(datafn.c_str()),
                 "Data file name doesn't exit!");
         size_t nrow = atol(options["nsamples"].as<std::string>().c_str());
         size_t ncol = atol(options["dim"].as<std::string>().c_str());
@@ -102,7 +102,7 @@ int main(int argc, char* argv[]) {
         if (options.count("cov_reg"))
             cov_regularizer = std::stod(options["cov_reg"].as<std::string>());
         if (options.count("centersfn")) {
-            kbase::assert_msg(kbase::is_file_exist(centersfn.c_str()),
+            clustercore::assert_msg(clustercore::is_file_exist(centersfn.c_str()),
                     "Centers file name doesn't exit!");
             init = "none";  // Ignore whatever you pass in
         }
@@ -111,18 +111,18 @@ int main(int argc, char* argv[]) {
             fprintf(stderr, "\n\n**[WARNING]**: No output dir specified with '-o' "
                     " flag means no output will be saved!\n\n");
 
-        kbase::assert_msg(!(init == "none" && centersfn.empty()),
+        clustercore::assert_msg(!(init == "none" && centersfn.empty()),
                 "Centers file name doesn't exit!");
 
-        if (kbase::filesize(datafn.c_str()) != (sizeof(double)*nrow*ncol))
-            throw kbase::io_exception("File size does not match input size.");
+        if (clustercore::filesize(datafn.c_str()) != (sizeof(double)*nrow*ncol))
+            throw clustercore::io_exception("File size does not match input size.");
 
         double* p_centers = NULL;
-        kbase::gmm_t ret;
+        clustercore::gmm_t ret;
 
-        if (kbase::is_file_exist(centersfn.c_str())) {
+        if (clustercore::is_file_exist(centersfn.c_str())) {
             p_centers = new double [k*ncol];
-            kbase::bin_io<double> br2(centersfn, k, ncol);
+            clustercore::bin_io<double> br2(centersfn, k, ncol);
             br2.read(p_centers);
             printf("Read centers!\n");
         } else {

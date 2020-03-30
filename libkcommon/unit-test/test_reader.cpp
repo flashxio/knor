@@ -20,11 +20,11 @@
 #include "io.hpp"
 #include "util.hpp"
 
-namespace kbase = knor::core;
+namespace clustercore = knor::core;
 
 void test_text_reader(std::string fn, const size_t NROW, const size_t NCOL) {
     std::cout << "Text reader test ...\n";
-    kbase::text_reader<double> rdr(fn);
+    clustercore::text_reader<double> rdr(fn);
     rdr.set_ncol(NCOL);
     std::vector<double> v(NCOL);
     std::vector<double> m;
@@ -35,33 +35,33 @@ void test_text_reader(std::string fn, const size_t NROW, const size_t NCOL) {
     std::cout << "Readline: ==>\n";
     std::cout << "nrow: " << rdr.get_nrow() <<
         ", ncol: " << rdr.get_ncol() << std::endl;
-    kbase::print<double>(&m[0], rdr.get_nrow(), rdr.get_ncol());
+    clustercore::print<double>(&m[0], rdr.get_nrow(), rdr.get_ncol());
 
     std::cout << "Read: ==>\n";
     std::vector<double> v2(NROW*NCOL);
-    kbase::text_reader<double> rdr2(fn);
+    clustercore::text_reader<double> rdr2(fn);
     rdr2.set_ncol(NCOL);
     rdr2.read(v2);
     std::cout << "nrow: " << rdr2.get_nrow() <<
         ", ncol: " << rdr2.get_ncol() << std::endl;
 
-    kbase::print<double>(&v2[0], rdr2.get_nrow(), rdr2.get_ncol());
+    clustercore::print<double>(&v2[0], rdr2.get_nrow(), rdr2.get_ncol());
 
     assert(m.size() == NROW * NCOL);
     assert(m.size() == v2.size());
-    assert(kbase::eq_all<double>(&m[0], &v2[0], m.size()));
+    assert(clustercore::eq_all<double>(&m[0], &v2[0], m.size()));
 }
 
 void test_bin_rm_reader(std::string fn, const size_t NROW, const size_t NCOL) {
     std::cout << "\nBinary reader test ...\n";
 
-    kbase::bin_rm_reader<double> rdr(fn);
+    clustercore::bin_rm_reader<double> rdr(fn);
     rdr.set_ncol(NCOL);
     std::vector<double> v(NCOL);
 
     while (rdr.readline(v)) {
         std::cout << "line: ==> ";
-        kbase::print<double>(v);
+        clustercore::print<double>(v);
     }
 }
 

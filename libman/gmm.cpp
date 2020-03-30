@@ -31,7 +31,7 @@ namespace knor {
 gmm::gmm(const int node_id, const unsigned thd_id,
         const unsigned start_rid,
         const unsigned nprocrows, const unsigned ncol,
-        const std::string fn, kbase::dist_t dist_metric) :
+        const std::string fn, clustercore::dist_t dist_metric) :
             thread(node_id, thd_id, ncol,
             NULL, start_rid, fn, dist_metric), nprocrows(nprocrows),
             L(0){
@@ -117,10 +117,10 @@ void gmm::run() {
             Mstep();
             break;
         case EXIT:
-            throw kbase::thread_exception(
+            throw clustercore::thread_exception(
                     "Thread state is EXIT but running!\n");
         default:
-            throw kbase::thread_exception("Unknown thread state\n");
+            throw clustercore::thread_exception("Unknown thread state\n");
     }
     sleep();
 }
@@ -129,7 +129,7 @@ void gmm::start(const thread_state_t state=WAIT) {
     this->state = state;
     int rc = pthread_create(&hw_thd, NULL, callback<gmm>, this);
     if (rc)
-        throw kbase::thread_exception(
+        throw clustercore::thread_exception(
                 "Thread creation (pthread_create) failed!", rc);
 }
 } // End namespace knor

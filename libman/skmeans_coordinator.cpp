@@ -29,14 +29,14 @@ namespace knor {
 skmeans_coordinator::skmeans_coordinator(const std::string fn, const size_t nrow,
         const size_t ncol, const unsigned k, const unsigned max_iters,
         const unsigned nnodes, const unsigned nthreads,
-        const double* centers, const kbase::init_t it,
-        const double tolerance, const kbase::dist_t dt) :
+        const double* centers, const clustercore::init_t it,
+        const double tolerance, const clustercore::dist_t dt) :
     coordinator(fn, nrow, ncol, k, max_iters,
             nnodes, nthreads, centers, it, tolerance, dt) {
 
-        cltrs = kbase::clusters::create(k, ncol);
+        cltrs = clustercore::clusters::create(k, ncol);
         if (centers) {
-            if (it == kbase::init_t::NONE)
+            if (it == clustercore::init_t::NONE)
                 cltrs->set_mean(centers);
             else {
 #ifndef BIND
@@ -197,7 +197,7 @@ void skmeans_coordinator::forgy_init() {
 /**
  * Main driver
  */
-kbase::cluster_t skmeans_coordinator::run(
+clustercore::cluster_t skmeans_coordinator::run(
         double* allocd_data, const bool numa_opt=false) {
 #ifdef PROFILER
     ProfilerStart("libman/skmeans_coordinator.perf");
@@ -236,7 +236,7 @@ kbase::cluster_t skmeans_coordinator::run(
 #ifndef BIND
         printf("Cluster assignment counts: \n");
 #endif
-        kbase::print(cluster_assignment_counts);
+        clustercore::print(cluster_assignment_counts);
 #endif
 
         if (num_changed == 0 ||
@@ -253,7 +253,7 @@ kbase::cluster_t skmeans_coordinator::run(
     gettimeofday(&end, NULL);
 #ifndef BIND
     printf("\n\nAlgorithmic time taken = %.6f sec\n",
-        kbase::time_diff(start, end));
+        clustercore::time_diff(start, end));
     printf("\n******************************************\n");
 #endif
     if (converged) {
@@ -269,11 +269,11 @@ kbase::cluster_t skmeans_coordinator::run(
 
 #ifndef BIND
     printf("Final cluster counts: \n");
-    kbase::print(cluster_assignment_counts);
+    clustercore::print(cluster_assignment_counts);
     printf("\n******************************************\n");
 #endif
 
-    return kbase::cluster_t(this->nrow, this->ncol, iter, this->k,
+    return clustercore::cluster_t(this->nrow, this->ncol, iter, this->k,
             &cluster_assignments[0], &cluster_assignment_counts[0],
             cltrs->get_means());
 }

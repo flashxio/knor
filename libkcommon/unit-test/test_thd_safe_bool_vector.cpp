@@ -24,10 +24,10 @@
 #include "thd_safe_bool_vector.hpp"
 #include "util.hpp"
 
-namespace kbase = knor::core;
+namespace clustercore = knor::core;
 
 void build_state(std::vector<short> &verifier,
-        kbase::thd_safe_bool_vector::ptr data, const unsigned len) {
+        clustercore::thd_safe_bool_vector::ptr data, const unsigned len) {
     for (unsigned i = 0; i < len; i++) {
         short rand_val = rand() % 2;
         if (rand_val == 0) {
@@ -45,7 +45,7 @@ void build_state(std::vector<short> &verifier,
 
 template <typename T>
 void test_correctness(const std::vector<T> &verifier,
-        const kbase::thd_safe_bool_vector::ptr data) {
+        const clustercore::thd_safe_bool_vector::ptr data) {
     assert(verifier.size() == data->size());
 
     for (unsigned i = 0; i < verifier.size(); i++)
@@ -53,19 +53,19 @@ void test_correctness(const std::vector<T> &verifier,
 }
 
 void test_init_ctor(const unsigned len) {
-    kbase::thd_safe_bool_vector::ptr data =
-        kbase::thd_safe_bool_vector::create(len, true);
+    clustercore::thd_safe_bool_vector::ptr data =
+        clustercore::thd_safe_bool_vector::create(len, true);
     for (unsigned i = 0; i < len; i++)
         assert(data->get(i) == true);
 
-    data = kbase::thd_safe_bool_vector::create(len, false);
+    data = clustercore::thd_safe_bool_vector::create(len, false);
     for (unsigned i = 0; i < len; i++)
         assert(data->get(i) == false);
 
     printf("Successfully init ctor ...\n");
 }
 
-void test_thread_safety(const kbase::thd_safe_bool_vector::ptr data,
+void test_thread_safety(const clustercore::thd_safe_bool_vector::ptr data,
         const unsigned nthreads) {
 
     constexpr unsigned NUM_TESTS = 50;
@@ -102,8 +102,8 @@ int main(int argc, char* argv[]) {
     unsigned nthreads = atol(argv[1]);
     unsigned len = atol(argv[2]);
 
-    kbase::thd_safe_bool_vector::ptr data =
-        kbase::thd_safe_bool_vector::create(len);
+    clustercore::thd_safe_bool_vector::ptr data =
+        clustercore::thd_safe_bool_vector::create(len);
     std::vector<short> verifier(len);
 
     build_state(verifier, data, len);

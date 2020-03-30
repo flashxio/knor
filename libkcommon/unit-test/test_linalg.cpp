@@ -24,12 +24,12 @@
 #include "io.hpp"
 #include "dense_matrix.hpp"
 
-namespace kbase = knor::core;
+namespace clustercore = knor::core;
 constexpr unsigned N = 6;
 
 void test_scale() {
     std::vector<double> v {1,2,3,4};
-    kbase::linalg::scale(&v[0], v.size());
+    clustercore::linalg::scale(&v[0], v.size());
 
     constexpr double EPS = 0.0000001;
     const std::vector<double> truth
@@ -53,19 +53,19 @@ void test_det() {
 	double inv[N*N]; // To store inverse of A*
 
     printf("Input matrix is :\n");
-    kbase::print(A, N, N);
+    clustercore::print(A, N, N);
 
     printf("\nThe Determinant is : %.2f\n",
-            kbase::linalg::determinant(A,N, N));
+            clustercore::linalg::determinant(A,N, N));
 
     printf("\nThe Inverse is :\n");
-	if (kbase::linalg::inverse(A, inv, N))
-		kbase::print(inv, N, N);
+	if (clustercore::linalg::inverse(A, inv, N))
+		clustercore::print(inv, N, N);
 }
 
 void test_det_dense_mat() {
-    kbase::dense_matrix<double>::rawptr dm
-        = kbase::dense_matrix<double>::create(N, N);
+    clustercore::dense_matrix<double>::rawptr dm
+        = clustercore::dense_matrix<double>::create(N, N);
 
 	double A[N*N] = { 5, -2, 2, 7, 12, 2,
 					1, 0, 0, 3, 1, 2,
@@ -75,8 +75,8 @@ void test_det_dense_mat() {
 					12, -12, -9, 4, 1, 6 };
     dm->set(A);
 
-    kbase::dense_matrix<double>::rawptr inv
-        = kbase::dense_matrix<double>::create(N, N);
+    clustercore::dense_matrix<double>::rawptr inv
+        = clustercore::dense_matrix<double>::create(N, N);
 
     assert(dm->get_nrow() == dm->get_ncol());
     assert(dm->get_nrow() == inv->get_nrow() &&
@@ -85,11 +85,11 @@ void test_det_dense_mat() {
     dm->print();
 
     printf("\nThe Determinant is : %.2f\n",
-            kbase::linalg::determinant(dm->as_pointer(),
+            clustercore::linalg::determinant(dm->as_pointer(),
                 dm->get_nrow(), dm->get_ncol()));
 
     printf("\nThe Inverse is :\n");
-	if (kbase::linalg::inverse(dm->as_pointer(), inv->as_pointer(),
+	if (clustercore::linalg::inverse(dm->as_pointer(), inv->as_pointer(),
                 dm->get_nrow()))
         inv->print();
 

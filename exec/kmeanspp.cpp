@@ -33,7 +33,7 @@
 
 #include "cxxopts/cxxopts.hpp"
 
-namespace kbase = knor::core;
+namespace clustercore = knor::core;
 
 int main(int argc, char* argv[]) {
   try {
@@ -42,11 +42,11 @@ int main(int argc, char* argv[]) {
     unsigned k = 0;
 
     // optional args
-    unsigned nthread = kbase::get_num_omp_threads();
+    unsigned nthread = clustercore::get_num_omp_threads();
     std::string dist_type = "eucl";
     unsigned nstarts = 10;
 
-    unsigned nnodes = kbase::get_num_nodes();
+    unsigned nnodes = clustercore::get_num_nodes();
     std::string outdir = "";
 
     cxxopts::Options options(argv[0],
@@ -90,7 +90,7 @@ int main(int argc, char* argv[]) {
         exit(EXIT_SUCCESS);
     }
 
-    kbase::assert_msg(kbase::is_file_exist(datafn.c_str()),
+    clustercore::assert_msg(clustercore::is_file_exist(datafn.c_str()),
             "Data file name doesn't exit!");
     size_t nrow = atol(options["nsamples"].as<std::string>().c_str());
     size_t ncol = atol(options["dim"].as<std::string>().c_str());
@@ -99,15 +99,15 @@ int main(int argc, char* argv[]) {
         fprintf(stderr, "\n\n**[WARNING]**: No output dir specified with '-o' "
                 " flag means no output will be saved!\n\n");
 
-    if (kbase::filesize(datafn.c_str()) != (sizeof(double)*nrow*ncol))
-        throw kbase::io_exception("File size does not match input size.");
+    if (clustercore::filesize(datafn.c_str()) != (sizeof(double)*nrow*ncol))
+        throw clustercore::io_exception("File size does not match input size.");
 
 
-    auto ret = kbase::kmeansPP(datafn, nrow, ncol, k, nstarts,
+    auto ret = clustercore::kmeansPP(datafn, nrow, ncol, k, nstarts,
             nthread, dist_type);
     printf("Best start: %u, Best energy: %f\n", ret.first.first, ret.first.second);
     printf("Best Clustering: \n") ;
-    kbase::print(ret.second.assignment_count);
+    clustercore::print(ret.second.assignment_count);
 
     if (!outdir.empty()) {
         printf("\nWriting output to '%s'\n", outdir.c_str());

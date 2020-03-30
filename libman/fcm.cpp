@@ -97,10 +97,10 @@ void fcm::run() {
             Mstep();
             break;
         case EXIT:
-            throw kbase::thread_exception(
+            throw clustercore::thread_exception(
                     "Thread state is EXIT but running!\n");
         default:
-            throw kbase::thread_exception("Unknown thread state\n");
+            throw clustercore::thread_exception("Unknown thread state\n");
     }
     sleep();
 }
@@ -109,7 +109,7 @@ void fcm::start(const thread_state_t state=WAIT) {
     this->state = state;
     int rc = pthread_create(&hw_thd, NULL, callback<fcm>, this);
     if (rc)
-        throw kbase::thread_exception(
+        throw clustercore::thread_exception(
                 "Thread creation (pthread_create) failed!", rc);
 }
 
