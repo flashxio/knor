@@ -27,7 +27,7 @@
 namespace clustercore = knor::core;
 
 namespace knor {
-coordinator::coordinator(const std::string fn,
+base::base(const std::string fn,
         const size_t nrow,
         const size_t ncol, const unsigned k, const unsigned max_iters,
         const unsigned nnodes, const unsigned nthreads,
@@ -54,7 +54,7 @@ coordinator::coordinator(const std::string fn,
     pthread_cond_init(&cond, NULL);
 }
 
-void coordinator::wait4complete() {
+void base::wait4complete() {
     pthread_mutex_lock(&mutex);
     while (pending_threads != 0) {
         pthread_cond_wait(&cond, &mutex);
@@ -62,14 +62,14 @@ void coordinator::wait4complete() {
     pthread_mutex_unlock(&mutex);
 }
 
-void coordinator::set_thread_data_ptr(double* allocd_data) {
+void base::set_thread_data_ptr(double* allocd_data) {
     thread_iter it = threads.begin();
     for (; it != threads.end(); ++it)
         (*it)->set_local_data_ptr(allocd_data);
 }
 
 std::pair<unsigned, unsigned>
-coordinator::get_rid_len_tup(const unsigned thd_id) {
+base::get_rid_len_tup(const unsigned thd_id) {
     unsigned rows_per_thread = nrow / nthreads;
     unsigned start_rid = (thd_id*rows_per_thread);
 
@@ -79,18 +79,18 @@ coordinator::get_rid_len_tup(const unsigned thd_id) {
 }
 
 
-void coordinator::wake4run(const thread_state_t state) {
+void base::wake4run(const thread_state_t state) {
     pending_threads = nthreads;
     for (unsigned thd_id = 0; thd_id < threads.size(); thd_id++)
         threads[thd_id]->wake(state);
 }
 
-void coordinator::destroy_threads() {
+void base::destroy_threads() {
     wake4run(EXIT);
 }
 
 // <Thread, within-thread-row-id>
-const double* coordinator::get_thd_data(const unsigned row_id) const {
+const double* base::get_thd_data(const unsigned row_id) const {
     // TODO: Cheapen
     unsigned parent_thd = std::upper_bound(thd_max_row_idx.begin(),
             thd_max_row_idx.end(), row_id) - thd_max_row_idx.begin();
@@ -100,12 +100,12 @@ const double* coordinator::get_thd_data(const unsigned row_id) const {
             [(row_id-(parent_thd*rows_per_thread))*ncol]);
 }
 
-void coordinator::set_thread_clust_idx(const unsigned clust_idx) {
+void base::set_thread_clust_idx(const unsigned clust_idx) {
     for (thread_iter it = threads.begin(); it != threads.end(); ++it)
         (*it)->set_clust_idx(clust_idx);
 }
 
-void const coordinator::print_thread_data() {
+void const base::print_thread_data() {
     thread_iter it = threads.begin();
     for (; it != threads.end(); ++it) {
 #ifndef BIND
@@ -116,7 +116,7 @@ void const coordinator::print_thread_data() {
 }
 
 // Testing
-void const coordinator::print_thread_start_rids() {
+void const base::print_thread_start_rids() {
     thread_iter it = threads.begin();
     for (; it != threads.end(); ++it) {
 #ifndef BIND
@@ -126,7 +126,7 @@ void const coordinator::print_thread_start_rids() {
     }
 }
 
-void coordinator::set_thd_dist_v_ptr(double* v) {
+void base::set_thd_dist_v_ptr(double* v) {
     for (unsigned thd_id = 0; thd_id < threads.size(); thd_id++) {
         pthread_mutex_lock(&threads[thd_id]->get_lock());
         threads[thd_id]->set_dist_v_ptr(v);
@@ -134,14 +134,14 @@ void coordinator::set_thd_dist_v_ptr(double* v) {
     }
 }
 
-double coordinator::reduction_on_cuml_sum() {
+double base::reduction_on_cuml_sum() {
     double tot = 0;
     for (thread_iter it = threads.begin(); it != threads.end(); ++it)
         tot += (*it)->get_cuml_dist();
     return tot;
 }
 
-void coordinator::run_init() {
+void base::run_init() {
     switch(_init_t) {
         case clustercore::init_t::RANDOM:
             random_partition_init();
@@ -159,7 +159,7 @@ void coordinator::run_init() {
     }
 }
 
-coordinator::~coordinator() {
+base::~base() {
     thread_iter it = threads.begin();
     for (; it != threads.end(); ++it)
         (*it)->destroy_numa_mem();

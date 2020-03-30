@@ -31,7 +31,7 @@ skmeans_coordinator::skmeans_coordinator(const std::string fn, const size_t nrow
         const unsigned nnodes, const unsigned nthreads,
         const double* centers, const clustercore::init_t it,
         const double tolerance, const clustercore::dist_t dt) :
-    coordinator(fn, nrow, ncol, k, max_iters,
+    base(fn, nrow, ncol, k, max_iters,
             nnodes, nthreads, centers, it, tolerance, dt) {
 
         cltrs = clustercore::clusters::create(k, ncol);

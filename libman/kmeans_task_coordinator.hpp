@@ -34,7 +34,7 @@ namespace prune {
 class kmeans_task_thread;
 class dist_matrix;
 
-class kmeans_task_coordinator : public knor::coordinator {
+class kmeans_task_coordinator : public knor::base {
 protected: // So lazy ..
     // Metadata
     // max index stored within each threads partition
@@ -59,7 +59,7 @@ protected: // So lazy ..
             const double tolerance, const core::dist_t dt);
 
 public:
-    static coordinator::ptr create(
+    static base::ptr create(
             const std::string fn, const size_t nrow,
             const size_t ncol, const unsigned k, const unsigned max_iters,
             const unsigned nnodes, const unsigned nthreads,
@@ -77,7 +77,7 @@ public:
                 dist_type.c_str(), fn.c_str());
 #endif
 #endif
-        return coordinator::ptr(
+        return base::ptr(
                 new kmeans_task_coordinator(fn, nrow, ncol, k, max_iters,
                     nnodes, nthreads, centers, _init_t, tolerance, _dist_t));
     }

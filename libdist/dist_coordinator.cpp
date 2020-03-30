@@ -49,7 +49,7 @@ dist_coordinator::dist_coordinator(
 /**
   * A method called prior to calling the superclass constructor.
   * This takes the global number of samples in the *entire* dataset, `g_nrow'
-  *     and gives the coordinator it's partition.
+  *     and gives the base it's partition.
   * \param g_nrow: the global number of rows
   * \return the local number of rows for this process
   */

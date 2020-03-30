@@ -51,7 +51,7 @@ dist_task_coordinator::dist_task_coordinator(
 
 /**
   * This takes the global number of samples in the *entire* dataset, `g_nrow'
-  *     and gives the coordinator it's partion.
+  *     and gives the base it's partion.
   */
 const size_t dist_task_coordinator::init(int argc, char* argv[],
         const size_t g_nrow) {

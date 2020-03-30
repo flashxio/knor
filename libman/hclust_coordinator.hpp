@@ -65,7 +65,7 @@ struct c_part {
     void check() const { assert(splittable()); }
 };
 
-class hclust_coordinator : public coordinator {
+class hclust_coordinator : public base {
     protected:
         core::vmap<std::shared_ptr<core::clusters>> hcltrs;
         size_t max_nodes;
@@ -91,7 +91,7 @@ class hclust_coordinator : public coordinator {
                 const double tolerance, const core::dist_t dt,
                 const unsigned min_clust_size);
 
-        static coordinator::ptr create(const std::string fn,
+        static base::ptr create(const std::string fn,
                 const size_t nrow,
                 const size_t ncol, const unsigned k, const unsigned max_iters,
                 const unsigned nnodes, const unsigned nthreads,
@@ -109,7 +109,7 @@ class hclust_coordinator : public coordinator {
                     dist_type.c_str(), fn.c_str());
 #endif
 #endif
-            return coordinator::ptr(
+            return base::ptr(
                     new hclust_coordinator(fn, nrow, ncol, k, max_iters,
                     nnodes, nthreads, centers, _init_t, tolerance,
                     _dist_t, min_clust_size));

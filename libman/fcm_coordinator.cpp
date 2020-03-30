@@ -36,7 +36,7 @@ fcm_coordinator::fcm_coordinator(const std::string fn, const size_t nrow,
         const double* centers, const clustercore::init_t it,
         const double tolerance, const clustercore::dist_t dt,
         const unsigned fuzzindex) :
-    coordinator(fn, nrow, ncol, k, max_iters,
+    base(fn, nrow, ncol, k, max_iters,
             nnodes, nthreads, centers, it, tolerance, dt),
             fuzzindex(fuzzindex) {
 

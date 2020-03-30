@@ -35,7 +35,7 @@ gmm_coordinator::gmm_coordinator(const std::string fn, const size_t nrow,
                 const core::init_t it,
                 const double tolerance, const core::dist_t dt,
                 const double cov_regularizer) :
-    coordinator(fn, nrow, ncol, k, max_iters,
+    base(fn, nrow, ncol, k, max_iters,
             nnodes, nthreads, mu_k, it, tolerance, dt) {
 
         this->cov_regularizer = cov_regularizer;

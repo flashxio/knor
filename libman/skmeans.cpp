@@ -51,7 +51,7 @@ namespace knor {
 
     // Min-Max normilization
     void skmeans::feature_normalize() {
-       // NOTE: Only use AFTER feature_bounds_reduction AND coordinator reduce
+       // NOTE: Only use AFTER feature_bounds_reduction AND base reduce
         for (unsigned row = 0; row < nprocrows; row++) {
             for (unsigned col = 0; col < ncol; col++) {
                 local_data[row*ncol+col] =

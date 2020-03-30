@@ -39,7 +39,7 @@ namespace knor {
 
 class thread;
 
-class coordinator {
+class base {
 protected:
     std::string fn; // file on disk
     const size_t nrow, ncol;
@@ -62,7 +62,7 @@ protected:
     pthread_mutexattr_t mutex_attr;
     std::vector<std::shared_ptr<thread> > threads;
 
-    coordinator(const std::string fn, const size_t nrow,
+    base(const std::string fn, const size_t nrow,
             const size_t ncol, const unsigned k, const unsigned max_iters,
             const unsigned nnodes, const unsigned nthreads,
             const double* centers, const core::init_t it,
@@ -70,7 +70,7 @@ protected:
 
 public:
     const size_t get_num_changed() const { return num_changed; }
-    typedef std::shared_ptr<coordinator> ptr;
+    typedef std::shared_ptr<base> ptr;
     typedef std::vector<std::shared_ptr
         <thread> >::iterator thread_iter;
 
@@ -117,7 +117,7 @@ public:
     }
     const size_t get_nrow() { return nrow; }
     const size_t get_ncol() { return ncol; }
-    virtual ~coordinator();
+    virtual ~base();
 };
 } // namespace knor
 #endif

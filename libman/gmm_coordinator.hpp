@@ -28,7 +28,7 @@ namespace core {
     template <typename T> class dense_matrix;
 }
 
-class gmm_coordinator : public coordinator {
+class gmm_coordinator : public base {
     protected:
         // Metadata
         // max index stored within each threads partition
@@ -54,7 +54,7 @@ class gmm_coordinator : public coordinator {
                 const double cov_regularizer);
 
     public:
-        static coordinator::ptr create(const std::string fn,
+        static base::ptr create(const std::string fn,
                 const size_t nrow, const size_t ncol, const unsigned k,
                 const unsigned max_iters, double* mu_k,
                 const unsigned nnodes, const unsigned nthreads,
@@ -72,7 +72,7 @@ class gmm_coordinator : public coordinator {
                     dist_type.c_str(), fn.c_str());
 #endif
 #endif
-            return coordinator::ptr(
+            return base::ptr(
                     new gmm_coordinator(fn, nrow, ncol, k, max_iters,
                     mu_k, nnodes, nthreads, _init_t, tolerance, _dist_t,
                     cov_regularizer));

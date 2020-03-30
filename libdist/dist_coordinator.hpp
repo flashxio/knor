@@ -42,7 +42,7 @@ private:
     size_t g_nrow;
 
 public:
-    static coordinator::ptr create(int argc, char* argv[],
+    static base::ptr create(int argc, char* argv[],
             const std::string fn, const size_t nrow,
             const size_t ncol, const unsigned k, const unsigned max_iters,
             const unsigned nnodes, const unsigned nthreads,
@@ -52,7 +52,7 @@ public:
         clustercore::init_t _init_t = clustercore::get_init_type(init);
         clustercore::dist_t _dist_t = clustercore::get_dist_type(dist_type);
 
-        return coordinator::ptr(
+        return base::ptr(
                 new dist_coordinator(argc, argv, fn, nrow, ncol, k, max_iters,
                     nnodes, nthreads, centers,
                     _init_t, tolerance, _dist_t));

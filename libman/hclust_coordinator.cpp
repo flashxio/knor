@@ -35,7 +35,7 @@ hclust_coordinator::hclust_coordinator(const std::string fn, const size_t nrow,
         const double* centers, const core::init_t it,
         const double tolerance, const core::dist_t dt,
         const unsigned min_clust_size) :
-    coordinator(fn, nrow, ncol, (core::get_hclust_floor(k)/2), max_iters,
+    base(fn, nrow, ncol, (core::get_hclust_floor(k)/2), max_iters,
             nnodes, nthreads, centers, it, tolerance, dt),
     min_clust_size(min_clust_size), curr_nclust(0) {
 

@@ -28,7 +28,7 @@ namespace core {
     class clusters;
 }
 
-class skmeans_coordinator : public coordinator {
+class skmeans_coordinator : public base {
     private:
         void bounds_reduction();
         std::vector<double> g_feature_max;
@@ -46,7 +46,7 @@ class skmeans_coordinator : public coordinator {
                 const double tolerance, const core::dist_t dt);
 
     public:
-        static coordinator::ptr create(const std::string fn,
+        static base::ptr create(const std::string fn,
                 const size_t nrow,
                 const size_t ncol, const unsigned k, const unsigned max_iters,
                 const unsigned nnodes, const unsigned nthreads,
@@ -56,7 +56,7 @@ class skmeans_coordinator : public coordinator {
             core::init_t _init_t = core::get_init_type(init);
             core::dist_t _dist_t = core::get_dist_type(dist_type);
 
-            return coordinator::ptr(
+            return base::ptr(
                     new skmeans_coordinator(fn, nrow, ncol, k, max_iters,
                     nnodes, nthreads, centers, _init_t, tolerance, _dist_t));
         }

@@ -125,7 +125,7 @@ int main(int argc, char* argv[]) {
         printf("No centers to read ..\n");
     }
 
-    knor::coordinator::ptr coord =
+    knor::base::ptr coord =
         knor::hclust_coordinator::create(datafn, nrow, ncol, kmax,
                 max_iters, nnodes, nthread,(centers.size() ? &centers[0] : NULL),
                 init, tolerance, dist_type, min_clust_size);

@@ -132,7 +132,7 @@ int main(int argc, char* argv[]) {
             printf("No centers to read ..\n");
         }
 
-        knor::coordinator::ptr coord =
+        knor::base::ptr coord =
             kprune::kmeans_task_coordinator::create(datafn,
                     nrow, ncol, k, max_iters, nnodes, nthread, p_centers,
                     init, tolerance, dist_type);

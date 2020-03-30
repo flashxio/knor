@@ -30,7 +30,7 @@ namespace core {
 
 class thread;
 
-class medoid_coordinator : public coordinator {
+class medoid_coordinator : public base {
     protected:
         // Metadata
         // max index stored within each threads partition
@@ -51,7 +51,7 @@ class medoid_coordinator : public coordinator {
                 const double sample_rate);
 
     public:
-        static coordinator::ptr create(const std::string fn,
+        static base::ptr create(const std::string fn,
                 const size_t nrow,
                 const size_t ncol, const unsigned k, const unsigned max_iters,
                 const unsigned nnodes, const unsigned nthreads,
@@ -69,7 +69,7 @@ class medoid_coordinator : public coordinator {
                     dist_type.c_str(), fn.c_str());
 #endif
 #endif
-            return coordinator::ptr(
+            return base::ptr(
                     new medoid_coordinator(fn, nrow, ncol, k, max_iters,
                     nnodes, nthreads, centers, _init_t, tolerance, _dist_t,
                     sample_rate));
