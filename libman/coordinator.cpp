@@ -20,7 +20,7 @@
 #include <cassert>
 #include <algorithm>
 
-#include "coordinator.hpp"
+#include "base.hpp"
 #include "thread.hpp"
 #include "util.hpp"
 

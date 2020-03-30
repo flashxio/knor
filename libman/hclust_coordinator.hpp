@@ -22,7 +22,7 @@
 #include <mutex>
 #include "types.hpp"
 
-#include "coordinator.hpp"
+#include "base.hpp"
 #include "util.hpp"
 
 namespace knor {

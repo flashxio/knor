@@ -19,7 +19,7 @@
 #ifndef __KNOR_GMM_COORDINATOR_HPP__
 #define __KNOR_GMM_COORDINATOR_HPP__
 
-#include "coordinator.hpp"
+#include "base.hpp"
 #include "util.hpp"
 
 namespace knor {
