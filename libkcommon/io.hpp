@@ -33,7 +33,7 @@
 #include <map>
 #include "exception.hpp"
 
-namespace knor { namespace base {
+namespace knor { namespace core {
 // Unordered Map
 template <typename K, typename V>
 void print(const std::unordered_map<K,V>& map) {
@@ -367,5 +367,5 @@ void store_cluster(const unsigned id, const double* data,
         const unsigned numel, const unsigned* cluster_assignments,
         const size_t nrow, const size_t ncol, const std::string dir);
 
-} } // End namespace knor, base
+} } // End namespace knor, core
 #endif

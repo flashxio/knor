@@ -22,7 +22,7 @@
 #include "prune_stats.hpp"
 #include <iostream>
 
-namespace knor { namespace base {
+namespace knor { namespace core {
 
 void prune_stats::pp_lemma1(const size_t var) { lemma1 += var; }
 void prune_stats::pp_3a() { _3a++; }
@@ -131,7 +131,7 @@ void active_counter::init_iter() {
 
 void active_counter::is_active(const size_t row, const bool val) {
     if (active.size() == 1 && was_active(row)) {
-        //knor::base::assert_msg(false, "In first iter the row cannot"
+        //knor::core::assert_msg(false, "In first iter the row cannot"
                 //" be active previously");
     }
 

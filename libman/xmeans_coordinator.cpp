@@ -36,8 +36,8 @@ namespace knor {
             const size_t nrow,
             const size_t ncol, const unsigned k, const unsigned max_iters,
             const unsigned nnodes, const unsigned nthreads,
-            const double* centers, const base::init_t it,
-            const double tolerance, const base::dist_t dt,
+            const double* centers, const core::init_t it,
+            const double tolerance, const core::dist_t dt,
             const unsigned min_clust_size) :
         hclust_coordinator(fn, nrow, ncol, k, max_iters, nnodes, nthreads,
                 centers, it, tolerance, dt, min_clust_size) {
@@ -46,7 +46,7 @@ namespace knor {
             nearest_cdist.resize(nrow);
             // TODO: k can be non 2^n
             cltrs = kbase::sparse_clusters::create(
-                    base::get_max_hnodes(this->k*2), ncol);
+                    core::get_max_hnodes(this->k*2), ncol);
             cltrs->clear();
     }
 
@@ -183,8 +183,8 @@ void xmeans_coordinator::partition_decision() {
     std::unordered_map<unsigned, std::vector<unsigned>> memb_cltrs; // Parent
     compute_bic_scores(bic_scores, memb_cltrs);
 
-    base::thd_safe_bool_vector::ptr remove_cache =
-        base::thd_safe_bool_vector::create(bic_scores.size(), false);
+    core::thd_safe_bool_vector::ptr remove_cache =
+        core::thd_safe_bool_vector::create(bic_scores.size(), false);
 
 #ifdef _OPENMP
 #pragma omp parallel for shared (bic_scores)
@@ -248,7 +248,7 @@ void xmeans_coordinator::partition_decision() {
 }
 
 // Main driver
-base::cluster_t xmeans_coordinator::run(
+core::cluster_t xmeans_coordinator::run(
         double* allocd_data, const bool numa_opt) {
 #ifdef PROFILER
     ProfilerStart("xmeans_coordinator.perf");
@@ -291,7 +291,7 @@ base::cluster_t xmeans_coordinator::run(
             update_clusters();
 #ifndef BIND
             printf("\nAssignment counts:\n");
-            base::sparse_print(cluster_assignment_counts);
+            core::sparse_print(cluster_assignment_counts);
             printf("\n*****************************************************\n");
 #endif
             if (compute_pdist)
@@ -329,18 +329,18 @@ base::cluster_t xmeans_coordinator::run(
     gettimeofday(&end, NULL);
 #ifndef BIND
     printf("\n\nAlgorithmic time taken = %.6f sec\n",
-        base::time_diff(start, end));
+        core::time_diff(start, end));
     printf("\n******************************************\n");
     verify_consistency();
 #endif
 
 #ifndef BIND
     printf("Final cluster counts: \n");
-    base::sparse_print(cluster_assignment_counts);
+    core::sparse_print(cluster_assignment_counts);
     printf("\n******************************************\n");
 #endif
 
-    return base::cluster_t(this->nrow, this->ncol, iter,
+    return core::cluster_t(this->nrow, this->ncol, iter,
             cluster_assignments, cluster_assignment_counts,
             final_centroids);
 }

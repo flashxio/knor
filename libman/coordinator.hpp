@@ -45,9 +45,9 @@ protected:
     const size_t nrow, ncol;
     unsigned k, max_iters;
     unsigned nnodes, nthreads;
-    base::init_t _init_t;
+    core::init_t _init_t;
     double tolerance;
-    base::dist_t _dist_t;
+    core::dist_t _dist_t;
     size_t num_changed; // total # samples changed in an iter
     // how many threads have not completed their task
     std::atomic<unsigned> pending_threads;
@@ -65,8 +65,8 @@ protected:
     coordinator(const std::string fn, const size_t nrow,
             const size_t ncol, const unsigned k, const unsigned max_iters,
             const unsigned nnodes, const unsigned nthreads,
-            const double* centers, const base::init_t it,
-            const double tolerance, const base::dist_t dt);
+            const double* centers, const core::init_t it,
+            const double tolerance, const core::dist_t dt);
 
 public:
     const size_t get_num_changed() const { return num_changed; }
@@ -76,16 +76,16 @@ public:
 
     // pass file handle to threads to read & numa alloc
     virtual void random_partition_init() {
-        throw base::parameter_exception("Unsupported initialization type");
+        throw core::parameter_exception("Unsupported initialization type");
     };
     virtual void kmeanspp_init() {
-        throw base::parameter_exception("Unsupported initialization type");
+        throw core::parameter_exception("Unsupported initialization type");
     };
     virtual void forgy_init() {
-        throw base::parameter_exception("Unsupported initialization type");
+        throw core::parameter_exception("Unsupported initialization type");
     };
 
-    virtual base::cluster_t run(
+    virtual core::cluster_t run(
             double* allocd_data=NULL, const bool numa_opt=false) = 0;
 
     std::vector<std::shared_ptr<thread> >& get_threads() {
@@ -105,15 +105,15 @@ public:
     double reduction_on_cuml_sum();
     void wait4complete();
 
-    virtual void set_global_ptrs() { throw base::abstract_exception(); };
-    virtual void build_thread_state() { throw base::abstract_exception(); };
+    virtual void set_global_ptrs() { throw core::abstract_exception(); };
+    virtual void build_thread_state() { throw core::abstract_exception(); };
     const unsigned* get_cluster_assignments() const {
         return &cluster_assignments[0];
     }
 
     void clear_cluster_assignments() {
         std::fill(&cluster_assignments[0],
-                &cluster_assignments[nrow], base::INVALID_CLUSTER_ID);
+                &cluster_assignments[nrow], core::INVALID_CLUSTER_ID);
     }
     const size_t get_nrow() { return nrow; }
     const size_t get_ncol() { return ncol; }

@@ -24,7 +24,7 @@
 #include <cassert>
 #include "dense_matrix.hpp"
 
-using namespace knor::base;
+using namespace knor::core;
 
 void setit(const size_t NROW,  const size_t NCOL,
         dense_matrix<double>::rawptr mat) {

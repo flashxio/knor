@@ -24,7 +24,7 @@
 #include "thread.hpp"
 #include "util.hpp"
 
-namespace kbase = knor::base;
+namespace kbase = knor::core;
 
 namespace knor {
 coordinator::coordinator(const std::string fn,

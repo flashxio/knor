@@ -24,7 +24,7 @@
 #include <algorithm>
 #include <numeric>
 
-namespace knor { namespace base {
+namespace knor { namespace core {
 
 class AndersonDarling {
 private:
@@ -77,5 +77,5 @@ public:
 	}
 };
 
-}} // End namespace knor::base
+}} // End namespace knor::core
 #endif

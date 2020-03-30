@@ -34,7 +34,7 @@
 #endif
 
 namespace kprune = knor::prune;
-namespace kbase = knor::base;
+namespace kbase = knor::core;
 
 static std::atomic<unsigned> pending_threads;
 //static unsigned pending_threads;

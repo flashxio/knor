@@ -25,7 +25,7 @@
 #include <numeric>
 #include "dense_matrix.hpp"
 
-namespace knor { namespace base {
+namespace knor { namespace core {
 
     class linalg {
         public:
@@ -232,5 +232,5 @@ namespace knor { namespace base {
             }
         }
     };
-} } // End namespace knor::base
+} } // End namespace knor::core
 #endif

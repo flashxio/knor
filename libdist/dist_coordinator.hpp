@@ -22,7 +22,7 @@
 #include "exception.hpp"
 #include "kmeans_coordinator.hpp"
 
-namespace kbase = knor::base;
+namespace kbase = knor::core;
 
 namespace knor { namespace dist {
 

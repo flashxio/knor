@@ -23,7 +23,7 @@
 #include "util.hpp"
 #include "clusters.hpp"
 
-namespace knor { namespace base {
+namespace knor { namespace core {
 
 void clusters::clear() {
     std::fill(means.begin(), means.end(), 0);
@@ -268,4 +268,4 @@ void sparse_clusters::peq(ptr rhs) {
         num_members_peq(rhs->get_num_members(idx), idx);
 }
 
-} } // End namespace knor, base
+} } // End namespace knor, core

@@ -31,7 +31,7 @@ namespace knor {
 
 typedef long long int llong_t;
 
-namespace base {
+namespace core {
 
 static const unsigned INVALID_CLUSTER_ID = std::numeric_limits<unsigned>::max();
 enum stage_t { INIT, ESTEP }; // What phase of the algo we're in
@@ -88,7 +88,7 @@ struct gmm_t {
     bool operator==(const gmm_t& other);
     gmm_t(const size_t nrow, const size_t ncol, const size_t iters,
             const size_t k, double* _means,
-            std::vector<base::dense_matrix<double>*>& _cov_mats,
+            std::vector<core::dense_matrix<double>*>& _cov_mats,
             double* _resp_mat, double* _gaussian_prob);
 };
 

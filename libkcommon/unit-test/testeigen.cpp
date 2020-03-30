@@ -24,7 +24,7 @@
 #include "dense_matrix.hpp"
 #include "linalg.hpp"
 
-using namespace knor::base;
+using namespace knor::core;
 
 int main() {
     Eigen::MatrixXd m(3,3);

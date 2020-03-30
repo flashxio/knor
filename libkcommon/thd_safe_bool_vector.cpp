@@ -22,7 +22,7 @@
 #include "io.hpp"
 #include "thd_safe_bool_vector.hpp"
 
-namespace knor { namespace base {
+namespace knor { namespace core {
 
 _bool::_bool(char c) {
     _[0] = c;
@@ -67,7 +67,7 @@ size_t thd_safe_bool_vector::size() const {
 }
 
 void thd_safe_bool_vector::print() const {
-    knor::base::print<_bool>(data);
+    knor::core::print<_bool>(data);
 }
 
 void thd_safe_bool_vector::resize(const size_t tosize, const bool init) {
@@ -84,4 +84,4 @@ void thd_safe_bool_vector::resize(const size_t tosize, const bool init) {
         }
     }
 }
-} } // End namespace knor::base
+} } // End namespace knor::core

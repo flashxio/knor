@@ -28,16 +28,16 @@ class fcm_coordinator : public coordinator {
     protected:
         // Metadata
         // max index stored within each threads partition
-        base::dense_matrix<double>* centers; // k x ncol
-        base::dense_matrix<double>* prev_centers; // k x ncol
-        base::dense_matrix<double>* um; // nrow x k
+        core::dense_matrix<double>* centers; // k x ncol
+        core::dense_matrix<double>* prev_centers; // k x ncol
+        core::dense_matrix<double>* um; // nrow x k
         unsigned fuzzindex;
 
         fcm_coordinator(const std::string fn, const size_t nrow,
                 const size_t ncol, const unsigned k, const unsigned max_iters,
                 const unsigned nnodes, const unsigned nthreads,
-                const double* centers, const base::init_t it,
-                const double tolerance, const base::dist_t dt,
+                const double* centers, const core::init_t it,
+                const double tolerance, const core::dist_t dt,
                 const unsigned fuzzindex);
 
     public:
@@ -49,8 +49,8 @@ class fcm_coordinator : public coordinator {
                 const double tolerance=-1, const std::string dist_type="cos",
                 const unsigned fuzzindex=2) {
 
-            base::init_t _init_t = base::get_init_type(init);
-            base::dist_t _dist_t = base::get_dist_type(dist_type);
+            core::init_t _init_t = core::get_init_type(init);
+            core::dist_t _dist_t = core::get_dist_type(dist_type);
 
             return coordinator::ptr(
                     new fcm_coordinator(fn, nrow, ncol, k, max_iters,
@@ -59,7 +59,7 @@ class fcm_coordinator : public coordinator {
         }
 
         // Pass file handle to threads to read & numa alloc
-        base::cluster_t run(double* allocd_data,
+        core::cluster_t run(double* allocd_data,
                 const bool numa_opt) override;
 
         void update_contribution_matrix();

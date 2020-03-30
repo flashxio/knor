@@ -24,7 +24,7 @@
 
 namespace kprune = knor::prune;
 
-namespace knor { namespace base {
+namespace knor { namespace core {
 
 typedef std::pair<std::pair<unsigned, double>, cluster_t> pp_pair;
 
@@ -99,12 +99,12 @@ pp_pair kmeansPP(
     gettimeofday(&end, NULL);
 #ifndef BIND
     printf("\n\nAlgorithmic time taken = %.6f sec\n",
-        base::time_diff(start, end));
+        core::time_diff(start, end));
     printf("\n******************************************\n");
 #endif
 
     auto _ = std::pair<unsigned, double>(best_start, best_energy);
     return pp_pair(_, best_cluster_t);
 }
-} } // End namespace knor::base
+} } // End namespace knor::core
 #endif

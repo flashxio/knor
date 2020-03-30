@@ -24,7 +24,7 @@
 #include <cassert>
 #include "io.hpp"
 
-namespace kbase = knor::base;
+namespace kbase = knor::core;
 
 #define MIN_TASK_ROWS 8192
 //#define MIN_TASK_ROWS 2 // TODO: Change

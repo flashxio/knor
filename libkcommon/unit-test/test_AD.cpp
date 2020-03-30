@@ -24,7 +24,7 @@
 #include "io.hpp"
 #include "AndersonDarling.hpp"
 
-using namespace knor::base;
+using namespace knor::core;
 
 int main() {
 	std::vector<double> x {1, 2, 3, 4};

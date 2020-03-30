@@ -26,7 +26,7 @@
 
 namespace kutil = knor::util;
 
-namespace knor { namespace base {
+namespace knor { namespace core {
 
 cluster_t::cluster_t(const size_t nrow, const size_t ncol, const size_t iters,
          const size_t k, const unsigned* assignments_buf,
@@ -91,11 +91,11 @@ const void cluster_t::print() const {
     std::cout << "nrow: " << nrow << ", ncol: " << ncol <<
     ", iters: " <<  iters << ", k: " << k << std::endl;
     std::cout << "Assignment count:\n";
-    knor::base::print(assignment_count);
+    knor::core::print(assignment_count);
     std::cout << "Assignment: \n";
-    knor::base::print(assignments);
+    knor::core::print(assignments);
     std::cout << "Centroids: \n";
-    knor::base::print(&centroids[0], k, ncol);;
+    knor::core::print(&centroids[0], k, ncol);;
 #endif
 }
 
@@ -196,7 +196,7 @@ const std::string cluster_t::to_str() {
 
 gmm_t::gmm_t(const size_t nrow, const size_t ncol, const size_t iters,
         const size_t k, double* _means,
-        std::vector<base::dense_matrix<double>*>& _cov_mats,
+        std::vector<core::dense_matrix<double>*>& _cov_mats,
         double* _resp_mat, double* _gaussian_prob) : nrow(nrow),
     ncol(ncol), iters(iters), k(k) {
 
@@ -229,4 +229,4 @@ bool gmm_t::operator==(const gmm_t& other) {
             v_eq(this->gaussian_prob, other.gaussian_prob);
 }
 
-}} // End namespace knor::base
+}} // End namespace knor::core

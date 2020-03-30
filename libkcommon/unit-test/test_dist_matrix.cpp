@@ -25,7 +25,7 @@
 #include "dist_matrix.hpp"
 #include "io.hpp"
 
-namespace kbase = knor::base;
+namespace kbase = knor::core;
 namespace kprune = knor::prune;
 
 constexpr unsigned NROW = 16;

@@ -36,7 +36,7 @@
 #define KM_TEST 0
 #define VERBOSE 0
 
-namespace kbase = knor::base;
+namespace kbase = knor::core;
 
 namespace {
 

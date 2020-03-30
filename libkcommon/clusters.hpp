@@ -28,7 +28,7 @@
 #include "exception.hpp"
 #include "types.hpp"
 
-namespace knor { namespace base {
+namespace knor { namespace core {
 
 typedef std::vector<double> kmsvector;
 typedef std::vector<double>::iterator kmsiterator;
@@ -436,5 +436,5 @@ class sparse_clusters : public clusters {
     void peq(ptr rhs) override;
 };
 
-} } // End namespace knor, base
+} } // End namespace knor, core
 #endif

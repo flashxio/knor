@@ -33,7 +33,7 @@
 
 #include "cxxopts/cxxopts.hpp"
 
-namespace kbase = knor::base;
+namespace kbase = knor::core;
 
 int main(int argc, char* argv[]) {
   try {

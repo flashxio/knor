@@ -24,7 +24,7 @@
 #include "io.hpp"
 #include "dense_matrix.hpp"
 
-namespace kbase = knor::base;
+namespace kbase = knor::core;
 constexpr unsigned N = 6;
 
 void test_scale() {

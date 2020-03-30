@@ -22,7 +22,7 @@
 #include "kmeans_task_coordinator.hpp"
 #include "exception.hpp"
 
-namespace kbase = knor::base;
+namespace kbase = knor::core;
 
 namespace knor { namespace prune {
 

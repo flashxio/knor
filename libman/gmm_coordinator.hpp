@@ -24,7 +24,7 @@
 
 namespace knor {
 
-namespace base {
+namespace core {
     template <typename T> class dense_matrix;
 }
 
@@ -33,11 +33,11 @@ class gmm_coordinator : public coordinator {
         // Metadata
         // max index stored within each threads partition
 
-        base::dense_matrix<double>* mu_k; // estimated guassians (k means)
-        std::vector<base::dense_matrix<double>*> sigma_k; // k Covar matrices
-        std::vector<base::dense_matrix<double>*> inv_sigma_k; // k Covar matrices
+        core::dense_matrix<double>* mu_k; // estimated guassians (k means)
+        std::vector<core::dense_matrix<double>*> sigma_k; // k Covar matrices
+        std::vector<core::dense_matrix<double>*> inv_sigma_k; // k Covar matrices
         std::vector<double> dets; // Determinants
-        base::dense_matrix<double>* P_nk; // responsibility matrix (nxk)
+        core::dense_matrix<double>* P_nk; // responsibility matrix (nxk)
         std::vector<double> Pk; // Frac of points in component k
         double cov_regularizer;
         std::vector<double> Px;
@@ -49,8 +49,8 @@ class gmm_coordinator : public coordinator {
                 const size_t ncol, const unsigned k,
                 const unsigned max_iters, double* mu_k,
                 const unsigned nnodes, const unsigned nthreads,
-                const base::init_t it,
-                const double tolerance, const base::dist_t dt,
+                const core::init_t it,
+                const double tolerance, const core::dist_t dt,
                 const double cov_regularizer);
 
     public:
@@ -62,8 +62,8 @@ class gmm_coordinator : public coordinator {
                 const std::string dist_type="eucl",
                 const double cov_regularizer=1E-6) {
 
-            base::init_t _init_t = base::get_init_type(init);
-            base::dist_t _dist_t = base::get_dist_type(dist_type);
+            core::init_t _init_t = core::get_init_type(init);
+            core::dist_t _dist_t = core::get_dist_type(dist_type);
 #if KM_TEST
 #ifndef BIND
             printf("gmm coordinator => NUMA nodes: %u, nthreads: %u, "
@@ -79,15 +79,15 @@ class gmm_coordinator : public coordinator {
         }
 
         // Pass file handle to threads to read & numa alloc
-        virtual base::cluster_t run(double* allocd_data=NULL,
+        virtual core::cluster_t run(double* allocd_data=NULL,
             const bool numa_opt=false) override {
-            throw base::not_implemented_exception();
+            throw core::not_implemented_exception();
         };
 
         void compute_cov_mat();
-        base::gmm_t soft_run(double* allocd_data=NULL);
+        core::gmm_t soft_run(double* allocd_data=NULL);
         void compute_shared_linalg();
-        void random_prob_fill(base::dense_matrix<double>* dm,
+        void random_prob_fill(core::dense_matrix<double>* dm,
                 const double mix=0, const double max=1);
         void random_prob_fill(std::vector<double>& v,
                 const double min=0, const double max=1);
@@ -96,7 +96,7 @@ class gmm_coordinator : public coordinator {
         void forgy_init() override;
         void kmeanspp_init() override;
         virtual void preprocess_data() {
-            throw base::not_implemented_exception();
+            throw core::not_implemented_exception();
         }
         virtual void build_thread_state() override;
         ~gmm_coordinator();

@@ -48,9 +48,9 @@ gmm::gmm(const int node_id, const unsigned thd_id,
 #endif
         }
 
-void gmm::set_alg_metadata(unsigned k, base::dense_matrix<double>* mu_k,
-        base::dense_matrix<double>** sigma_k, base::dense_matrix<double>* P_nk,
-        double* Pk, base::dense_matrix<double>** isk, double* dets,
+void gmm::set_alg_metadata(unsigned k, core::dense_matrix<double>* mu_k,
+        core::dense_matrix<double>** sigma_k, core::dense_matrix<double>* P_nk,
+        double* Pk, core::dense_matrix<double>** isk, double* dets,
         double* Px) {
     this->k = k;
     this->mu_k = mu_k;
@@ -70,15 +70,15 @@ void gmm::Estep() {
 
         for (unsigned cid = 0; cid < k; cid++) {
             std::vector<double> diff(ncol);
-            base::linalg::vdiff(&local_data[row*ncol],
+            core::linalg::vdiff(&local_data[row*ncol],
                     &(mu_k->as_pointer()[row*ncol]), ncol, diff);
 
             std::vector<double> resdot(inv_sigma_k[cid]->get_ncol());
-            base::linalg::dot(&diff[0],
+            core::linalg::dot(&diff[0],
                     inv_sigma_k[cid]->as_pointer(),
                     inv_sigma_k[cid]->get_nrow(),
                     inv_sigma_k[cid]->get_ncol(), resdot);
-            double lhs = -.5*(base::linalg::dot(resdot, diff));
+            double lhs = -.5*(core::linalg::dot(resdot, diff));
             double rhs = .5*M*std::log2(2*M_PI) - (.5*std::log2(dets[cid]));
             double gaussian_density = lhs - rhs; // for one of the k guassians
 

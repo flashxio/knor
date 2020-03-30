@@ -32,7 +32,7 @@
 #include "io.hpp"
 #include "exception.hpp"
 
-namespace knor { namespace base {
+namespace knor { namespace core {
 
 // A rowmajor dense matrix
 template <typename T>
@@ -393,8 +393,8 @@ public:
     }
 
     void print() {
-        knor::base::print<T>(as_pointer(), nrow, ncol);
+        knor::core::print<T>(as_pointer(), nrow, ncol);
     }
 };
-} } // End namespace knor, base
+} } // End namespace knor, core
 #endif

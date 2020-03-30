@@ -44,9 +44,9 @@ fcm_coordinator::fcm_coordinator(const std::string fn, const size_t nrow,
         omp_set_num_threads(nthreads);
 #endif
 
-        this->centers = base::dense_matrix<double>::create(k, ncol);
-        this->prev_centers = base::dense_matrix<double>::create(k, ncol);
-        this->um = base::dense_matrix<double>::create(k, nrow);
+        this->centers = core::dense_matrix<double>::create(k, ncol);
+        this->prev_centers = core::dense_matrix<double>::create(k, ncol);
+        this->um = core::dense_matrix<double>::create(k, nrow);
 
         if (centers)
             this->centers->set(centers);
@@ -125,7 +125,7 @@ void fcm_coordinator::update_centers() {
 /**
  * Main driver
  */
-base::cluster_t fcm_coordinator::run(double* allocd_data,
+core::cluster_t fcm_coordinator::run(double* allocd_data,
         const bool numa_opt) {
 #ifdef PROFILER
     ProfilerStart("fcm_coordinator.perf");

@@ -31,7 +31,7 @@
 #include "types.hpp"
 #include "exception.hpp"
 
-namespace knor { namespace base {
+namespace knor { namespace core {
 
 double get_bic(const std::vector<double>& dist_v, const size_t nrow,
         const size_t ncol, const unsigned k);
@@ -251,7 +251,7 @@ bool is_file_exist(const char *fn);
 size_t filesize(const char* filename);
 
 void assert_msg(bool expr, const std::string msg);
-} } // End namespace knor::base
+} } // End namespace knor::core
 
 namespace knor { namespace test {
 

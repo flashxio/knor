@@ -34,7 +34,7 @@
 #include "exception.hpp"
 #include <cmath>
 
-namespace knor { namespace base {
+namespace knor { namespace core {
 double get_bic(const std::vector<double>& dist_v, const size_t nrow,
         const size_t ncol, const unsigned k) {
         double bic = 0;
@@ -150,4 +150,4 @@ void assert_msg(bool expr, const std::string msg) {
         assert(0);
     }
 }
-} } // End namespace knor::base
+} } // End namespace knor::core

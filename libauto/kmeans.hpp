@@ -24,7 +24,7 @@
 #include <string>
 #include "types.hpp"
 
-namespace knor { namespace base {
+namespace knor { namespace core {
     class cluster_t;
 }}
 
@@ -42,7 +42,7 @@ namespace knor { namespace omp {
  * \param max_iters The maximum number of iterations of K-means to perform.
  * \param init The type of initilization ["random", "forgy", "kmeanspp"]
  **/
-knor::base::cluster_t compute_kmeans(const double* matrix, double* clusters,
+knor::core::cluster_t compute_kmeans(const double* matrix, double* clusters,
 		unsigned* cluster_assignments, llong_t* cluster_assignment_counts,
 		const size_t num_rows, const size_t num_cols, const unsigned k,
 		const size_t MAX_ITERS, int max_threads,
@@ -50,7 +50,7 @@ knor::base::cluster_t compute_kmeans(const double* matrix, double* clusters,
         const std::string dist_type="eucl");
 
 /** See `compute_kmeans` for argument list */
-knor::base::cluster_t compute_min_kmeans
+knor::core::cluster_t compute_min_kmeans
     (const double* matrix, double* clusters_ptr,
         unsigned* cluster_assignments, llong_t* cluster_assignment_counts,
 		const size_t num_rows, const size_t num_cols, const unsigned k,

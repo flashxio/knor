@@ -32,30 +32,30 @@ gmm_coordinator::gmm_coordinator(const std::string fn, const size_t nrow,
                 const size_t ncol, const unsigned k,
                 const unsigned max_iters, double* mu_k,
                 const unsigned nnodes, const unsigned nthreads,
-                const base::init_t it,
-                const double tolerance, const base::dist_t dt,
+                const core::init_t it,
+                const double tolerance, const core::dist_t dt,
                 const double cov_regularizer) :
     coordinator(fn, nrow, ncol, k, max_iters,
             nnodes, nthreads, mu_k, it, tolerance, dt) {
 
         this->cov_regularizer = cov_regularizer;
         this->k = k;
-        this->mu_k = base::dense_matrix<double>::create(k, ncol);
+        this->mu_k = core::dense_matrix<double>::create(k, ncol);
 
         for (unsigned i = 0; i < k; i++) {
-            sigma_k.push_back(base::dense_matrix<double>::create(ncol, ncol));
+            sigma_k.push_back(core::dense_matrix<double>::create(ncol, ncol));
             inv_sigma_k.push_back(
-                    base::dense_matrix<double>::create(ncol, ncol));
+                    core::dense_matrix<double>::create(ncol, ncol));
         }
 
-        this->P_nk = base::dense_matrix<double>::create(nrow, k);
+        this->P_nk = core::dense_matrix<double>::create(nrow, k);
         this->Pk.resize(k);
         this->dets.resize(k);
         this->Px.assign(nrow, 0);
         Pnk_sum.resize(k);
 
         if (mu_k) {
-            this->_init_t = base::init_t::NONE;
+            this->_init_t = core::init_t::NONE;
             this->mu_k->set(mu_k);
         }
 
@@ -159,7 +159,7 @@ void gmm_coordinator::forgy_init() {
 /**
   * A random probabilistic fill such where each row sums to 1 as in a pdf
 **/
-void gmm_coordinator::random_prob_fill(base::dense_matrix<double>* dm,
+void gmm_coordinator::random_prob_fill(core::dense_matrix<double>* dm,
         const double mix, const double max) {
 
     std::uniform_real_distribution<double> distribution(mix, max);
@@ -197,7 +197,7 @@ void gmm_coordinator::random_prob_fill(std::vector<double>& v,
 }
 
 void gmm_coordinator::compute_cov_mat() {
-    throw base::not_implemented_exception(); // TODO
+    throw core::not_implemented_exception(); // TODO
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
@@ -218,9 +218,9 @@ void gmm_coordinator::compute_shared_linalg() {
     // Compute Inverse sigma
     dets.clear();
     for (size_t cid = 0; cid < k; cid++) {
-        base::linalg::inverse(sigma_k[cid]->as_pointer(),
+        core::linalg::inverse(sigma_k[cid]->as_pointer(),
                 inv_sigma_k[cid]->as_pointer(), sigma_k[cid]->get_nrow());
-        dets[cid] = base::linalg::determinant(sigma_k[cid]->as_pointer(),
+        dets[cid] = core::linalg::determinant(sigma_k[cid]->as_pointer(),
                 sigma_k[cid]->get_nrow(), sigma_k[cid]->get_nrow());
     }
 }
@@ -228,7 +228,7 @@ void gmm_coordinator::compute_shared_linalg() {
 /**
  * Main driver for kmeans
  */
-base::gmm_t gmm_coordinator::soft_run(double* allocd_data) {
+core::gmm_t gmm_coordinator::soft_run(double* allocd_data) {
 #ifdef PROFILER
     ProfilerStart("libman/gmm_coordinator.perf");
 #endif
@@ -247,7 +247,7 @@ base::gmm_t gmm_coordinator::soft_run(double* allocd_data) {
     ////////////////////////////////////////////////////////////////////////////
 #ifndef BIND
     std::cout << "\nAFTER INIT:\nPk:\n";
-    base::print(Pk);
+    core::print(Pk);
     std::cout << "mu_k:\n"; mu_k->print();
     std::cout << "P_nk:\n"; P_nk->print();
     std::cout << "cov_regularizer: " << cov_regularizer << "\n"
@@ -284,7 +284,7 @@ base::gmm_t gmm_coordinator::soft_run(double* allocd_data) {
 #ifndef BIND
         printf("Cluster assignment counts: \n");
 #endif
-        base::print(cluster_assignment_counts);
+        core::print(cluster_assignment_counts);
 #endif
 
         if (num_changed == 0 ||
@@ -301,7 +301,7 @@ base::gmm_t gmm_coordinator::soft_run(double* allocd_data) {
     gettimeofday(&end, NULL);
 #ifndef BIND
     printf("\n\nAlgorithmic time taken = %.6f sec\n",
-        base::time_diff(start, end));
+        core::time_diff(start, end));
     printf("\n******************************************\n");
 #endif
     if (converged) {
@@ -317,11 +317,11 @@ base::gmm_t gmm_coordinator::soft_run(double* allocd_data) {
 
 #ifndef BIND
     printf("Final cluster counts: \n");
-    base::print(cluster_assignment_counts);
+    core::print(cluster_assignment_counts);
     printf("\n******************************************\n");
 #endif
 
-    return base::gmm_t(this->nrow, this->ncol, iter, this->k,
+    return core::gmm_t(this->nrow, this->ncol, iter, this->k,
             mu_k->as_pointer(), this->sigma_k,
             P_nk->as_pointer(), &Pk[0]);
 }

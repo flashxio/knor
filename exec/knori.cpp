@@ -35,7 +35,7 @@
 
 #include "cxxopts/cxxopts.hpp"
 
-namespace kbase = knor::base;
+namespace kbase = knor::core;
 namespace kprune = knor::prune;
 
 int main(int argc, char* argv[])

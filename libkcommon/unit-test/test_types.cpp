@@ -49,8 +49,8 @@ class Test {
 
 void test_vector_map() {
     unsigned cap = 8;
-    //base::vmap<Test::ptr> vm(cap, nullptr);
-    base::vmap<Test::ptr> vm;
+    //core::vmap<Test::ptr> vm(cap, nullptr);
+    core::vmap<Test::ptr> vm;
     vm.set_capacity(cap);
 
     for (size_t i = 0; i < vm.size(); i++)

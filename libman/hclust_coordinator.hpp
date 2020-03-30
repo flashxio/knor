@@ -27,7 +27,7 @@
 
 namespace knor {
 
-namespace base {
+namespace core {
     class clusters;
     class h_clusters;
     class thd_safe_bool_vector;
@@ -67,13 +67,13 @@ struct c_part {
 
 class hclust_coordinator : public coordinator {
     protected:
-        base::vmap<std::shared_ptr<base::clusters>> hcltrs;
+        core::vmap<std::shared_ptr<core::clusters>> hcltrs;
         size_t max_nodes;
 
-        base::vmap<unsigned> nchanged;
+        core::vmap<unsigned> nchanged;
         // Whether a particular cluster is cluster is still actively splitting
         //  Multithreaded write
-        std::shared_ptr<base::thd_safe_bool_vector> cltr_active_vec;
+        std::shared_ptr<core::thd_safe_bool_vector> cltr_active_vec;
         std::default_random_engine ui_generator;
         std::uniform_int_distribution<unsigned> ui_distribution;
         std::mutex _mutex;
@@ -87,8 +87,8 @@ class hclust_coordinator : public coordinator {
         hclust_coordinator(const std::string fn, const size_t nrow,
                 const size_t ncol, const unsigned k, const unsigned max_iters,
                 const unsigned nnodes, const unsigned nthreads,
-                const double* centers, const base::init_t it,
-                const double tolerance, const base::dist_t dt,
+                const double* centers, const core::init_t it,
+                const double tolerance, const core::dist_t dt,
                 const unsigned min_clust_size);
 
         static coordinator::ptr create(const std::string fn,
@@ -99,8 +99,8 @@ class hclust_coordinator : public coordinator {
                 const double tolerance=-1, const std::string dist_type="eucl",
                 const unsigned min_clust_size=2) {
 
-            base::init_t _init_t = base::get_init_type(init);
-            base::dist_t _dist_t = base::get_dist_type(dist_type);
+            core::init_t _init_t = core::get_init_type(init);
+            core::dist_t _dist_t = core::get_dist_type(dist_type);
 #if KM_TEST
 #ifndef BIND
             printf("hclust coordinator => NUMA nodes: %u, nthreads: %u, "
@@ -120,19 +120,19 @@ class hclust_coordinator : public coordinator {
         virtual void print_clusters();
 
         // Pass file handle to threads to read & numa alloc
-        virtual base::cluster_t run(double* allocd_data=NULL,
+        virtual core::cluster_t run(double* allocd_data=NULL,
             const bool numa_opt=false) override;
         virtual void update_clusters();
         virtual void forgy_init() override;
         void none_init();
         virtual void preprocess_data() {
-            throw knor::base::abstract_exception();
+            throw knor::core::abstract_exception();
         }
 
         // Used to take the mean of the full dataset
         virtual void build_thread_state() override;
-        virtual void partition_mean(base::vmap<
-        std::shared_ptr<base::clusters>>& part_hcltrs);
+        virtual void partition_mean(core::vmap<
+        std::shared_ptr<core::clusters>>& part_hcltrs);
         virtual void init_splits();
         virtual void inner_init(std::vector<unsigned>& remove_cache);
         virtual void spawn(const unsigned& zeroid,

@@ -52,15 +52,15 @@ class xmeans_coordinator : public hclust_coordinator {
         xmeans_coordinator(const std::string fn, const size_t nrow,
                 const size_t ncol, const unsigned k, const unsigned max_iters,
                 const unsigned nnodes, const unsigned nthreads,
-                const double* centers, const base::init_t it,
-                const double tolerance, const base::dist_t dt,
+                const double* centers, const core::init_t it,
+                const double tolerance, const core::dist_t dt,
                 const unsigned min_clust_size);
 
         typedef std::shared_ptr<xmeans_coordinator> ptr;
 
         std::vector<double> partition_dist; // Data point to partition dist
         std::vector<double> nearest_cdist; // Data point to centroid dist
-        std::shared_ptr<base::clusters> cltrs; // Record partition -> data point
+        std::shared_ptr<core::clusters> cltrs; // Record partition -> data point
         bool compute_pdist; // Should threads comp the partition_dist this iter?
 
         static hclust_coordinator::ptr create(const std::string fn,
@@ -71,8 +71,8 @@ class xmeans_coordinator : public hclust_coordinator {
                 const double tolerance=-1, const std::string dist_type="eucl",
                 const unsigned min_clust_size=2) {
 
-            base::init_t _init_t = base::get_init_type(init);
-            base::dist_t _dist_t = base::get_dist_type(dist_type);
+            core::init_t _init_t = core::get_init_type(init);
+            core::dist_t _dist_t = core::get_dist_type(dist_type);
 #if KM_TEST
 #ifndef BIND
             printf("xmeans coordinator => NUMA nodes: %u, nthreads: %u, "
@@ -96,7 +96,7 @@ class xmeans_coordinator : public hclust_coordinator {
         }
         virtual void build_thread_state() override;
         // Pass file handle to threads to read & numa alloc
-        virtual base::cluster_t run(double* allocd_data=NULL,
+        virtual core::cluster_t run(double* allocd_data=NULL,
             const bool numa_opt=false) override;
         virtual void combine_partition_means();
         virtual void partition_decision();

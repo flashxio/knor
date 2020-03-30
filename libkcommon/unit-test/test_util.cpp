@@ -20,7 +20,7 @@
 #include "util.hpp"
 #include <cassert>
 
-using namespace knor::base;
+using namespace knor::core;
 
 void test_hclust_floor() {
     assert(get_hclust_floor(1) == 1);

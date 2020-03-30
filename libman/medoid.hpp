@@ -27,7 +27,7 @@
 namespace kprune = knor::prune;
 
 namespace knor {
-namespace base {
+namespace core {
     class clusters;
 }
 

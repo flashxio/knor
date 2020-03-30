@@ -33,7 +33,7 @@ void gmeans::start(const thread_state_t state=WAIT) {
     this->state = state;
     int rc = pthread_create(&hw_thd, NULL, callback<gmeans>, this);
     if (rc)
-        throw base::thread_exception(
+        throw core::thread_exception(
                 "Thread creation (pthread_create) failed!", rc);
 }
 
@@ -47,7 +47,7 @@ void gmeans::H_split_step() {
             continue; // Skip it
 
         const size_t offset = row*ncol;
-        auto const& v = std::static_pointer_cast<base::h_clusters>(
+        auto const& v = std::static_pointer_cast<core::h_clusters>(
                             g_hcltrs[part_id[true_row_id]])->metadata;
 
         double dotprod = 0;

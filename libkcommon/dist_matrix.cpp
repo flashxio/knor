@@ -80,11 +80,11 @@ void dist_matrix::print() {
 #ifndef BIND
         std::cout << row << " ==> ";
 #endif
-        knor::base::print<double>(mat[row]);
+        knor::core::print<double>(mat[row]);
     }
 }
 
-void dist_matrix::compute_dist(knor::base::prune_clusters::ptr cls,
+void dist_matrix::compute_dist(knor::core::prune_clusters::ptr cls,
         const unsigned ncol) {
     if (cls->get_nclust() <= 1) return;
 
@@ -95,7 +95,7 @@ void dist_matrix::compute_dist(knor::base::prune_clusters::ptr cls,
 #endif
     for (unsigned i = 0; i < cls->get_nclust(); i++) {
         for (unsigned j = i+1; j < cls->get_nclust(); j++) {
-            double dist = knor::base::eucl_dist(&(cls->get_means()[i*ncol]),
+            double dist = knor::core::eucl_dist(&(cls->get_means()[i*ncol]),
                     &(cls->get_means()[j*ncol]), ncol) / 2.0;
             set(i,j, dist);
 
@@ -122,36 +122,36 @@ void dist_matrix::compute_dist(knor::base::prune_clusters::ptr cls,
 // Used for PAM pairwise distance of all entries
 // TODO: Find soln to this for Mac
 void dist_matrix::compute_pairwise_dist(double* data,
-        const size_t ncol, const knor::base::dist_t metric) {
+        const size_t ncol, const knor::core::dist_t metric) {
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
     for (size_t i = 0; i < rows; i++) {
         for (size_t j = i+1; j < rows+1; j++) {
             switch (metric) {
-                case (knor::base::dist_t::EUCL):
+                case (knor::core::dist_t::EUCL):
                     {
-                        double dist = knor::base::eucl_dist(&(data[i*ncol]),
+                        double dist = knor::core::eucl_dist(&(data[i*ncol]),
                                 &(data[j*ncol]), ncol);
                         set(i,j, dist);
                         break;
                     }
-                case (knor::base::dist_t::COS):
+                case (knor::core::dist_t::COS):
                     {
-                        double dist = knor::base::cos_dist(&(data[i*ncol]),
+                        double dist = knor::core::cos_dist(&(data[i*ncol]),
                                 &(data[j*ncol]), ncol);
                         set(i,j, dist);
                         break;
                     }
-                case (knor::base::dist_t::TAXI):
+                case (knor::core::dist_t::TAXI):
                     {
-                        double dist = knor::base::taxi_dist<double>
+                        double dist = knor::core::taxi_dist<double>
                             (&(data[i*ncol]), &(data[j*ncol]), ncol);
                         set(i,j, dist);
                         break;
                     }
                 default:
-                    throw knor::base::parameter_exception(
+                    throw knor::core::parameter_exception(
                             "Unknown distance metric");
             }
         }

@@ -28,7 +28,7 @@
 
 #include "task_queue.hpp"
 
-namespace kbase = knor::base;
+namespace kbase = knor::core;
 
 namespace knor { namespace prune {
 kmeans_task_coordinator::kmeans_task_coordinator(const std::string fn,
@@ -99,7 +99,7 @@ void kmeans_task_coordinator::mb_iteration_end() {
     std::vector<double>v; v.assign(k, 0);// Use std::fill
     for (size_t rid = 0; rid < nrow; rid++) {
         auto cid = cluster_assignments[rid];
-        if (cid != base::INVALID_CLUSTER_ID) // Skip those not sampled
+        if (cid != core::INVALID_CLUSTER_ID) // Skip those not sampled
             v[cid]++;
     }
 
@@ -191,7 +191,7 @@ void kmeans_task_coordinator::kmeanspp_init() {
     assert(cluster_assignments.size() == nrow);
 
     if (cluster_assignments.size() != nrow)
-        cluster_assignments.assign(nrow, base::INVALID_CLUSTER_ID);
+        cluster_assignments.assign(nrow, core::INVALID_CLUSTER_ID);
 
     cluster_assignments[selected_idx] = 0;
 
@@ -308,7 +308,7 @@ double kmeans_task_coordinator::compute_cluster_energy() {
 
 void kmeans_task_coordinator::reinit() {
     std::fill(&dist_v[0], &dist_v[nrow], std::numeric_limits<double>::max());
-    cluster_assignments.assign(nrow, base::INVALID_CLUSTER_ID);
+    cluster_assignments.assign(nrow, core::INVALID_CLUSTER_ID);
     cluster_assignment_counts.assign(k, 0);
     cltrs->clear();
     run_init();
@@ -317,7 +317,7 @@ void kmeans_task_coordinator::reinit() {
 void kmeans_task_coordinator::tally_assignment_counts() {
     cluster_assignment_counts.assign(k, 0);
     for (size_t row = 0; row < nrow; row++) {
-        assert(cluster_assignments[row] != base::INVALID_CLUSTER_ID
+        assert(cluster_assignments[row] != core::INVALID_CLUSTER_ID
                 && cluster_assignments[row] >= 0
                 && cluster_assignments[row] < k);
         cluster_assignment_counts[cluster_assignments[row]]++;

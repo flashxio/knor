@@ -36,8 +36,8 @@ gmeans_coordinator::gmeans_coordinator(const std::string fn,
         const size_t nrow,
         const size_t ncol, const unsigned k, const unsigned max_iters,
         const unsigned nnodes, const unsigned nthreads,
-        const double* centers, const base::init_t it,
-        const double tolerance, const base::dist_t dt,
+        const double* centers, const core::init_t it,
+        const double tolerance, const core::dist_t dt,
         const unsigned min_clust_size, const short strictness) :
     xmeans_coordinator(fn, nrow, ncol, k, max_iters, nnodes, nthreads,
             centers, it, tolerance, dt, min_clust_size),
@@ -94,7 +94,7 @@ void gmeans_coordinator::compute_ad_stats(
 
 #pragma omp parallel for
     for (size_t idx = 0; idx < keys.size(); idx++) {
-        double score = base::AndersonDarling::compute_statistic(
+        double score = core::AndersonDarling::compute_statistic(
                 ad_vecs[keys[idx]].size(), &(ad_vecs[keys[idx]][0]));
         scores[idx] = score;
     }
@@ -115,11 +115,11 @@ void gmeans_coordinator::partition_decision() {
     assemble_ad_vecs(ad_vecs);
 
     for (auto& kv : ad_vecs) {
-        base::linalg::scale(&(kv.second)[0], kv.second.size());
+        core::linalg::scale(&(kv.second)[0], kv.second.size());
     }
 
     // Compute Critical values
-    base::AndersonDarling::compute_critical_values(
+    core::AndersonDarling::compute_critical_values(
             ad_vecs.size(), critical_values);
 
     // Compute AD statistics
@@ -181,22 +181,22 @@ void gmeans_coordinator::compute_cluster_diffs() {
     auto itr = hcltrs.get_iterator();
     while (itr.has_next()) {
         auto kv = itr.next();
-        auto c = std::static_pointer_cast<base::h_clusters>(kv.second);
+        auto c = std::static_pointer_cast<core::h_clusters>(kv.second);
         c->metadata.resize(ncol+1); // +1th index stores the divisor
 
         // Compute difference
         for (size_t i = 0; i < ncol; i++)
-            base::linalg::vdiff(c->get_mean_rawptr(0),
+            core::linalg::vdiff(c->get_mean_rawptr(0),
                     c->get_mean_rawptr(1), ncol, c->metadata);
 
         // Compute v.dot(v)
-        c->metadata[ncol] = base::linalg::dot(&c->metadata[0],
+        c->metadata[ncol] = core::linalg::dot(&c->metadata[0],
                 &c->metadata[0], ncol); // NOTE: last element intentionally ignored
     }
 }
 
 // Main driver
-base::cluster_t gmeans_coordinator::run(
+core::cluster_t gmeans_coordinator::run(
         double* allocd_data, const bool numa_opt) {
 #ifdef PROFILER
     ProfilerStart("gmeans_coordinator.perf");
@@ -236,7 +236,7 @@ base::cluster_t gmeans_coordinator::run(
             update_clusters();
 #ifndef BIND
             printf("\nAssignment counts:\n");
-            base::sparse_print(cluster_assignment_counts);
+            core::sparse_print(cluster_assignment_counts);
             printf("\n*****************************************************\n");
 #endif
             if (compute_pdist)
@@ -279,22 +279,22 @@ base::cluster_t gmeans_coordinator::run(
     gettimeofday(&end, NULL);
 #ifndef BIND
     printf("\n\nAlgorithmic time taken = %.6f sec\n",
-        base::time_diff(start, end));
+        core::time_diff(start, end));
     printf("\n******************************************\n");
     verify_consistency();
 #endif
 
 #ifndef BIND
     printf("Final cluster counts: \n");
-    base::sparse_print(cluster_assignment_counts);
+    core::sparse_print(cluster_assignment_counts);
     //printf("Final centroids\n");
     //for (auto const& kv : final_centroids) {
-        //printf("k: %u, v: ", kv.first); base::print(kv.second);
+        //printf("k: %u, v: ", kv.first); core::print(kv.second);
     //}
     printf("\n******************************************\n");
 #endif
 
-    return base::cluster_t(this->nrow, this->ncol, iter,
+    return core::cluster_t(this->nrow, this->ncol, iter,
             cluster_assignments, cluster_assignment_counts,
             final_centroids);
 }

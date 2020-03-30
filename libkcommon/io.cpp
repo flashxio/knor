@@ -19,7 +19,7 @@
 
 #include "io.hpp"
 
-namespace knor { namespace base {
+namespace knor { namespace core {
 
 void store_cluster(const unsigned id, const double* data,
         const unsigned numel, const unsigned* cluster_assignments,
@@ -55,4 +55,4 @@ void store_cluster(const unsigned id, const double* data,
     assert(count == numel);
     fclose(f);
 }
-} } // End namespace knor, base
+} } // End namespace knor, core

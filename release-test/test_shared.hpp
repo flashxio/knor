@@ -25,7 +25,7 @@
 
 #include "io.hpp"
 
-namespace kbase = knor::base;
+namespace kbase = knor::core;
 
 namespace knor { namespace test {
     const std::string TESTDATA_FN = "../test-data/matrix_r50_c5_rrw.bin";

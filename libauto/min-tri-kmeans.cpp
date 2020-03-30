@@ -38,7 +38,7 @@
 #define VERBOSE 0
 
 namespace kprune = knor::prune;
-namespace kbase = knor::base;
+namespace kbase = knor::core;
 
 namespace {
 

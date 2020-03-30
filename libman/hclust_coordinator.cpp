@@ -32,26 +32,26 @@ namespace knor {
 hclust_coordinator::hclust_coordinator(const std::string fn, const size_t nrow,
         const size_t ncol, const unsigned k, const unsigned max_iters,
         const unsigned nnodes, const unsigned nthreads,
-        const double* centers, const base::init_t it,
-        const double tolerance, const base::dist_t dt,
+        const double* centers, const core::init_t it,
+        const double tolerance, const core::dist_t dt,
         const unsigned min_clust_size) :
-    coordinator(fn, nrow, ncol, (base::get_hclust_floor(k)/2), max_iters,
+    coordinator(fn, nrow, ncol, (core::get_hclust_floor(k)/2), max_iters,
             nnodes, nthreads, centers, it, tolerance, dt),
     min_clust_size(min_clust_size), curr_nclust(0) {
 
         ui_distribution = std::uniform_int_distribution<unsigned>(0, nrow-1);
 
-        max_nodes = base::get_max_hnodes(k*2);
+        max_nodes = core::get_max_hnodes(k*2);
         hcltrs.set_capacity(max_nodes);
 
-        cltr_active_vec = base::thd_safe_bool_vector::create(max_nodes, false);
+        cltr_active_vec = core::thd_safe_bool_vector::create(max_nodes, false);
         activate(0);
 
         if (centers) {
             // There must be at least one
-            hcltrs[0] = base::h_clusters::create(2, ncol, centers);
+            hcltrs[0] = core::h_clusters::create(2, ncol, centers);
         } else {
-            hcltrs[0] = base::h_clusters::create(2, ncol);
+            hcltrs[0] = core::h_clusters::create(2, ncol);
         }
         hcltrs[0]->set_id(0);
 
@@ -81,8 +81,8 @@ void hclust_coordinator::build_thread_state() {
     }
 }
 
-void hclust_coordinator::partition_mean(base::vmap<
-        std::shared_ptr<base::clusters>>& part_hcltrs) {
+void hclust_coordinator::partition_mean(core::vmap<
+        std::shared_ptr<core::clusters>>& part_hcltrs) {
     wake4run(MEAN);
     wait4complete();
 
@@ -273,7 +273,7 @@ void hclust_coordinator::spawn(const unsigned& zeroid,
     // Add parent with two children
     if (cp.l_splittable()) { // NOTE: Could do an active check, but redundant
         auto zero_child_ids = ider->get_split_ids();
-        hcltrs[zeroid] = base::h_clusters::create(2, ncol, zeroid,
+        hcltrs[zeroid] = core::h_clusters::create(2, ncol, zeroid,
                 zero_child_ids.first, zero_child_ids.second);
         hcltrs[zeroid]->set_mean(get_thd_data(cp.l0), 0);
         hcltrs[zeroid]->set_mean(get_thd_data(cp.l1), 1);
@@ -283,7 +283,7 @@ void hclust_coordinator::spawn(const unsigned& zeroid,
 
     if (cp.r_splittable()) {
         auto one_child_ids = ider->get_split_ids();
-        hcltrs[oneid] = base::h_clusters::create(2, ncol, oneid,
+        hcltrs[oneid] = core::h_clusters::create(2, ncol, oneid,
                 one_child_ids.first, one_child_ids.second);
         hcltrs[oneid]->set_mean(get_thd_data(cp.r0), 0);
         hcltrs[oneid]->set_mean(get_thd_data(cp.r1), 1);
@@ -423,7 +423,7 @@ void hclust_coordinator::complete_final_centroids() {
 /**
  * Main driver
  */
-base::cluster_t hclust_coordinator::run(
+core::cluster_t hclust_coordinator::run(
         double* allocd_data, const bool numa_opt) {
 #ifdef PROFILER
     ProfilerStart("hclust_coordinator.perf");
@@ -461,7 +461,7 @@ base::cluster_t hclust_coordinator::run(
             update_clusters();
 #ifndef BIND
             printf("\nAssignment counts:\n");
-            base::sparse_print(cluster_assignment_counts);
+            core::sparse_print(cluster_assignment_counts);
             printf("\n*****************************************************\n");
 #endif
         }
@@ -493,18 +493,18 @@ base::cluster_t hclust_coordinator::run(
     gettimeofday(&end, NULL);
 #ifndef BIND
     printf("\n\nAlgorithmic time taken = %.6f sec\n",
-        base::time_diff(start, end));
+        core::time_diff(start, end));
     printf("\n******************************************\n");
     verify_consistency();
 #endif
 
 #ifndef BIND
     printf("Final cluster counts & means: \n");
-    base::sparse_print(cluster_assignment_counts);
+    core::sparse_print(cluster_assignment_counts);
     printf("\n******************************************\n");
 #endif
 
-    return base::cluster_t(this->nrow, this->ncol, iter,
+    return core::cluster_t(this->nrow, this->ncol, iter,
             cluster_assignments, cluster_assignment_counts,
             final_centroids);
 }

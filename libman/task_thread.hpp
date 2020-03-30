@@ -28,7 +28,7 @@
 namespace knor {
 class task_queue;
 class task;
-    namespace base {
+    namespace core {
     class thd_safe_bool_vector;
     class prune_clusters;
     }
@@ -37,7 +37,7 @@ class task;
     }
 }
 
-namespace kbase = knor::base;
+namespace kbase = knor::core;
 
 namespace knor { namespace prune {
 

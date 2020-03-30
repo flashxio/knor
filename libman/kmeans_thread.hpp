@@ -22,10 +22,10 @@
 
 #include "thread.hpp"
 
-namespace knor { namespace base {
+namespace knor { namespace core {
     class clusters;
 } }
-namespace kbase = knor::base;
+namespace kbase = knor::core;
 
 
 namespace knor {

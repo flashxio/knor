@@ -24,7 +24,7 @@
 #include <map>
 #include <memory>
 
-namespace knor { namespace base {
+namespace knor { namespace core {
 // Class to hold stats on the effectiveness of pruning
 class prune_stats {
 private:
@@ -136,6 +136,6 @@ public:
     void write_consolidated(std::string fn, size_t print_row_cnt);
 };
 
-} } // End namespace knor::base
+} } // End namespace knor::core
 #endif
 

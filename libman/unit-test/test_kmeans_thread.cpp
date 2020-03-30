@@ -32,7 +32,7 @@
 #include "numa.h"
 #endif
 
-namespace kbase = knor::base;
+namespace kbase = knor::core;
 
 static std::atomic<unsigned> pending_threads;
 //static unsigned pending_threads;
@@ -105,7 +105,7 @@ void test_numa_populate_data(const unsigned NTHREADS, const unsigned nnodes,
         threads[i]->start(knor::thread_state_t::WAIT);
     }
 
-    knor::base::bin_io<double> br(fn, nrow, ncol);
+    knor::core::bin_io<double> br(fn, nrow, ncol);
     double* data = new double [nrow*ncol];
     printf("Bin read data\n");
     br.read(data);

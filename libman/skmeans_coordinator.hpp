@@ -24,7 +24,7 @@
 
 namespace knor {
 
-namespace base {
+namespace core {
     class clusters;
 }
 
@@ -37,13 +37,13 @@ class skmeans_coordinator : public coordinator {
     protected:
         // Metadata
         // max index stored within each threads partition
-        std::shared_ptr<base::clusters> cltrs;
+        std::shared_ptr<core::clusters> cltrs;
 
         skmeans_coordinator(const std::string fn, const size_t nrow,
                 const size_t ncol, const unsigned k, const unsigned max_iters,
                 const unsigned nnodes, const unsigned nthreads,
-                const double* centers, const base::init_t it,
-                const double tolerance, const base::dist_t dt);
+                const double* centers, const core::init_t it,
+                const double tolerance, const core::dist_t dt);
 
     public:
         static coordinator::ptr create(const std::string fn,
@@ -53,20 +53,20 @@ class skmeans_coordinator : public coordinator {
                 const double* centers=NULL, const std::string init="kmeanspp",
                 const double tolerance=-1, const std::string dist_type="cos") {
 
-            base::init_t _init_t = base::get_init_type(init);
-            base::dist_t _dist_t = base::get_dist_type(dist_type);
+            core::init_t _init_t = core::get_init_type(init);
+            core::dist_t _dist_t = core::get_dist_type(dist_type);
 
             return coordinator::ptr(
                     new skmeans_coordinator(fn, nrow, ncol, k, max_iters,
                     nnodes, nthreads, centers, _init_t, tolerance, _dist_t));
         }
 
-        std::shared_ptr<base::clusters> get_gcltrs() {
+        std::shared_ptr<core::clusters> get_gcltrs() {
             return cltrs;
         }
 
         // Pass file handle to threads to read & numa alloc
-        virtual base::cluster_t run(double* allocd_data,
+        virtual core::cluster_t run(double* allocd_data,
                 const bool numa_opt) override;
         void update_clusters();
         void kmeanspp_init() override;

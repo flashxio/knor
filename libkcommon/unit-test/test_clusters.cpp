@@ -24,7 +24,7 @@
 
 #include "clusters.hpp"
 
-namespace kbase = knor::base;
+namespace kbase = knor::core;
 
 constexpr unsigned NCOL = 4;
 constexpr unsigned NCLUST = 5;

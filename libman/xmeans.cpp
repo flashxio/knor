@@ -34,8 +34,8 @@ namespace knor {
             const unsigned ncol, unsigned k,
             hclust_map& g_hcltrs,
             unsigned* cluster_assignments,
-            const std::string fn, base::dist_t dist_metric,
-            const base::thd_safe_bool_vector::ptr cltr_active_vec,
+            const std::string fn, core::dist_t dist_metric,
+            const core::thd_safe_bool_vector::ptr cltr_active_vec,
             std::vector<double>& partition_dist,
             std::vector<double>& nearest_cdist, const bool& compute_pdist) :
         hclust(node_id, thd_id, start_rid, nprocrows, ncol, k,
@@ -44,7 +44,7 @@ namespace knor {
                 nearest_cdist(nearest_cdist), compute_pdist(compute_pdist) {
 
             local_clusters = kbase::sparse_clusters::create(
-                                base::get_max_hnodes(k*2), ncol);
+                                core::get_max_hnodes(k*2), ncol);
             // Use this for the mean of the full partition calculation
         }
 
@@ -52,7 +52,7 @@ void xmeans::start(const thread_state_t state=WAIT) {
     this->state = state;
     int rc = pthread_create(&hw_thd, NULL, callback<xmeans>, this);
     if (rc)
-        throw base::thread_exception(
+        throw core::thread_exception(
                 "Thread creation (pthread_create) failed!", rc);
 }
 
@@ -85,7 +85,7 @@ void xmeans::H_EM_step() {
         }
 
         // No need to set id, zeroid, oneid because global hcltrs knows them
-        local_hcltrs[kv.first] = base::h_clusters::create(2, ncol);
+        local_hcltrs[kv.first] = core::h_clusters::create(2, ncol);
         local_hcltrs[kv.first]->clear(); // NOTE: Could be combined into ctor
     }
 
@@ -97,7 +97,7 @@ void xmeans::H_EM_step() {
         // Get distance to partition
         if (compute_pdist) {
             partition_dist[true_row_id] =
-                base::dist_comp_raw<double>(&local_data[row*ncol],
+                core::dist_comp_raw<double>(&local_data[row*ncol],
                     &(g_clusters->
                         get_means()[rpart_id*ncol]), ncol, dist_metric);
         }
@@ -107,13 +107,13 @@ void xmeans::H_EM_step() {
                 g_hcltrs[rpart_id]->has_converged())
             continue; // Skip it
 
-        unsigned asgnd_clust = base::INVALID_CLUSTER_ID;
+        unsigned asgnd_clust = core::INVALID_CLUSTER_ID;
         bool flag = 0; // Is the best the zeroid or oneid?
         double best, dist;
         dist = best = std::numeric_limits<double>::max();
 
         for (unsigned clust_idx = 0; clust_idx < 2; clust_idx++) {
-            dist = base::dist_comp_raw<double>(&local_data[row*ncol],
+            dist = core::dist_comp_raw<double>(&local_data[row*ncol],
                     &(g_hcltrs[rpart_id]->
                         get_means()[clust_idx*ncol]), ncol, dist_metric);
             if (dist < best) {
@@ -128,7 +128,7 @@ void xmeans::H_EM_step() {
         }
 
         nearest_cdist[true_row_id] = best; // Update the best dist
-        assert(asgnd_clust != base::INVALID_CLUSTER_ID);
+        assert(asgnd_clust != core::INVALID_CLUSTER_ID);
 
         if (asgnd_clust != cluster_assignments[true_row_id])
             nchanged[rpart_id]++;

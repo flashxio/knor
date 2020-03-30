@@ -23,7 +23,7 @@
 #include <exception>
 #include <stdexcept>
 
-namespace knor { namespace base {
+namespace knor { namespace core {
 
 class not_implemented_exception : public std::runtime_error {
 

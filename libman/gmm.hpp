@@ -22,11 +22,11 @@
 
 #include "thread.hpp"
 
-namespace knor { namespace base {
+namespace knor { namespace core {
     template <typename T> class dense_matrix;
 } }
 
-namespace kbase = knor::base;
+namespace kbase = knor::core;
 
 namespace knor {
 class gmm : public thread {
@@ -34,13 +34,13 @@ class gmm : public thread {
          // Pointer to global cluster data
         unsigned nprocrows; // How many rows to process
         unsigned k;
-        base::dense_matrix<double>* mu_k;
-        base::dense_matrix<double>* local_mu_k;
-        base::dense_matrix<double>** sigma_k;
-        base::dense_matrix<double>* P_nk;
+        core::dense_matrix<double>* mu_k;
+        core::dense_matrix<double>* local_mu_k;
+        core::dense_matrix<double>** sigma_k;
+        core::dense_matrix<double>* P_nk;
         double* Pk;
         double* dets; // The determinant of each covariance matrix
-        base::dense_matrix<double>** inv_sigma_k; // Inverse of sigma
+        core::dense_matrix<double>** inv_sigma_k; // Inverse of sigma
         double* Px;
         double L;
 
@@ -61,10 +61,10 @@ class gmm : public thread {
                         nprocrows, ncol, fn, dist_metric));
         }
 
-        void set_alg_metadata(unsigned k, base::dense_matrix<double>* mu_k,
-                base::dense_matrix<double>** sigma_k,
-                base::dense_matrix<double>* P_nk, double* Pk,
-                base::dense_matrix<double>** isk, double* dets, double* Px);
+        void set_alg_metadata(unsigned k, core::dense_matrix<double>* mu_k,
+                core::dense_matrix<double>** sigma_k,
+                core::dense_matrix<double>* P_nk, double* Pk,
+                core::dense_matrix<double>** isk, double* dets, double* Px);
 
         double get_L() { return L; }
         void start(const thread_state_t state) override;

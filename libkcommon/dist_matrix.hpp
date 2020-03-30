@@ -27,7 +27,7 @@
 
 namespace knor {
 
-    namespace base {
+    namespace core {
     class prune_clusters;
     }
 
@@ -66,10 +66,10 @@ public:
     void set(unsigned row, unsigned col, double val);
 
     void print();
-    void compute_dist(std::shared_ptr<base::prune_clusters> cl,
+    void compute_dist(std::shared_ptr<core::prune_clusters> cl,
             const unsigned ncol);
     void compute_pairwise_dist(double* data,
-            const size_t ncol, const knor::base::dist_t metric);
+            const size_t ncol, const knor::core::dist_t metric);
 };
 
 inline double dist_matrix::pw_get(const unsigned row,

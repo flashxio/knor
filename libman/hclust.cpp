@@ -32,16 +32,16 @@ hclust::hclust(const int node_id, const unsigned thd_id,
         const unsigned start_rid,
         const unsigned nprocrows, const unsigned ncol, unsigned k,
         hclust_map& g_hcltrs, unsigned* cluster_assignments,
-        const std::string fn, base::dist_t dist_metric,
-        const base::thd_safe_bool_vector::ptr cltr_active_vec) :
+        const std::string fn, core::dist_t dist_metric,
+        const core::thd_safe_bool_vector::ptr cltr_active_vec) :
             thread(node_id, thd_id, ncol,
             cluster_assignments, start_rid, fn, dist_metric),
             g_hcltrs(g_hcltrs), cltr_active_vec(cltr_active_vec),
             k(k), nprocrows(nprocrows) {
 
             set_data_size(sizeof(double)*nprocrows*ncol);
-            local_hcltrs.set_capacity(base::get_max_hnodes(k*2));
-            nchanged.set_capacity(base::get_max_hnodes(k*2));
+            local_hcltrs.set_capacity(core::get_max_hnodes(k*2));
+            nchanged.set_capacity(core::get_max_hnodes(k*2));
         }
 
 void hclust::run() {
@@ -62,10 +62,10 @@ void hclust::run() {
             partition_mean();
             break;
         case EXIT:
-            throw base::thread_exception(
+            throw core::thread_exception(
                     "Thread state is EXIT but running!\n");
         default:
-            throw base::thread_exception("Unknown thread state\n");
+            throw core::thread_exception("Unknown thread state\n");
     }
     sleep();
 }
@@ -74,7 +74,7 @@ void hclust::start(const thread_state_t state=WAIT) {
     this->state = state;
     int rc = pthread_create(&hw_thd, NULL, callback<hclust>, this);
     if (rc)
-        throw base::thread_exception(
+        throw core::thread_exception(
                 "Thread creation (pthread_create) failed!", rc);
 }
 
@@ -89,7 +89,7 @@ void hclust::H_EM_step() {
             continue;
         }
             // No need to set id, zeroid, oneid because global hcltrs knows them
-            local_hcltrs[kv.first] = base::h_clusters::create(2, ncol);
+            local_hcltrs[kv.first] = core::h_clusters::create(2, ncol);
             local_hcltrs[kv.first]->clear(); // NOTE: Could be combined into ctor
     }
 
@@ -103,13 +103,13 @@ void hclust::H_EM_step() {
                 g_hcltrs[rpart_id]->has_converged())
             continue; // Skip it
 
-        unsigned asgnd_clust = base::INVALID_CLUSTER_ID;
+        unsigned asgnd_clust = core::INVALID_CLUSTER_ID;
         bool flag = 0; // Is the best the zeroid or oneid?
         double best, dist;
         dist = best = std::numeric_limits<double>::max();
 
         for (unsigned clust_idx = 0; clust_idx < 2; clust_idx++) {
-            dist = base::dist_comp_raw<double>(&local_data[row*ncol],
+            dist = core::dist_comp_raw<double>(&local_data[row*ncol],
                     &(g_hcltrs[rpart_id]->
                         get_means()[clust_idx*ncol]), ncol, dist_metric);
             if (dist < best) {
@@ -123,7 +123,7 @@ void hclust::H_EM_step() {
             }
         }
 
-        assert(asgnd_clust != base::INVALID_CLUSTER_ID);
+        assert(asgnd_clust != core::INVALID_CLUSTER_ID);
 
         if (asgnd_clust != cluster_assignments[true_row_id])
             nchanged[rpart_id]++;

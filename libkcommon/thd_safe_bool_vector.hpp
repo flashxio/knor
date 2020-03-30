@@ -23,7 +23,7 @@
 #include <vector>
 #include <memory>
 
-namespace knor { namespace base {
+namespace knor { namespace core {
 
 constexpr unsigned LEN = 2;
 class _bool {
@@ -81,5 +81,5 @@ public:
     const std::vector<_bool>& raw() const { return data; }
     void check_set(const size_t idx, const bool val);
 };
-} } // End namespace knor, base
+} } // End namespace knor, core
 #endif

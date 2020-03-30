@@ -88,7 +88,7 @@ void thread::join() {
     void* join_status;
     int rc = pthread_join(hw_thd, &join_status);
     if (rc)
-        throw base::thread_exception("pthread_join()", rc);
+        throw core::thread_exception("pthread_join()", rc);
 
     thd_id = INVALID_THD_ID;
 }
@@ -97,7 +97,7 @@ void thread::join() {
 void thread::close_file_handle() {
     int rc = fclose(f);
     if (rc)
-        throw base::io_exception("fclose() failed!", rc);
+        throw core::io_exception("fclose() failed!", rc);
 
 #if VERBOSE
 #ifndef BIND

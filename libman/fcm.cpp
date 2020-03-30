@@ -28,14 +28,14 @@ fcm::fcm(const int node_id, const unsigned thd_id,
             const unsigned start_rid, const unsigned nprocrows,
             const unsigned ncol, const unsigned nclust,
             const unsigned fuzzindex,
-            base::dense_matrix<double>* um,
-            base::dense_matrix<double>* centers,
-            const std::string fn, base::dist_t dist_metric) :
+            core::dense_matrix<double>* um,
+            core::dense_matrix<double>* centers,
+            const std::string fn, core::dist_t dist_metric) :
         thread(node_id, thd_id, ncol, NULL, start_rid, fn, dist_metric),
         nprocrows(nprocrows), centers(centers), um(um),
         nclust(nclust), fuzzindex(fuzzindex){
 
-            this->innerprod = base::dense_matrix<double>::create(nclust, ncol);
+            this->innerprod = core::dense_matrix<double>::create(nclust, ncol);
             set_data_size(sizeof(double)*nprocrows*ncol);
     }
 
@@ -43,7 +43,7 @@ void fcm::Estep() {
     for (unsigned row = 0; row < nprocrows; row++) {
         unsigned true_rid = get_global_data_id(row);
         for (unsigned cid = 0; cid < nclust; cid++) {
-            double dist = base::dist_comp_raw<double>(&local_data[row*ncol],
+            double dist = core::dist_comp_raw<double>(&local_data[row*ncol],
                     &(centers->as_pointer()[cid*ncol]), ncol, dist_metric);
             if (dist > 0) {
                 //TODO: Fix bad access pattern. um -> col major
@@ -73,8 +73,8 @@ void fcm::Mstep() {
     }
 #else
     // For testing matrix mult
-    base::dense_matrix<double>* _data =
-        base::dense_matrix<double>::create(nprocrows, ncol);
+    core::dense_matrix<double>* _data =
+        core::dense_matrix<double>::create(nprocrows, ncol);
     _data->set(local_data);
     auto ip = ((*um) * (*_data));
     innerprod->copy_from(ip);
