@@ -20,13 +20,13 @@
 #include <random>
 #include <stdexcept>
 
-#include "kmeans_coordinator.hpp"
+#include "means.hpp"
 #include "kmeans_thread.hpp"
 #include "io.hpp"
 #include "clusters.hpp"
 
 namespace knor {
-kmeans_coordinator::kmeans_coordinator(const std::string fn, const size_t nrow,
+means::means(const std::string fn, const size_t nrow,
         const size_t ncol, const unsigned k, const unsigned max_iters,
         const unsigned nnodes, const unsigned nthreads,
         const double* centers, const clustercore::init_t it,
@@ -48,7 +48,7 @@ kmeans_coordinator::kmeans_coordinator(const std::string fn, const size_t nrow,
         build_thread_state();
     }
 
-void kmeans_coordinator::build_thread_state() {
+void means::build_thread_state() {
     // NUMA node affinity binding policy is round-robin
     unsigned thds_row = nrow / nthreads;
     for (unsigned thd_id = 0; thd_id < nthreads; thd_id++) {
@@ -63,7 +63,7 @@ void kmeans_coordinator::build_thread_state() {
     }
 }
 
-void kmeans_coordinator::update_clusters() {
+void means::update_clusters() {
     num_changed = 0; // Always reset here since there's no pruning
     cltrs->clear();
 
@@ -88,7 +88,7 @@ void kmeans_coordinator::update_clusters() {
     assert(num_changed <= nrow);
 }
 
-void kmeans_coordinator::kmeanspp_init() {
+void means::kmeanspp_init() {
     struct timeval start, end;
     gettimeofday(&start , NULL);
 
@@ -134,7 +134,7 @@ void kmeans_coordinator::kmeanspp_init() {
     gettimeofday(&end, NULL);
 }
 
-void kmeans_coordinator::random_partition_init() {
+void means::random_partition_init() {
     std::default_random_engine generator;
     std::uniform_int_distribution<unsigned> distribution(0, k-1);
 
@@ -149,7 +149,7 @@ void kmeans_coordinator::random_partition_init() {
     cltrs->finalize_all();
 }
 
-void kmeans_coordinator::forgy_init() {
+void means::forgy_init() {
     std::default_random_engine generator;
     std::uniform_int_distribution<unsigned> distribution(0, nrow-1);
 
@@ -162,10 +162,10 @@ void kmeans_coordinator::forgy_init() {
 /**
  * Main driver for kmeans
  */
-clustercore::cluster_t kmeans_coordinator::run(
+clustercore::cluster_t means::run(
         double* allocd_data, const bool numa_opt) {
 #ifdef PROFILER
-    ProfilerStart("libman/kmeans_coordinator.perf");
+    ProfilerStart("libman/means.perf");
 #endif
 
     if (!numa_opt && NULL == allocd_data) {

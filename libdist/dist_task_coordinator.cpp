@@ -319,7 +319,7 @@ void dist_task_coordinator::run(clustercore::cluster_t& ret,
 #endif
         wake4run(knor::thread_state_t::EM);
         wait4complete();
-        // NOTE: Unfinalized diffs on this proc in cltrs.means
+        // NOTE: Unfinalized diffs on this proc in cltrs.mean_vectors
         pp_aggregate();
 
         // NOTE: cltrs_ptr has this procs diff (agg of threads from this proc)

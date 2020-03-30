@@ -28,13 +28,13 @@ namespace core {
     class clusters;
 }
 
-class kmeans_coordinator : public base {
+class means : public base {
     protected:
         // Metadata
         // max index stored within each threads partition
         std::shared_ptr<core::clusters> cltrs;
 
-        kmeans_coordinator(const std::string fn, const size_t nrow,
+        means(const std::string fn, const size_t nrow,
                 const size_t ncol, const unsigned k, const unsigned max_iters,
                 const unsigned nnodes, const unsigned nthreads,
                 const double* centers, const core::init_t it,
@@ -59,7 +59,7 @@ class kmeans_coordinator : public base {
 #endif
 #endif
             return base::ptr(
-                    new kmeans_coordinator(fn, nrow, ncol, k, max_iters,
+                    new means(fn, nrow, ncol, k, max_iters,
                     nnodes, nthreads, centers, _init_t, tolerance, _dist_t));
         }
 

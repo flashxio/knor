@@ -29,7 +29,7 @@
 #include "io.hpp"
 #include "../libauto/kmeans.hpp"
 
-#include "kmeans_coordinator.hpp"
+#include "means.hpp"
 #include "kmeans_task_coordinator.hpp"
 #include "util.hpp"
 
@@ -172,8 +172,8 @@ int main(int argc, char* argv[])
     } else {
 #endif
         if (no_prune) {
-            knor::kmeans_coordinator::ptr kc =
-                knor::kmeans_coordinator::create(datafn,
+            knor::means::ptr kc =
+                knor::means::create(datafn,
                     nrow, ncol, k, max_iters, nnodes, nthread, p_centers,
                     init, tolerance, dist_type);
             ret = kc->run();

@@ -36,7 +36,7 @@ dist_coordinator::dist_coordinator(
         const unsigned nnodes, const unsigned nthreads,
         const double* centers, const clustercore::init_t it,
         const double tolerance, const clustercore::dist_t dt) :
-    kmeans_coordinator(fn, this->init(argc, argv, nrow), ncol, k, max_iters, nnodes,
+    means(fn, this->init(argc, argv, nrow), ncol, k, max_iters, nnodes,
             nthreads, centers, it, tolerance, dt) {
 
         this->g_nrow = nrow;
@@ -126,7 +126,7 @@ const bool dist_coordinator::is_local(const size_t global_rid) const {
 // For testing
 void const dist_coordinator::print_thread_data() {
     std::cout << "\n\nProcess: " << this->mpi_rank;
-    kmeans_coordinator::print_thread_data();
+    means::print_thread_data();
 }
 
 void dist_coordinator::kmeanspp_init() {

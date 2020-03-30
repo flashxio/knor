@@ -36,7 +36,7 @@ typedef std::vector<double>::iterator kmsiterator;
 class clusters {
 private:
     double& operator[](const unsigned index) {
-        return means[index];
+        return mean_vectors[index];
     }
 
 protected:
@@ -46,40 +46,40 @@ protected:
     std::vector<llong_t> num_members_v; // Cluster assignment counts
     std::vector<bool> complete_v; // Have we already divided by num_members
 
-    kmsvector means; // Cluster means
+    kmsvector mean_vectors; // Cluster means
 
 public:
     typedef typename std::shared_ptr<clusters> ptr;
 
     clusters(const unsigned nclust, const unsigned ncol);
     clusters(const unsigned nclust, const unsigned ncol,
-            const kmsvector& means);
+            const kmsvector& mean_vectors);
     clusters(const unsigned nclust, const unsigned ncol,
-            const double* means);
+            const double* mean_vectors);
 
     static ptr create(const unsigned nclust, const unsigned ncol) {
         return ptr(new clusters(nclust, ncol));
     }
 
     static ptr create(const unsigned nclust, const unsigned ncol,
-            const kmsvector& means) {
-        return ptr(new clusters(nclust, ncol, means));
+            const kmsvector& mean_vectors) {
+        return ptr(new clusters(nclust, ncol, mean_vectors));
     }
 
     static ptr create(const unsigned nclust, const unsigned ncol,
-            const double* means) {
-        return ptr(new clusters(nclust, ncol, means));
+            const double* mean_vectors) {
+        return ptr(new clusters(nclust, ncol, mean_vectors));
     }
 
     const kmsvector& get_means() const {
-        return means;
+        return mean_vectors;
     }
 
     // Get actual index into mean vector (NOT the cluster ID)
-    double get(const unsigned index) { return means[index]; }
+    double get(const unsigned index) { return mean_vectors[index]; }
 
     virtual const double* get_mean_rawptr(const size_t idx) const {
-        return &means[idx*ncol];
+        return &mean_vectors[idx*ncol];
     }
 
     const llong_t get_num_members(const llong_t idx) const {
@@ -105,7 +105,7 @@ public:
     }
 
     const unsigned size() const {
-        return means.size();
+        return mean_vectors.size();
     }
 
     virtual void num_members_peq(const llong_t val, const unsigned idx) {
@@ -128,7 +128,7 @@ public:
     virtual void add_member(const double* arr, const unsigned idx) {
         unsigned offset = idx * ncol;
         for (unsigned i=0; i < ncol; i++) {
-            means[offset+i] += arr[i];
+            mean_vectors[offset+i] += arr[i];
         }
         num_members_v[idx]++;
     }
@@ -138,7 +138,7 @@ public:
         unsigned nid = 0;
         while(count_it.has_next()) {
             double e = count_it.next();
-            means[(idx*ncol)+(nid++)] += e;
+            mean_vectors[(idx*ncol)+(nid++)] += e;
         }
         num_members_v[idx]++;
     }
@@ -148,7 +148,7 @@ public:
         unsigned nid = 0;
         while(count_it.has_next()) {
             double e = count_it.next();
-            means[(idx*ncol)+nid++] -= e;
+            mean_vectors[(idx*ncol)+nid++] -= e;
         }
         num_members_v[idx]--;
     }
@@ -157,7 +157,7 @@ public:
     void remove_member(const T* arr, const unsigned idx) {
         unsigned offset = idx * ncol;
         for (unsigned i=0; i < ncol; i++) {
-            means[offset+i] -= arr[i];
+            mean_vectors[offset+i] -= arr[i];
         }
         num_members_v[idx]--;
     }
@@ -177,8 +177,8 @@ public:
         unsigned to_offset = to_id * ncol;
         while(count_it.has_next()) {
             double e = count_it.next();
-            means[from_offset+nid] -= e;
-            means[to_offset+nid++] += e;
+            mean_vectors[from_offset+nid] -= e;
+            mean_vectors[to_offset+nid++] += e;
         }
         num_members_v[from_id]--;
         num_members_v[to_id]++;
@@ -190,7 +190,7 @@ public:
         unsigned nid = 0;
         while(it.has_next()) {
             double e = it.next();
-            means[offset+nid] = e;
+            mean_vectors[offset+nid] = e;
         }
     }
 
@@ -263,7 +263,7 @@ private:
     }
 
     prune_clusters(const unsigned nclust, const unsigned ncol,
-            const kmsvector means): clusters(nclust, ncol, means) {
+            const kmsvector mean_vectors): clusters(nclust, ncol, mean_vectors) {
         init();
     }
 
@@ -290,7 +290,7 @@ public:
     }
 
     void set_prev_means() {
-        this->prev_means = means;
+        this->prev_means = mean_vectors;
     }
 
     void set_prev_dist(const double dist, const unsigned idx) {

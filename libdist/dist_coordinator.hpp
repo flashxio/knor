@@ -20,7 +20,7 @@
 #define __KNOR_DIST_COORDINATOR_HPP__
 
 #include "exception.hpp"
-#include "kmeans_coordinator.hpp"
+#include "means.hpp"
 
 namespace clustercore = knor::core;
 
@@ -28,7 +28,7 @@ namespace knor { namespace dist {
 
 constexpr unsigned root = 0;
 
-class dist_coordinator : public knor::kmeans_coordinator {
+class dist_coordinator : public knor::means {
 private:
     dist_coordinator(int argc, char* argv[],
             const std::string fn, const size_t nrow,

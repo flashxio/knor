@@ -21,7 +21,7 @@
 #include <numa.h>
 #endif
 
-#include "kmeans_coordinator.hpp"
+#include "means.hpp"
 #include "kmeans_task_coordinator.hpp"
 #include "test_shared.hpp"
 #include "util.hpp"
@@ -49,8 +49,8 @@ clustercore::cluster_t run_test(const std::string datafn, double* p_centers,
                 nnodes, NTHREADS, p_centers, init, 0);
         ret = kc->run();
     } else {
-        knor::kmeans_coordinator::ptr kc =
-            knor::kmeans_coordinator::create(datafn,
+        knor::means::ptr kc =
+            knor::means::create(datafn,
                 TEST_NROW, TEST_NCOL, TEST_K, max_iter, nnodes,
                 NTHREADS, p_centers, init, 0);
         ret = kc->run();

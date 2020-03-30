@@ -26,7 +26,7 @@
 namespace knor { namespace core {
 
 void clusters::clear() {
-    std::fill(means.begin(), means.end(), 0);
+    std::fill(mean_vectors.begin(), mean_vectors.end(), 0);
     std::fill(num_members_v.begin(), num_members_v.end(), 0);
     std::fill(complete_v.begin(), complete_v.end(), false);
 }
@@ -35,20 +35,20 @@ void clusters::clear() {
 */
 void clusters::set_mean(const kmsvector& mean, const int idx) {
     if (idx == -1) { // Set all means
-        means = mean;
+        mean_vectors = mean;
     } else {
         std::copy(mean.begin(), mean.end(),
-                this->means.begin()+(idx*ncol));
+                this->mean_vectors.begin()+(idx*ncol));
     }
 }
 
 void clusters::set_mean(const double* mean, const int idx) {
     if (idx == -1) { // Set all means
-        if (means.size() != (ncol*nclust))
-            means.resize(ncol*nclust);
-        std::copy(&(mean[0]), &(mean[ncol*nclust]), this->means.begin());
+        if (mean_vectors.size() != (ncol*nclust))
+            mean_vectors.resize(ncol*nclust);
+        std::copy(&(mean[0]), &(mean[ncol*nclust]), this->mean_vectors.begin());
     } else {
-        std::copy(&(mean[0]), &(mean[ncol]), this->means.begin()+(idx*ncol));
+        std::copy(&(mean[0]), &(mean[ncol]), this->mean_vectors.begin()+(idx*ncol));
     }
 }
 
@@ -59,7 +59,7 @@ void clusters::finalize(const unsigned idx) {
 
     if (num_members_v[idx] > 1) { // Less than 2 is the same result
         for (unsigned i = 0; i < ncol; i++) {
-            means[(idx*ncol)+i] /= double(num_members_v[idx]);
+            mean_vectors[(idx*ncol)+i] /= double(num_members_v[idx]);
         }
     }
     complete_v[idx] = true;
@@ -74,7 +74,7 @@ void clusters::unfinalize(const unsigned idx) {
         return;
 
     for (unsigned col = 0; col < ncol; col++) {
-        this->means[(ncol*idx) + col] *= (double)num_members_v[idx];
+        this->mean_vectors[(ncol*idx) + col] *= (double)num_members_v[idx];
     }
 }
 
@@ -93,7 +93,7 @@ void clusters::set_num_members_v(const size_t* arg) {
 }
 
 clusters& clusters::operator=(clusters& other) {
-    this->means = other.get_means();
+    this->mean_vectors = other.get_means();
     this->num_members_v = other.get_num_members_v();
     this->ncol = other.get_ncol();
     this->nclust = other.get_nclust();
@@ -110,7 +110,7 @@ bool clusters::operator==(clusters& other) {
 
 clusters& clusters::operator+=(clusters& rhs) {
     for (unsigned i = 0; i < size(); i++)
-        this->means[i] += rhs[i];
+        this->mean_vectors[i] += rhs[i];
 
     for (unsigned idx = 0; idx < nclust; idx++)
         num_members_peq(rhs.get_num_members(idx), idx);
@@ -120,7 +120,7 @@ clusters& clusters::operator+=(clusters& rhs) {
 void clusters::peq(ptr rhs) {
     assert(rhs->size() == size());
     for (unsigned i = 0; i < size(); i++)
-        this->means[i] += rhs->get(i);
+        this->mean_vectors[i] += rhs->get(i);
 
     for (unsigned idx = 0; idx < nclust; idx++)
         num_members_peq(rhs->get_num_members(idx), idx);
@@ -128,7 +128,7 @@ void clusters::peq(ptr rhs) {
 
 void clusters::means_peq(const double* other) {
     for (unsigned i = 0; i < size(); i++)
-        this->means[i] += other[i];
+        this->mean_vectors[i] += other[i];
 }
 
 void clusters::num_members_v_peq(const size_t* other) {
@@ -142,7 +142,7 @@ const void clusters::print_means() const {
     printf("nclust: %u\n", get_nclust());
     for (unsigned cl_idx = 0; cl_idx < get_nclust(); cl_idx++) {
         std::cout << "#memb = " << get_num_members(cl_idx) << " ";
-        print<double>(&(means[cl_idx*ncol]), ncol);
+        print<double>(&(mean_vectors[cl_idx*ncol]), ncol);
     }
 #endif
 }
@@ -159,23 +159,23 @@ clusters::clusters(const unsigned nclust, const unsigned ncol) {
     this->nclust = nclust;
     this->ncol = ncol;
 
-    means.resize(ncol*nclust);
+    mean_vectors.resize(ncol*nclust);
     num_members_v.resize(nclust);
     complete_v.assign(nclust, false);
 }
 
 clusters::clusters(const unsigned nclust, const unsigned ncol,
-        const double* means) {
+        const double* mean_vectors) {
     this->nclust = nclust;
     this->ncol = ncol;
 
-    set_mean(means);
+    set_mean(mean_vectors);
     num_members_v.resize(nclust);
     complete_v.assign(nclust, true);
 }
 
 clusters::clusters(const unsigned nclust, const unsigned ncol,
-        const kmsvector& means) : clusters(nclust, ncol, &means[0]) {
+        const kmsvector& mean_vectors) : clusters(nclust, ncol, &mean_vectors[0]) {
 }
 
 const void clusters::print_membership_count() const {
@@ -193,7 +193,7 @@ void clusters::scale_centroid(const double factor,
         const unsigned idx, const double* member) {
     assert(idx < nclust);
     for (unsigned col = 0; col < ncol; col++) {
-        means[(ncol*idx)+col] = ((1-factor)*means[(idx*ncol)+col])
+        mean_vectors[(ncol*idx)+col] = ((1-factor)*mean_vectors[(idx*ncol)+col])
             + (factor*(member[col]));
     }
 }
@@ -225,7 +225,7 @@ void sparse_clusters::resize(const size_t idx) {
     // Quick sanity checks
     assert(nclust == num_members_v.size());
     assert(num_members_v.size() == complete_v.size());
-    assert(means.size() == nclust*ncol);
+    assert(mean_vectors.size() == nclust*ncol);
 
 
     // These have nclust elements
@@ -236,11 +236,11 @@ void sparse_clusters::resize(const size_t idx) {
     complete_v.resize(idx+1);
     std::fill_n(complete_v.begin()+nclust, nelem, false);
 
-    auto old_size = means.size();
+    auto old_size = mean_vectors.size();
     nelem = ((idx+1)*ncol) - old_size;
 
-    means.resize((idx+1)*ncol);
-    std::fill_n(&means[old_size], nelem, 0); // Zero it out
+    mean_vectors.resize((idx+1)*ncol);
+    std::fill_n(&mean_vectors[old_size], nelem, 0); // Zero it out
 
     nclust = idx + 1;
 }
@@ -251,7 +251,7 @@ const void sparse_clusters::print_means() const  {
     for (size_t i = 0; i < nclust; i++) {
         if (num_members_v[i]) {
             printf("id: %lu\nmean: ", i);
-            print(&means[i*ncol], ncol);
+            print(&mean_vectors[i*ncol], ncol);
         }
     }
 #endif
@@ -262,7 +262,7 @@ void sparse_clusters::peq(ptr rhs) {
         resize(rhs->size()); // NOTE: should be -1., but ok
 
     for (unsigned i = 0; i < rhs->size(); i++) // NOTE: rhs could be smaller
-        this->means[i] += rhs->get(i);
+        this->mean_vectors[i] += rhs->get(i);
 
     for (unsigned idx = 0; idx < rhs->get_nclust(); idx++)
         num_members_peq(rhs->get_num_members(idx), idx);
