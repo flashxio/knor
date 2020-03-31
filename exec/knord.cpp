@@ -127,8 +127,8 @@ int main(int argc, char* argv[]) {
     clustercore::cluster_t ret; // Only root fills this
 
     if (no_prune) {
-        knor::distmem::dist:ptr dc =
-            knor::distmem::dist:create(argc, argv,
+        knor::distmem::dist::ptr dc =
+            knor::distmem::dist::create(argc, argv,
                     datafn, nrow, ncol, k, max_iters, nnodes, nthread,
                     p_centers, init, tolerance, dist_type);
         std::static_pointer_cast<knor::distmem::dist>(

@@ -14,7 +14,8 @@ RUN apt-get -y install \
         vim \
         libaio-dev \
         libatlas-base-dev \
-        libgoogle-perftools-dev
+        libgoogle-perftools-dev \
+        libboost-all-dev
 
 WORKDIR /home/ubuntu/
 # TODO: make with multiple procs
