@@ -16,8 +16,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __KNOR_DIST_TASK_COORDINATOR_HPP__
-#define __KNOR_DIST_TASK_COORDINATOR_HPP__
+#ifndef __KNOR_DIST_TASK_HPP__
+#define __KNOR_DIST_TASK_HPP__
 
 #include "kmeans_task_coordinator.hpp"
 #include "exception.hpp"
@@ -28,9 +28,9 @@ namespace knor { namespace prune {
 
 constexpr unsigned root = 0;
 
-class dist_task_coordinator : public kmeans_task_coordinator {
+class dist_task : public kmeans_task_coordinator {
 private:
-    dist_task_coordinator(int argc, char* argv[],
+    dist_task(int argc, char* argv[],
             const std::string fn, const size_t nrow,
             const size_t ncol, const unsigned k, const unsigned max_iters,
             const unsigned nnodes, const unsigned nthreads,
@@ -60,7 +60,7 @@ public:
                 dist_type.c_str(), fn.c_str());
 #endif
         return base::ptr(
-                new dist_task_coordinator(argc, argv, fn, nrow, ncol, k,
+                new dist_task(argc, argv, fn, nrow, ncol, k,
                     max_iters, nnodes, nthreads, centers,
                     _init_t, tolerance, _dist_t));
     }
@@ -82,7 +82,7 @@ public:
     }
     const int get_nprocs() const { return nprocs; }
     const size_t init(int argc, char* argv[], const size_t g_nrow);
-    ~dist_task_coordinator();
+    ~dist_task();
 };
 } } // End namespace knor, prune
 #endif

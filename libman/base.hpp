@@ -17,8 +17,8 @@
  * limitations under the License.
  */
 
-#ifndef __KNOR_COORDINATOR_HPP__
-#define __KNOR_COORDINATOR_HPP__
+#ifndef __KNOR_BASE_HPP__
+#define __KNOR_BASE_HPP__
 
 #include <pthread.h>
 

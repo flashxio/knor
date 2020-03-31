@@ -23,8 +23,8 @@
 
 #include "signal.h"
 
-#include "dist_task_coordinator.hpp"
-#include "dist_coordinator.hpp"
+#include "dist_task.hpp"
+#include "dist.hpp"
 #include "io.hpp"
 #include "util.hpp"
 
@@ -127,18 +127,18 @@ int main(int argc, char* argv[]) {
     clustercore::cluster_t ret; // Only root fills this
 
     if (no_prune) {
-        knor::dist::dist_coordinator::ptr dc =
-            knor::dist::dist_coordinator::create(argc, argv,
+        knor::distmem::dist:ptr dc =
+            knor::distmem::dist:create(argc, argv,
                     datafn, nrow, ncol, k, max_iters, nnodes, nthread,
                     p_centers, init, tolerance, dist_type);
-        std::static_pointer_cast<knor::dist::dist_coordinator>(
+        std::static_pointer_cast<knor::distmem::dist>(
                 dc)->run(ret, outdir);
     } else {
-        knor::prune::dist_task_coordinator::ptr dc =
-            knor::prune::dist_task_coordinator::create(argc, argv,
+        knor::prune::dist_task::ptr dc =
+            knor::prune::dist_task::create(argc, argv,
                     datafn, nrow, ncol, k, max_iters, nnodes, nthread,
                     p_centers, init, tolerance, dist_type);
-        std::static_pointer_cast<knor::prune::dist_task_coordinator>(
+        std::static_pointer_cast<knor::prune::dist_task>(
                 dc)->run(ret, outdir);
     }
 

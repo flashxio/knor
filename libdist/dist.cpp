@@ -17,43 +17,43 @@
  * limitations under the License.
  */
 
-#include "dist_task_coordinator.hpp"
-#include "kmeans_task_thread.hpp"
+#include "dist.hpp"
+#include "kmeans_thread.hpp"
 #include "clusters.hpp"
 #include "io.hpp"
 #include "mpi.hpp"
 #include "util.hpp"
 #include "types.hpp"
-#include "dist_matrix.hpp"
 
 namespace kmpi = knor::mpi;
 
-namespace knor { namespace prune {
+namespace knor { namespace distmem {
 
-dist_task_coordinator::dist_task_coordinator(
+dist::dist(
         int argc, char* argv[],
         const std::string fn, const size_t nrow,
         const size_t ncol, const unsigned k, const unsigned max_iters,
         const unsigned nnodes, const unsigned nthreads,
         const double* centers, const clustercore::init_t it,
         const double tolerance, const clustercore::dist_t dt) :
-    kmeans_task_coordinator(fn, this->init(argc, argv, nrow),
-            ncol, k, max_iters, nnodes, nthreads, centers, it, tolerance, dt) {
+    means(fn, this->init(argc, argv, nrow), ncol, k, max_iters, nnodes,
+            nthreads, centers, it, tolerance, dt) {
 
         this->g_nrow = nrow;
 
         for (thread_iter it = threads.begin(); it < threads.end(); ++it)
             (*it)->set_start_rid((*it)->get_start_rid()
                     + (nrow / nprocs) * mpi_rank);
-
-        prev_num_members.resize(k);
 }
 
 /**
+  * A method called prior to calling the superclass constructor.
   * This takes the global number of samples in the *entire* dataset, `g_nrow'
-  *     and gives the base it's partion.
+  *     and gives the base it's partition.
+  * \param g_nrow: the global number of rows
+  * \return the local number of rows for this process
   */
-const size_t dist_task_coordinator::init(int argc, char* argv[],
+const size_t dist::init(int argc, char* argv[],
         const size_t g_nrow) {
     if (MPI_Init(&argc, &argv) != MPI_SUCCESS)
         throw std::runtime_error("MPI_Init error\n");
@@ -67,7 +67,7 @@ const size_t dist_task_coordinator::init(int argc, char* argv[],
         return (g_nrow / nprocs);
 }
 
-void dist_task_coordinator::random_partition_init() {
+void dist::random_partition_init() {
     clustercore::rand123emulator<unsigned> gen(0, k-1,
             ((g_nrow / nprocs) * mpi_rank));
     for (size_t row = 0; row < nrow; row++) {
@@ -86,11 +86,29 @@ void dist_task_coordinator::random_partition_init() {
 #endif
 }
 
-const size_t dist_task_coordinator::global_rid(const size_t local_rid) const {
-    return ((g_nrow / nprocs)*mpi_rank) + local_rid;
+/**
+  * We need to shift the `start_rid` to be only local to this process so
+  *     that `EM_step` in the threading class assigns to a global_rid that is
+  *     local to only this process.
+  */
+void dist::shift_thread_start_rid() {
+    size_t c = 0;
+    for (thread_iter it = threads.begin(); it != threads.end(); ++it) {
+        size_t shift = (*it)->get_start_rid() - ((g_nrow / nprocs) * mpi_rank);
+#if VERBOSE
+#ifndef BIND
+        printf("P: %u, T: %lu, start_rid: %lu\n", mpi_rank, c++, shift);
+#endif
+#endif
+        (*it)->set_start_rid(shift);
+    }
 }
 
-const size_t dist_task_coordinator::local_rid(const size_t global_rid) const {
+const size_t dist::global_rid(const size_t local_rid) const {
+    return ((g_nrow / nprocs) * mpi_rank) + local_rid;
+}
+
+const size_t dist::local_rid(const size_t global_rid) const {
     size_t rid = global_rid - (mpi_rank * (g_nrow / nprocs));
     if (rid > this->nrow)
         throw clustercore::thread_exception("Row: " + std::to_string(rid) +
@@ -98,7 +116,7 @@ const size_t dist_task_coordinator::local_rid(const size_t global_rid) const {
     return rid;
 }
 
-const bool dist_task_coordinator::is_local(const size_t global_rid) const {
+const bool dist::is_local(const size_t global_rid) const {
     size_t rid = global_rid - (mpi_rank * (g_nrow / nprocs));
     if (rid >= this->nrow)
         return false;
@@ -106,30 +124,30 @@ const bool dist_task_coordinator::is_local(const size_t global_rid) const {
 }
 
 // For testing
-void const dist_task_coordinator::print_thread_data() {
-#ifndef BIND
-    printf("\n\nProcess: %u\n", this->mpi_rank);
-#endif
-    kmeans_task_coordinator::print_thread_data();
+void const dist::print_thread_data() {
+    std::cout << "\n\nProcess: " << this->mpi_rank;
+    means::print_thread_data();
 }
 
-void dist_task_coordinator::kmeanspp_init() {
+void dist::kmeanspp_init() {
     struct timeval start, end;
 
     std::vector<double> buff(k*ncol);
-    std::vector<double> g_dist_v(g_nrow); // Global to all processes
+    std::vector<double> dist_v;
+    std::vector<double> g_dist_v(g_nrow);
+    dist_v.assign(get_nrow(), std::numeric_limits<double>::max()); // local nrow
     set_thd_dist_v_ptr(&dist_v[0]);
 
     std::default_random_engine generator;
     std::uniform_int_distribution<unsigned> distribution(0, g_nrow-1);
 
     // Choose c1 uniformly at random
-    unsigned selected_idx = distribution(generator); // 0...(g_nrow-1)
+    unsigned selected_idx = distribution(generator);
 
     // If proc owns the row -- get it ...
     if (is_local(selected_idx)) {
         cltrs->set_mean(get_thd_data(local_rid(selected_idx)), 0);
-        dist_v[local_rid(selected_idx)] = 0;
+        dist_v[local_rid(selected_idx)] = 0.0;
         cluster_assignments[local_rid(selected_idx)] = 0;
     }
 
@@ -138,9 +156,8 @@ void dist_task_coordinator::kmeanspp_init() {
     cltrs->set_mean(&buff[0]);
 
 #if VERBOSE
-    if (mpi_rank == 0)
 #ifndef BIND
-        printf("Choosing %u as center k = 0\n", selected_idx);
+    printf("Choosing %u as center k = 0\n", selected_idx);
 #endif
 #endif
     unsigned clust_idx = 0; // The number of clusters assigned
@@ -184,15 +201,13 @@ void dist_task_coordinator::kmeanspp_init() {
 #if VERBOSE
                 if (mpi_rank == 0)
 #ifndef BIND
-                    printf("Choosing r: %lu  as center k = %u\n",
-                            row, clust_idx);
+                    printf("Choosing %lu as center k = %u\n", row, clust_idx);
 #endif
 #endif
 
                 if (is_local(row)) {
                     cltrs->set_mean(get_thd_data(local_rid(row)), clust_idx);
                     cluster_assignments[local_rid(row)] = clust_idx;
-                    dist_v[local_rid(row)] = 0;
                 } else {
                     cltrs->clear();
                 }
@@ -219,11 +234,11 @@ void dist_task_coordinator::kmeanspp_init() {
     if (mpi_rank == 0)
 #ifndef BIND
         printf("Initialization time: %.6f sec\n",
-            clustercore::time_diff(start, end));
+                clustercore::time_diff(start, end));
 #endif
 }
 
-void dist_task_coordinator::forgy_init() {
+void dist::forgy_init() {
     std::default_random_engine generator;
     std::uniform_int_distribution<size_t> distribution(0, g_nrow-1);
 
@@ -234,23 +249,23 @@ void dist_task_coordinator::forgy_init() {
     }
 }
 
-void dist_task_coordinator::run(clustercore::cluster_t& ret,
+void dist::run(clustercore::cluster_t& ret,
         const std::string outdir) {
-
     if (mpi_rank == root) {
         if (outdir.empty())
             fprintf(stderr, "\n**[WARNING]**: No output dir specified with "
                     "'-o' flag means no output will be saved!\n");
 
 #ifndef BIND
-        printf("Running PRUNED kmeans\n");
+        printf("Running FULL kmeans\n");
 #endif
     }
 
-    // The business
-    set_global_ptrs();
+    // Give processes their data
     wake4run(knor::thread_state_t::ALLOC_DATA);
     wait4complete();
+
+    shift_thread_start_rid();
 
     struct timeval start, end;
     gettimeofday(&start , NULL);
@@ -261,14 +276,13 @@ void dist_task_coordinator::run(clustercore::cluster_t& ret,
     size_t iters = 0;
     size_t nchanged = 0;
 
+    clustercore::clusters::ptr cltrs_ptr = get_gcltrs();
+
     // Init
     run_init();
 
     double* clstr_buff = new double[k*ncol];
     size_t* nmemb_buff = new size_t[k];
-
-    // TODO: Check cost of all the shared_ptr passing
-    clustercore::prune_clusters::ptr cltrs_ptr = get_gcltrs();
 
     if (_init_t == clustercore::init_t::RANDOM ||
             _init_t == clustercore::init_t::FORGY) {
@@ -284,7 +298,7 @@ void dist_task_coordinator::run(clustercore::cluster_t& ret,
             cltrs_ptr->finalize_all();
             // End Init
 
-#if VERBOSE
+#ifdef VERBOSE
             assert((size_t)std::accumulate(cltrs_ptr->get_num_members_v().begin(),
                         cltrs_ptr->get_num_members_v().end(), 0) == g_nrow);
             if (mpi_rank == root) {
@@ -299,8 +313,8 @@ void dist_task_coordinator::run(clustercore::cluster_t& ret,
 
     // EM-step iterations
     while (iters < max_iters && max_iters > 0) {
-        if (iters == 1)
-            set_prune_init(false);
+        if (iters == 0)
+            clear_cluster_assignments();
 
         // Init iteration
         if (mpi_rank == root)
@@ -308,18 +322,10 @@ void dist_task_coordinator::run(clustercore::cluster_t& ret,
             printf("Running iteration %lu ...\n", iters);
 #endif
 
-        get_dm()->compute_dist(cltrs_ptr, ncol);
-#if VERBOSE
-        if (mpi_rank == 0) {
-#ifndef BIND
-            printf("Updated dist matrix:\n");
-#endif
-            get_dm()->print();
-        }
-#endif
         wake4run(knor::thread_state_t::EM);
         wait4complete();
-        // NOTE: Unfinalized diffs on this proc in cltrs.mean_vectors
+        // NOTE: Unfinalized diffs on this proc
+
         pp_aggregate();
 
         // NOTE: cltrs_ptr has this procs diff (agg of threads from this proc)
@@ -330,29 +336,11 @@ void dist_task_coordinator::run(clustercore::cluster_t& ret,
         // nmemb_buff has agg of all procs diff on membership count
         kmpi::mpi::reduce_llong_t(&(cltrs_ptr->get_num_members_v()[0]),
                 nmemb_buff, cltrs_ptr->get_num_members_v().size());
-
-        if (iters == 0) {
-            cltrs_ptr->set_mean(clstr_buff);
-            cltrs_ptr->set_num_members_v(nmemb_buff);
-        } else {
-            // Get the prev univ clusters
-            cltrs_ptr->set_mean(cltrs_ptr->get_prev_means());
-            cltrs_ptr->set_num_members_v(&(get_prev_num_members())[0]);
-#if VERBOSE
-#ifndef BIND
-            printf("Prev universal clusters for Proc: %d ==> \n", mpi_rank);
-#endif
-            cltrs_ptr->print_means();
-#endif
-            cltrs_ptr->set_complete_all(); // Must set this
-            cltrs_ptr->unfinalize_all();
-
-            cltrs_ptr->means_peq(clstr_buff);
-            cltrs_ptr->num_members_v_peq(nmemb_buff);
-        }
+        cltrs_ptr->set_mean(clstr_buff);
+        cltrs_ptr->set_num_members_v(nmemb_buff);
 
         // NOTE: Now finalized
-        size_t pp_num_changed = get_num_changed();
+        auto pp_num_changed = get_num_changed();
         kmpi::mpi::reduce_size_t(&pp_num_changed, &nchanged);
 
         if (mpi_rank == root) {
@@ -367,18 +355,7 @@ void dist_task_coordinator::run(clustercore::cluster_t& ret,
                     cltrs_ptr->get_num_members_v().end(), 0) == g_nrow);
 
         perc_changed = (double)nchanged/g_nrow; // Global perc change
-        for (unsigned c = 0; c < k; c++) {
-            cltrs_ptr->finalize(c);
-            cltrs_ptr->set_prev_dist(
-                    clustercore::eucl_dist(&(cltrs_ptr->get_means()[c*ncol]),
-                        &(cltrs_ptr->get_prev_means()[c*ncol]), ncol), c);
-#if VERBOSE
-#ifndef BIND
-            printf("Dist to prev mean for c: %u is %.6f\n", c,
-                    cltrs_ptr->get_prev_dist(c));
-#endif
-#endif
-        }
+        cltrs_ptr->finalize_all();
 
         if (nchanged == 0 || perc_changed <= tolerance) {
             converged = true;
@@ -388,6 +365,8 @@ void dist_task_coordinator::run(clustercore::cluster_t& ret,
 #endif
             break;
         }
+
+        nchanged = 0;
         iters++;
     }
 
@@ -399,7 +378,7 @@ void dist_task_coordinator::run(clustercore::cluster_t& ret,
     gettimeofday(&end, NULL);
     if (mpi_rank == root)
 #ifndef BIND
-        printf("\nAlgorithmic time taken = %.6f sec\n",
+        printf("\nAlgorithmic time taken = %.5f sec\n",
                 clustercore::time_diff(start, end));
 #endif
 
@@ -410,7 +389,8 @@ void dist_task_coordinator::run(clustercore::cluster_t& ret,
         if (mpi_rank != root) {
             int rc = MPI_Ssend(local_assignments, get_nrow(),
                     MPI::UNSIGNED, root, 0, MPI_COMM_WORLD);
-            clustercore::assert_msg(!rc, "Failure to send local assignments to root");
+            clustercore::assert_msg(!rc,
+                    "Failure to send local assignments to root");
         } else {
             std::vector<unsigned> assignments(g_nrow);
             std::copy(local_assignments, local_assignments+get_nrow(),
@@ -427,7 +407,8 @@ void dist_task_coordinator::run(clustercore::cluster_t& ret,
                 int rc = MPI_Recv(&assignments[pid*(g_nrow/nprocs)],
                         count, MPI::UNSIGNED, pid,
                         0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-                clustercore::assert_msg(!rc, "Root Failure receive local assignments");
+                clustercore::assert_msg(!rc,
+                        "Root Failure receive local assignments");
             }
 
             ret = clustercore::cluster_t(g_nrow, ncol, iters, k, &assignments[0],
@@ -443,24 +424,19 @@ void dist_task_coordinator::run(clustercore::cluster_t& ret,
         }
     }
 
-
     // MPI cleanup and graceful exit
     delete [] clstr_buff;
     delete [] nmemb_buff;
 }
 
-dist_task_coordinator::~dist_task_coordinator() {
+dist::~dist() {
     MPI_Finalize();
 }
 
 // Aggregate per process from threads &
 //      save to `cltrs' as the delta for 1 EM-step
-void dist_task_coordinator::pp_aggregate() {
+void dist::pp_aggregate() {
     num_changed = 0; // Reset every iteration
-    cltrs->set_prev_means();
-    std::copy(cltrs->get_num_members_v().begin(),
-            cltrs->get_num_members_v().end(), prev_num_members.begin());
-
     cltrs->clear(); // NOTE: So we don't clear prev_means
 
     for (thread_iter it = threads.begin(); it != threads.end(); ++it) {
@@ -470,4 +446,4 @@ void dist_task_coordinator::pp_aggregate() {
     }
 }
 
-} } // End namespace knor, prune
+} } // End namespace knor::dist

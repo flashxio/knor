@@ -16,21 +16,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __KNOR_DIST_COORDINATOR_HPP__
-#define __KNOR_DIST_COORDINATOR_HPP__
+#ifndef __KNOR_DIST_HPP__
+#define __KNOR_DIST_HPP__
 
 #include "exception.hpp"
 #include "means.hpp"
 
 namespace clustercore = knor::core;
 
-namespace knor { namespace dist {
+namespace knor { namespace distmem {
 
 constexpr unsigned root = 0;
 
-class dist_coordinator : public knor::means {
+class dist : public knor::means {
 private:
-    dist_coordinator(int argc, char* argv[],
+    dist(int argc, char* argv[],
             const std::string fn, const size_t nrow,
             const size_t ncol, const unsigned k, const unsigned max_iters,
             const unsigned nnodes, const unsigned nthreads,
@@ -53,7 +53,7 @@ public:
         clustercore::dist_t _dist_t = clustercore::get_dist_type(dist_type);
 
         return base::ptr(
-                new dist_coordinator(argc, argv, fn, nrow, ncol, k, max_iters,
+                new dist(argc, argv, fn, nrow, ncol, k, max_iters,
                     nnodes, nthreads, centers,
                     _init_t, tolerance, _dist_t));
     }
@@ -74,7 +74,7 @@ public:
 
     const int get_nprocs() const { return nprocs; }
     const size_t init(int argc, char* argv[], const size_t g_nrow);
-    ~dist_coordinator();
+    ~dist();
 };
 } } // End namespace knor::dist
 #endif
